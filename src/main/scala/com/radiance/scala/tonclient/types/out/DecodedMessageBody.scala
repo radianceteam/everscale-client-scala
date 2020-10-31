@@ -1,6 +1,5 @@
 package com.radiance.scala.tonclient.types.out
 
-import com.radiance.scala.tonclient.types.MessageBodyType
 import com.radiance.scala.tonclient.types.both.FunctionHeader
 import io.circe._
 import io.circe.derivation._

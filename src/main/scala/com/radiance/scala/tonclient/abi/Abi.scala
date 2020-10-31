@@ -1,7 +1,7 @@
 package com.radiance.scala.tonclient.abi
 
 import com.radiance.scala.tonclient.TONContext
-import com.radiance.scala.tonclient.abi.args._
+import com.radiance.scala.tonclient.abi.api._
 import com.radiance.scala.tonclient.types.out._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -22,8 +22,8 @@ class Abi(val ctx: TONContext)(implicit val ec: ExecutionContext) {
                        publicKey: String,
                        message: String,
                        signature: String
-                     ): Future[Either[Throwable, ResultOfAttachSignature]] = ctx.requestValue[AttachSignatureArgs, ResultOfAttachSignature](
-    AttachSignatureArgs(abi, publicKey, message, signature)
+                     ): Future[Either[Throwable, ResultOfAttachSignature]] = ctx.exec(
+    AttachSignature(abi, publicKey, message, signature)
   )
 
 
@@ -40,11 +40,9 @@ class Abi(val ctx: TONContext)(implicit val ec: ExecutionContext) {
                                     publicKey: String,
                                     message: String,
                                     signature: String
-                                  ): Future[Either[Throwable, String]] = ctx.requestField[AttachSignatureToMessageBodyArgs, String](
-    AttachSignatureToMessageBodyArgs(abi, publicKey, message, signature)
+                                  ): Future[Either[Throwable, String]] = ctx.exec(
+    AttachSignatureToMessageBody(abi, publicKey, message, signature)
   )
-
-
 
   /**
    * Decodes message body using provided message BOC and ABI.
@@ -52,11 +50,8 @@ class Abi(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param abi     contract ABI
    * @param message Message BOC
    */
-  def decodeMessage(
-                     abi: String,
-                     message: String
-                   ): Future[Either[Throwable, DecodedMessageBody]] = ctx.requestValue[DecodeMessageArgs, DecodedMessageBody](
-    DecodeMessageArgs(abi, message)
+  def decodeMessage(abi: String, message: String): Future[Either[Throwable, DecodedMessageBody]] = ctx.exec(
+    DecodeMessage(abi, message)
   )
 
 
@@ -71,8 +66,8 @@ class Abi(val ctx: TONContext)(implicit val ec: ExecutionContext) {
                          abi: String,
                          body: String,
                          isInternal: Boolean
-                       ): Future[Either[Throwable, DecodedMessageBody]] = ctx.requestValue[DecodeMessageBodyArgs, DecodedMessageBody](
-    DecodeMessageBodyArgs(abi, body, isInternal)
+                       ): Future[Either[Throwable, DecodedMessageBody]] = ctx.exec(
+    DecodeMessageBody(abi, body, isInternal)
   )
 
 
@@ -91,10 +86,9 @@ class Abi(val ctx: TONContext)(implicit val ec: ExecutionContext) {
                      balance: Long,
                      lastTransLt: Long,
                      lastPaid: Double
-                   ): Future[Either[Throwable, ResultOfEncodeAccount]] = ctx.requestValue[EncodeAccountArgs, ResultOfEncodeAccount](
-    EncodeAccountArgs(stateInit, balance, lastTransLt, lastPaid)
+                   ): Future[Either[Throwable, ResultOfEncodeAccount]] = ctx.exec(
+    EncodeAccount(stateInit, balance, lastTransLt, lastPaid)
   )
-
 
   /**
    * Encodes an ABI-compatible message <p> Allows to encode deploy and function call messages, both signed and unsigned.<p> Use cases include messages of any possible type: - deploy with initial function call (i.e. `constructor` or any other function that is used for some kind of initialization); - deploy without initial function call; - signed/unsigned + data for signing. <p> `Signer` defines how the message should or shouldn't be signed:<p> `Signer::None` creates an unsigned message. This may be needed in case of some public methods,  that do not require authorization by pubkey. <p> `Signer::External` takes public key and returns `data_to_sign` for later signing.  Use `attach_signature` method with the result signature to get the signed message.<p> `Signer::Keys` creates a signed message with provided key pair. <p> <a target="_blank" href="SOON">SOON</a> `Signer::SigningBox` Allows using a special interface to imlepement signing  without private key disclosure to SDK. For instance, in case of using a cold wallet or HSM,  when application calls some API to sign data.
@@ -134,8 +128,8 @@ class Abi(val ctx: TONContext)(implicit val ec: ExecutionContext) {
                      callSet: String,
                      signer: String,
                      processingTryIndex: Long
-                   ): Future[Either[Throwable, ResultOfEncodeMessage]] = ctx.requestValue[EncodeMessageArgs, ResultOfEncodeMessage](
-      EncodeMessageArgs(abi, address, deploySet, callSet, signer, processingTryIndex)
+                   ): Future[Either[Throwable, ResultOfEncodeMessage]] = ctx.exec(
+      EncodeMessage(abi, address, deploySet, callSet, signer, processingTryIndex)
     )
 
   /**
@@ -153,8 +147,8 @@ class Abi(val ctx: TONContext)(implicit val ec: ExecutionContext) {
                          isInternal: Boolean,
                          signer: String,
                          processingTryIndex: Long
-                       ): Future[Either[Throwable, ResultOfEncodeMessageBody]] = ctx.requestValue[EncodeMessageBodyArgs, ResultOfEncodeMessageBody](
-      EncodeMessageBodyArgs(abi, callSet, isInternal, signer, processingTryIndex)
+                       ): Future[Either[Throwable, ResultOfEncodeMessageBody]] = ctx.exec(
+      EncodeMessageBody(abi, callSet, isInternal, signer, processingTryIndex)
     )
 }
 

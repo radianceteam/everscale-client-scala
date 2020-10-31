@@ -1,6 +1,5 @@
 package com.radiance.scala.tonclient.types.out
 
-import com.radiance.scala.tonclient.Args
 import io.circe._
 import io.circe.derivation._
 
@@ -30,9 +29,7 @@ case class ResultOfRunExecutor(
                                  * Transaction fees
                                  */
                                 fees: String
-                              ) extends Args {
-  override val functionName: String = "tvm.run_executor"
-}
+                              )
 
 object ResultOfRunExecutor {
   implicit val resultOfRunExecutorDecoder: Decoder[ResultOfRunExecutor] = deriveDecoder[ResultOfRunExecutor]

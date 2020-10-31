@@ -1,7 +1,7 @@
 package com.radiance.scala.tonclient.net
 
 import com.radiance.scala.tonclient.TONContext
-import com.radiance.scala.tonclient.net.args.{QueryCollectionArgs, SubscribeCollectionArgs, UnsubscribeArgs, WaitForCollectionArgs}
+import com.radiance.scala.tonclient.net.api.{QueryCollection, SubscribeCollection, Unsubscribe, WaitForCollection}
 import com.radiance.scala.tonclient.types.in.OrderBy
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -27,8 +27,8 @@ class Net(val context: TONContext)(implicit val ec: ExecutionContext) {
                        result: String,
                        order: OrderBy,
                        limit: Long
-                     ): Future[Either[Throwable, List[String]]] = context.requestField[QueryCollectionArgs, List[String]](
-    QueryCollectionArgs(collection, filter, result, order, limit)
+                     ): Future[Either[Throwable, List[String]]] = context.exec(
+    QueryCollection(collection, filter, result, order, limit)
   )
 
   /**
@@ -42,8 +42,8 @@ class Net(val context: TONContext)(implicit val ec: ExecutionContext) {
                            collection: String,
                            filter: String,
                            result: String
-                         ): Future[Either[Throwable, Long]] =context.requestField[SubscribeCollectionArgs, Long](
-    SubscribeCollectionArgs(collection, filter, result)
+                         ): Future[Either[Throwable, Long]] = context.exec(
+    SubscribeCollection(collection, filter, result)
   )
 
 
@@ -52,8 +52,8 @@ class Net(val context: TONContext)(implicit val ec: ExecutionContext) {
    *
    * @param handle Subscription handle. Must be closed with `unsubscribe`
    */
-  def unsubscribe(handle: Long): Future[Either[Throwable, String]] = context.requestField[UnsubscribeArgs, String](
-    UnsubscribeArgs(handle: Long)
+  def unsubscribe(handle: Long): Future[Either[Throwable, String]] = context.exec(
+    Unsubscribe(handle: Long)
   )
 
   /**
@@ -69,8 +69,8 @@ class Net(val context: TONContext)(implicit val ec: ExecutionContext) {
                          filter: String,
                          result: String,
                          timeout: Long
-                       ): Future[Either[Throwable, String]] = context.requestField[WaitForCollectionArgs, String](
-    WaitForCollectionArgs(collection, filter, result, timeout)
+                       ): Future[Either[Throwable, String]] = context.exec(
+    WaitForCollection(collection, filter, result, timeout)
   )
 
 }

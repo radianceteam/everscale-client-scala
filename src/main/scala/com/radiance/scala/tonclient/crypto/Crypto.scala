@@ -1,7 +1,7 @@
 package com.radiance.scala.tonclient.crypto
 
 import com.radiance.scala.tonclient.TONContext
-import com.radiance.scala.tonclient.crypto.args._
+import com.radiance.scala.tonclient.crypto.api._
 import com.radiance.scala.tonclient.types.both.KeyPair
 import com.radiance.scala.tonclient.types.out.ResultOfSign
 
@@ -17,8 +17,9 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    *
    * @param publicKey Public key - 64 symbols hex string
    */
-  def convertPublicKeyToTonSafeFormat(publicKey: String): Future[Either[Throwable, String]] = ctx
-    .requestField[ConvertPublicKeyToTonSafeFormatArgs, String](ConvertPublicKeyToTonSafeFormatArgs(publicKey))
+  def convertPublicKeyToTonSafeFormat(publicKey: String): Future[Either[Throwable, String]] = ctx.exec(
+    ConvertPublicKeyToTonSafeFormat(publicKey)
+  )
 
   /**
    * Performs prime factorization – decomposition of a composite number into a product of smaller prime integers (factors).
@@ -26,8 +27,9 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    *
    * @param composite Hexadecimal representation of u64 composite number.
    */
-  def factorize(composite: String): Future[Either[Throwable, List[String]]] = ctx
-    .requestField[FactorizeArgs, List[String]](FactorizeArgs(composite))
+  def factorize(composite: String): Future[Either[Throwable, List[String]]] = ctx.exec(
+    Factorize(composite)
+  )
 
   /**
    * Generates random byte array of the specified length and returns it in `base64` format
@@ -35,14 +37,14 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param length Size of random byte array.
    */
   def generateRandomBytes(length: Long): Future[Either[Throwable, String]] = ctx
-    .requestField[GenerateRandomBytesArgs, String](GenerateRandomBytesArgs(length))
+    .exec(GenerateRandomBytes(length))
 
   /**
    * Generates random ed25519 key pair.
    *
    */
   def generateRandomSignKeys: Future[Either[Throwable, KeyPair]] = ctx
-    .requestValue[GenerateRandomSignKeysArgs, KeyPair](GenerateRandomSignKeysArgs())
+    .exec[GenerateRandomSignKeys](GenerateRandomSignKeys())
 
   /**
    * Returns extended private key derived from the specified extended private key and child index
@@ -52,7 +54,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param hardened   Indicates the derivation of hardened/not-hardened key (see BIP-0032)
    */
   def hdkeyDeriveFromXprv(xprv: String, childIndex: Long, hardened: Boolean): Future[Either[Throwable, String]] = ctx
-    .requestField[HdkeyDeriveFromXprvArgs, String](HdkeyDeriveFromXprvArgs(xprv, childIndex, hardened))
+    .exec(HdkeyDeriveFromXprv(xprv, childIndex, hardened))
 
   /**
    * Derives the exented private key from the specified key and path
@@ -61,7 +63,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param path Derivation path, for instance "m/44'/396'/0'/0/0"
    */
   def hdkeyDeriveFromXprvPath(xprv: String, path: String): Future[Either[Throwable, String]] = ctx
-    .requestField[HdkeyDeriveFromXprvPathArgs, String](HdkeyDeriveFromXprvPathArgs(xprv, path))
+    .exec(HdkeyDeriveFromXprvPath(xprv, path))
 
   /**
    * Extracts the public key from the serialized extended private key
@@ -69,7 +71,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param xprv Serialized extended private key
    */
   def hdkeyPublicFromXprv(xprv: String): Future[Either[Throwable, String]] = ctx
-    .requestField[HdkeyPublicFromXprvArgs, String](HdkeyPublicFromXprvArgs(xprv))
+    .exec(HdkeyPublicFromXprv(xprv))
 
 
   /**
@@ -78,7 +80,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param xprv Serialized extended private key
    */
   def hdkeySecretFromXprv(xprv: String): Future[Either[Throwable, String]] = ctx
-    .requestField[HdkeySecretFromXprvArgs, String](HdkeySecretFromXprvArgs(xprv))
+    .exec(HdkeySecretFromXprv(xprv))
 
   /**
    * Generates an extended master private key that will be the root for all the derived keys
@@ -88,7 +90,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param wordCount  Mnemonic word count
    */
   def hdkeyXprvFromMnemonic(phrase: String, dictionary: Long, wordCount: Long): Future[Either[Throwable, String]] = ctx
-    .requestField[HdkeyXprvFromMnemonicArgs, String](HdkeyXprvFromMnemonicArgs(phrase, dictionary, wordCount))
+    .exec(HdkeyXprvFromMnemonic(phrase, dictionary, wordCount))
 
   /**
    * Validates the seed phrase, generates master key and then derives the key pair from the master key and the specified path
@@ -99,7 +101,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param wordCount  Word count
    */
   def mnemonicDeriveSignKeys(phrase: String, path: String, dictionary: Long, wordCount: Long): Future[Either[Throwable, KeyPair]] = ctx
-    .requestValue[MnemonicDeriveSignKeysArgs, KeyPair](MnemonicDeriveSignKeysArgs(phrase, path, dictionary, wordCount))
+    .exec(MnemonicDeriveSignKeys(phrase, path, dictionary, wordCount))
 
   /**
    * Generates mnemonic from pre-generated entropy
@@ -109,7 +111,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param wordCount  Mnemonic word count
    */
   def mnemonicFromEntropy(entropy: String, dictionary: Long, wordCount: Long): Future[Either[Throwable, String]] = ctx
-    .requestField[MnemonicFromEntropyArgs, String](MnemonicFromEntropyArgs(entropy, dictionary, wordCount))
+    .exec(MnemonicFromEntropy(entropy, dictionary, wordCount))
 
   /**
    * Generates a random mnemonic from the specified dictionary and word count
@@ -118,7 +120,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param wordCount  Mnemonic word count
    */
   def mnemonicFromRandom(dictionary: Long, wordCount: Long): Future[Either[Throwable, String]] = ctx
-    .requestField[MnemonicFromRandom, String](MnemonicFromRandom(dictionary, wordCount))
+    .exec(MnemonicFromRandom(dictionary, wordCount))
 
   /**
    * The phrase supplied will be checked for word length and validated according to the checksum specified in BIP0039.
@@ -128,7 +130,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param wordCount  Word count
    */
   def mnemonicVerify(phrase: String, dictionary: Long, wordCount: Long): Future[Either[Throwable, Boolean]] = ctx
-    .requestField[MnemonicVerifyArgs, Boolean](MnemonicVerifyArgs(phrase, dictionary, wordCount))
+    .exec(MnemonicVerify(phrase, dictionary, wordCount))
 
   /**
    * Prints the list of words from the specified dictionary
@@ -136,7 +138,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param dictionary Dictionary identifier
    */
   def mnemonicWords(dictionary: Long): Future[Either[Throwable, String]] = ctx
-    .requestField[MnemonicWordsArgs, String](MnemonicWordsArgs(dictionary))
+    .exec(MnemonicWords(dictionary))
 
   /**
    * Performs modular exponentiation for big integers (`base` ^^ `exponent` mod `modulus`). See <a target="_blank" href="https://en.wikipedia.org/wiki/Modular_exponentiation">https://en.wikipedia.org/wiki/Modular_exponentiation</a>
@@ -146,7 +148,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param modulus  `modulus` argument of calculation.
    */
   def modularPower(base: String, exponent: String, modulus: String): Future[Either[Throwable, String]] = ctx
-    .requestField[ModularPowerArgs, String](ModularPowerArgs(base, exponent, modulus))
+    .exec(ModularPower(base, exponent, modulus))
 
   /**
    * Public key authenticated encryption<p> Encrypt and authenticate a message using the senders secret key, the recievers public key, and a nonce.
@@ -157,14 +159,14 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param secret      Sender's private key - unprefixed 0-padded to 64 symbols hex string
    */
   def naclBox(decrypted: String, nonce: String, theirPublic: String, secret: String): Future[Either[Throwable, String]] = ctx
-    .requestField[NaclBoxArgs, String](NaclBoxArgs(decrypted, nonce, theirPublic, secret))
+    .exec(NaclBox(decrypted, nonce, theirPublic, secret))
 
   /** TODO fill this
    *
    *
    */
   def naclBoxKeypair: Future[Either[Throwable, KeyPair]] = ctx
-    .requestValue[NaclBoxKeypairArgs, KeyPair](NaclBoxKeypairArgs())
+    .exec(NaclBoxKeypair())
 
   /**
    * Generates key pair from a secret key
@@ -172,7 +174,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param secret Secret key - unprefixed 0-padded to 64 symbols hex string
    */
   def naclBoxKeypairFromSecretKey(secret: String): Future[Either[Throwable, KeyPair]] = ctx
-    .requestValue[NaclBoxKeypairFromSecretKeyArgs, KeyPair](NaclBoxKeypairFromSecretKeyArgs(secret))
+    .exec(NaclBoxKeypairFromSecretKey(secret))
 
   /**
    * Decrypt and verify the cipher text using the recievers secret key, the senders public key, and the nonce.
@@ -182,7 +184,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param secret      Receiver's private key - unprefixed 0-padded to 64 symbols hex string
    */
   def naclBoxOpen(encrypted: String, nonce: String, theirPublic: String, secret: String): Future[Either[Throwable, String]] = ctx
-    .requestField[NaclBoxOpenArgs, String](NaclBoxOpenArgs(encrypted, nonce, theirPublic, secret))
+    .exec(NaclBoxOpen(encrypted, nonce, theirPublic, secret))
 
   /**
    * Encrypt and authenticate message using nonce and secret key.
@@ -192,7 +194,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param key       Secret key - unprefixed 0-padded to 64 symbols hex string
    */
   def naclSecretBox(decrypted: String, nonce: String, key: String): Future[Either[Throwable, String]] = ctx
-    .requestField[NaclSecretBoxArgs, String](NaclSecretBoxArgs(decrypted, nonce, key))
+    .exec(NaclSecretBox(decrypted, nonce, key))
 
   /**
    * Decrypts and verifies cipher text using `nonce` and secret `key`.
@@ -202,7 +204,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param key       Public key - unprefixed 0-padded to 64 symbols hex string
    */
   def naclSecretBoxOpen(encrypted: String, nonce: String, key: String): Future[Either[Throwable, String]] = ctx
-    .requestField[NaclSecretBoxOpenArgs, String](NaclSecretBoxOpenArgs(encrypted, nonce, key))
+    .exec(NaclSecretBoxOpen(encrypted, nonce, key))
 
   /**
    * Signs data using the signer's secret key.
@@ -211,7 +213,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param secret   Signer's secret key - unprefixed 0-padded to 64 symbols hex string
    */
   def naclSign(unsigned: String, secret: String): Future[Either[Throwable, String]] = ctx
-    .requestField[NaclSignArgs, String](NaclSignArgs(unsigned, secret))
+    .exec(NaclSign(unsigned, secret))
 
   /**
    *
@@ -220,16 +222,16 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param secret   Signer's secret key - unprefixed 0-padded to 64 symbols hex string
    */
   def naclSignDetached(unsigned: String, secret: String): Future[Either[Throwable, String]] = ctx
-    .requestField[NaclSignDetachedArgs, String](NaclSignDetachedArgs(unsigned, secret))
+    .exec(NaclSignDetached(unsigned, secret))
 
   /**
    * Generates a key pair for signing from the secret key
    *
    * @param secret Secret key - unprefixed 0-padded to 64 symbols hex string
    */
-  def naclSignKeypairFromSecretKey(secret: String): Future[Either[Throwable, KeyPair]] = ctx
-    .requestValue[NaclSignKeypairFromSecretKeyArgs, KeyPair](NaclSignKeypairFromSecretKeyArgs(secret))
-
+  def naclSignKeypairFromSecretKey(secret: String): Future[Either[Throwable, KeyPair]] = ctx.exec(
+    NaclSignKeypairFromSecretKey(secret)
+  )
 
   /** TODO fill it
    *
@@ -238,7 +240,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param public Signer's public key - unprefixed 0-padded to 64 symbols hex string
    */
   def naclSignOpen(signed: String, public: String): Future[Either[Throwable, String]] = ctx
-    .requestField[NaclSignOpenArgs, String](NaclSignOpenArgs(signed, public))
+    .exec(NaclSignOpen(signed, public))
 
   /**
    * Derives key from `password` and `key` using `scrypt` algorithm. See <a target="_blank" href="https://en.wikipedia.org/wiki/Scrypt">https://en.wikipedia.org/wiki/Scrypt</a>.<p> # Arguments - `log_n` - The log2 of the Scrypt parameter `N` - `r` - The Scrypt parameter `r` - `p` - The Scrypt parameter `p` # Conditions - `log_n` must be less than `64` - `r` must be greater than `0` and less than or equal to `4294967295` - `p` must be greater than `0` and less than `4294967295` # Recommended values sufficient for most use-cases - `log_n = 15` (`n = 32768`) - `r = 8` - `p = 1`
@@ -251,7 +253,7 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param dkLen    Intended output length in octets of the derived key.
    */
   def scrypt(password: String, salt: String, logN: Long, r: Double, p: Long, dkLen: Long): Future[Either[Throwable, String]] = ctx
-    .requestField[ScryptArgs, String](ScryptArgs(password, salt, logN, r, p, dkLen))
+    .exec(Scrypt(password, salt, logN, r, p, dkLen))
 
 
   /**
@@ -259,14 +261,14 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    *
    * @param data Input data for hash calculation. Encoded with `base64`.
    */
-  def sha256(data: String): Future[Either[Throwable, String]] = ctx.requestField[Sha256Args, String](Sha256Args(data))
+  def sha256(data: String): Future[Either[Throwable, String]] = ctx.exec(Sha256(data))
 
   /**
    * Calculates SHA512 hash of the specified data.
    *
    * @param data Input data for hash calculation. Encoded with `base64`.
    */
-  def sha512(data: String): Future[Either[Throwable, String]] = ctx.requestField[Sha512Args, String](Sha512Args(data))
+  def sha512(data: String): Future[Either[Throwable, String]] = ctx.exec(Sha512(data))
 
 
   /**
@@ -275,15 +277,16 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param unsigned Data that must be signed encoded in `base64`.
    * @param keys     Sign keys.
    */
-  def sign(unsigned: String, keys: KeyPair): Future[Either[Throwable, ResultOfSign]] = ctx
-    .requestValue[SignArgs, ResultOfSign](SignArgs(unsigned, keys))
+  def sign(unsigned: String, keys: KeyPair): Future[Either[Throwable, ResultOfSign]] = ctx.exec(
+    Sign(unsigned, keys)
+  )
 
   /**
    * Calculates CRC16 using TON algorithm.
    *
    * @param data Input data for CRC calculation. Encoded with `base64`.
    */
-  def tonCrc16(data: String): Future[Either[Throwable, Long]] = ctx.requestField[TonCrc16Args, Long](TonCrc16Args(data))
+  def tonCrc16(data: String): Future[Either[Throwable, Long]] = ctx.exec(TonCrc16(data))
 
   /**
    * Verifies signed data using the provided public key. Raises error if verification is failed.
@@ -292,6 +295,6 @@ class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param public Signer's public key - 64 symbols hex string
    */
   def verifySignature(signed: String, public: String): Future[Either[Throwable, String]] = ctx
-    .requestField[VerifySignatureArgs, String](VerifySignatureArgs(signed, public))
+    .exec(VerifySignature(signed, public))
 }
 

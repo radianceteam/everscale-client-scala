@@ -1,7 +1,7 @@
 package com.radiance.scala.tonclient.tvm
 
 import com.radiance.scala.tonclient.TONContext
-import com.radiance.scala.tonclient.tvm.args.{RunExecutorArgs, RunGetArgs, RunTvmArgs}
+import com.radiance.scala.tonclient.tvm.api.{RunExecutor, RunGet, RunTvm}
 import com.radiance.scala.tonclient.types.both.ExecutionOptions
 import com.radiance.scala.tonclient.types.out.{ResultOfRunExecutor, ResultOfRunTvm}
 
@@ -26,8 +26,8 @@ class Tvm(val ctx: TONContext)(implicit val ec: ExecutionContext) {
                    executionOptions: ExecutionOptions,
                    abi: String,
                    skipTransactionCheck: Boolean
-                 ): Future[Either[Throwable, ResultOfRunExecutor]] = ctx.requestValue[RunExecutorArgs, ResultOfRunExecutor](
-      RunExecutorArgs(message, account, executionOptions, abi, skipTransactionCheck)
+                 ): Future[Either[Throwable, ResultOfRunExecutor]] = ctx.exec[RunExecutor](
+      RunExecutor(message, account, executionOptions, abi, skipTransactionCheck)
     )
 
   /**
@@ -42,8 +42,8 @@ class Tvm(val ctx: TONContext)(implicit val ec: ExecutionContext) {
               functionName: String,
               input: String,
               executionOptions: ExecutionOptions
-            ): Future[Either[Throwable, String]] = ctx.requestField[RunGetArgs, String](
-    RunGetArgs(account, functionName, input, executionOptions)
+            ): Future[Either[Throwable, String]] = ctx.exec(
+    RunGet(account, functionName, input, executionOptions)
   )
 
   /**
@@ -60,5 +60,5 @@ class Tvm(val ctx: TONContext)(implicit val ec: ExecutionContext) {
               executionOptions: ExecutionOptions,
               abi: String
             ): Future[Either[Throwable, ResultOfRunTvm]] = ctx
-    .requestValue[RunTvmArgs, ResultOfRunTvm](RunTvmArgs(message, account, executionOptions, abi))
+    .exec[RunTvm](RunTvm(message, account, executionOptions, abi))
 }

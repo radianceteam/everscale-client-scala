@@ -1,7 +1,7 @@
 package com.radiance.scala.tonclient.client
 
 import com.radiance.scala.tonclient.TONContext
-import com.radiance.scala.tonclient.client.args._
+import com.radiance.scala.tonclient.client.api._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -14,18 +14,18 @@ class Client(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    *
    *
    */
-  def buildInfo: Future[Either[Throwable, String]] = ctx.requestField[BuildInfoArgs, String](BuildInfoArgs())
+  def buildInfo: Future[Either[Throwable, String]] = ctx.exec(BuildInfo())
 
   /**
    * Returns Core Library API reference
    *
    */
-  def getApiReference: Future[Either[Throwable, String]] = ctx.requestField[GetApiReferenceArgs, String](GetApiReferenceArgs())
+  def getApiReference: Future[Either[Throwable, String]] = ctx.exec(GetApiReference())
 
   /**
    * Returns Core Library version
    *
    */
-  def version: Future[Either[Throwable, String]] = ctx.requestField[VersionArgs, String](VersionArgs())
+  def version: Future[Either[Throwable, String]] = ctx.exec(Version())
 }
 

@@ -1,7 +1,7 @@
 package com.radiance.scala.tonclient.utils
 
 import com.radiance.scala.tonclient.TONContext
-import com.radiance.scala.tonclient.utils.args.ConvertAddressArgs
+import com.radiance.scala.tonclient.utils.api.ConvertAddress
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -16,6 +16,6 @@ class Utils(val ctx: TONContext)(implicit val ec: ExecutionContext) {
    * @param outputFormat Specify the format to convert to.
    */
   def convertAddress(address: String, outputFormat: String): Future[Either[Throwable, String]] = ctx
-    .requestField[ConvertAddressArgs, String](ConvertAddressArgs(address: String, outputFormat: String))
+    .exec(ConvertAddress(address, outputFormat))
 }
 

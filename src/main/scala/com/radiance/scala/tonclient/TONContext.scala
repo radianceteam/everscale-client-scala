@@ -112,21 +112,9 @@ class TONContext private(var contextId: Int) {
     promise.future
   }
 
-  def requestField[In <: Args : Encoder, Out : Decoder](arg: In): Future[Either[Throwable, Out]] =
+  def exec[In <: Args : Encoder](arg: In): Future[Either[Throwable, arg.Out]] =
     request(arg.functionName, arg.asJson.noSpaces).map(r => parse(r).fold(
       t => Left(t),
-      a => a.hcursor.get[Out](arg.fieldName.get).fold(
-        t => Left(t),
-        r => Right(r)
-      )
-    ))
-
-  def requestValue[In <: Args : Encoder, Out : Decoder](arg: In): Future[Either[Throwable,Out]] =
-    request(arg.functionName, arg.asJson.noSpaces).map(r => parse(r).map(_.as[Out]).fold(
-      t => Left(t),
-      r => r.fold(
-        t => Left(t),
-        a => Right(a)
-      )
-    ))
+      a => arg.fieldName.map(f => a.hcursor.get[arg.Out](f)(arg.decoder)).getOrElse(a.as[arg.Out](arg.decoder))
+    )).recover(t => Left(t))
 }
