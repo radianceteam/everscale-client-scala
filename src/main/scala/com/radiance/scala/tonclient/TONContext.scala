@@ -2,7 +2,7 @@ package com.radiance.scala.tonclient
 
 import java.io._
 
-
+import com.radiance.scala.tonclient.crypto.Crypto
 import io.circe.Json
 import io.circe._
 import io.circe.parser._
@@ -11,6 +11,7 @@ import scala.collection.mutable
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.Success
+import io.circe.syntax._
 
 object TONContext {
   @native
@@ -49,12 +50,6 @@ object TONContext {
     tempDll.deleteOnExit()
     tempDll.getAbsolutePath
   }
-
-
-  def toNumber(value: String): Number = if (value.indexOf('.') < 0) if (value.length > 6) java.lang.Long.valueOf(value)
-  else Integer.valueOf(value)
-  else if (value.length > 7) java.lang.Double.valueOf(value)
-  else java.lang.Float.valueOf(value)
 
   private def responseHandler(id: Int, params: String, `type`: Int, finished: Boolean): Unit = {
     this.synchronized({
@@ -117,28 +112,21 @@ class TONContext private(var contextId: Int) {
     promise.future
   }
 
-//  def requestJSON(functionName: String, params: String): Future[Json] =
-//    request(functionName, params).map(r => parse(r).fold(
-//      t => throw new RuntimeException(t),
-//      a => a
-//    ))
-
-  def requestField[T : Decoder](functionName: String, params: String)(fieldName: String): Future[T] =
-    request(functionName, params).map(r => parse(r).fold(
-      t => throw new RuntimeException(t),
-      a => a.hcursor.get[T](fieldName).fold(
-        t => throw new RuntimeException(t),
-        r => r
+  def requestField[In <: Args : Encoder, Out : Decoder](arg: In): Future[Either[Throwable, Out]] =
+    request(arg.functionName, arg.asJson.noSpaces).map(r => parse(r).fold(
+      t => Left(t),
+      a => a.hcursor.get[Out](arg.fieldName.get).fold(
+        t => Left(t),
+        r => Right(r)
       )
     ))
 
-  def requestValue[T : Codec](functionName: String, params: String): Future[T] =
-    request(functionName, params).map(r => parse(r).map(_.as[T]).fold(
-      t => throw new RuntimeException(t),
+  def requestValue[In <: Args : Encoder, Out : Decoder](arg: In): Future[Either[Throwable,Out]] =
+    request(arg.functionName, arg.asJson.noSpaces).map(r => parse(r).map(_.as[Out]).fold(
+      t => Left(t),
       r => r.fold(
-        t => throw new RuntimeException(t),
-        a => a
+        t => Left(t),
+        a => Right(a)
       )
     ))
-
 }
