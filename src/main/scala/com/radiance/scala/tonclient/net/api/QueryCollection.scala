@@ -1,6 +1,6 @@
 package com.radiance.scala.tonclient.net.api
 
-import com.radiance.scala.tonclient.Args
+import com.radiance.scala.tonclient.Api
 import com.radiance.scala.tonclient.types.in.OrderBy
 import io.circe._
 import io.circe.derivation._
@@ -11,7 +11,7 @@ private[net] case class QueryCollection(
                                              result: String,
                                              order: OrderBy,
                                              limit: Long
-                                           ) extends Args {
+                                           ) extends Api {
   override val functionName: String = "net.query_collection"
   override val fieldName: Option[String] = Some("result")
   override type Out = List[String]

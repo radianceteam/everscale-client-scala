@@ -1,6 +1,6 @@
 package com.radiance.scala.tonclient.tvm.api
 
-import com.radiance.scala.tonclient.Args
+import com.radiance.scala.tonclient.Api
 import com.radiance.scala.tonclient.types.both.ExecutionOptions
 import com.radiance.scala.tonclient.types.out.ResultOfRunTvm
 import io.circe._
@@ -11,7 +11,7 @@ private[tvm] case class RunTvm(
                                     account: String,
                                     execution_options: ExecutionOptions,
                                     abi: String
-                                  ) extends Args {
+                                  ) extends Api {
   override val functionName: String = "tvm.run_tvm"
   override type Out = ResultOfRunTvm
   override val decoder: Decoder[ResultOfRunTvm] = implicitly[Decoder[ResultOfRunTvm]]

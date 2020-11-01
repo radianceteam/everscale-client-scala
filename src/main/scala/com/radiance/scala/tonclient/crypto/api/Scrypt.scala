@@ -1,6 +1,6 @@
 package com.radiance.scala.tonclient.crypto.api
 
-import com.radiance.scala.tonclient.Args
+import com.radiance.scala.tonclient.Api
 import io.circe._
 import io.circe.derivation._
 
@@ -11,7 +11,7 @@ private[crypto] case class Scrypt(
                                        r: Double,
                                        p: Long,
                                        dk_len: Long
-                                     ) extends Args {
+                                     ) extends Api {
   override val functionName: String = "crypto.scrypt"
   override val fieldName: Option[String] = Some("key")
   override type Out = String

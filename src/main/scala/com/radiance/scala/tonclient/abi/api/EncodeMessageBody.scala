@@ -1,6 +1,6 @@
 package com.radiance.scala.tonclient.abi.api
 
-import com.radiance.scala.tonclient.Args
+import com.radiance.scala.tonclient.Api
 import com.radiance.scala.tonclient.types.out.ResultOfEncodeMessageBody
 import io.circe._
 import io.circe.derivation._
@@ -11,7 +11,7 @@ private[abi] case class EncodeMessageBody(
                                                is_internal: Boolean,
                                                signer: String,
                                                processing_try_index: Long
-                                             ) extends Args {
+                                             ) extends Api {
   override val functionName: String = "abi.encode_message_body"
   override type Out = ResultOfEncodeMessageBody
   override val decoder: Decoder[ResultOfEncodeMessageBody] = implicitly[Decoder[ResultOfEncodeMessageBody]]

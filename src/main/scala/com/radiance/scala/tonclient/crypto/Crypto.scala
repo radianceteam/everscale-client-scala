@@ -1,6 +1,6 @@
 package com.radiance.scala.tonclient.crypto
 
-import com.radiance.scala.tonclient.TONContext
+import com.radiance.scala.tonclient.TonContext
 import com.radiance.scala.tonclient.crypto.api._
 import com.radiance.scala.tonclient.types.both.KeyPair
 import com.radiance.scala.tonclient.types.out.ResultOfSign
@@ -10,7 +10,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
  * Crypto functions.
  */
-class Crypto(val ctx: TONContext)(implicit val ec: ExecutionContext) {
+class Crypto(val ctx: TonContext)(implicit val ec: ExecutionContext) {
 
   /**
    * Converts public key to ton safe_format

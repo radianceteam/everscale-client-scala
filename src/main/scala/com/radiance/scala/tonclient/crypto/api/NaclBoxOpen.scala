@@ -1,6 +1,6 @@
 package com.radiance.scala.tonclient.crypto.api
 
-import com.radiance.scala.tonclient.Args
+import com.radiance.scala.tonclient.Api
 import io.circe._
 import io.circe.derivation._
 
@@ -9,7 +9,7 @@ private[crypto] case class NaclBoxOpen(
                                             nonce: String,
                                             their_public: String,
                                             secret: String
-                                          ) extends Args {
+                                          ) extends Api {
   override val functionName: String = "crypto.nacl_box_open"
   override val fieldName: Option[String] = Some("decrypted")
   override type Out = String

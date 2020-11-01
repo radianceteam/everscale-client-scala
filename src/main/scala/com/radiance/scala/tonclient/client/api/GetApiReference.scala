@@ -1,10 +1,10 @@
 package com.radiance.scala.tonclient.client.api
 
-import com.radiance.scala.tonclient.Args
+import com.radiance.scala.tonclient.Api
 import io.circe._
 import io.circe.derivation._
 
-private[client] case class GetApiReference() extends Args {
+private[client] case class GetApiReference() extends Api {
   override val functionName: String = "client.get_api_reference"
   override val fieldName: Option[String] = Some("api")
   override type Out = String

@@ -1,6 +1,6 @@
 package com.radiance.scala.tonclient.abi.api
 
-import com.radiance.scala.tonclient.Args
+import com.radiance.scala.tonclient.Api
 import com.radiance.scala.tonclient.types.out.ResultOfEncodeAccount
 import io.circe._
 import io.circe.derivation._
@@ -10,7 +10,7 @@ private[abi] case class EncodeAccount(
                                            balance: Long,
                                            last_trans_lt: Long,
                                            last_paid: Double
-                                         ) extends Args {
+                                         ) extends Api {
   override val functionName: String = "abi.encode_account"
   override type Out = ResultOfEncodeAccount
   override val decoder: Decoder[ResultOfEncodeAccount] = implicitly[Decoder[ResultOfEncodeAccount]]

@@ -1,13 +1,13 @@
 package com.radiance.scala.tonclient.abi
 
-import com.radiance.scala.tonclient.TONContext
+import com.radiance.scala.tonclient.TonContext
 import com.radiance.scala.tonclient.abi.api._
 import com.radiance.scala.tonclient.types.out._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 
-class Abi(val ctx: TONContext)(implicit val ec: ExecutionContext) {
+class Abi(val ctx: TonContext)(implicit val ec: ExecutionContext) {
 
   /**
    * Combines `hex`-encoded `signature` with `base64`-encoded `unsigned_message`. Returns signed message encoded in `base64`.

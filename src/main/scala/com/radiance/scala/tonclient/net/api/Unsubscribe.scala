@@ -1,10 +1,10 @@
 package com.radiance.scala.tonclient.net.api
 
-import com.radiance.scala.tonclient.Args
+import com.radiance.scala.tonclient.Api
 import io.circe._
 import io.circe.derivation._
 
-private[net] case class Unsubscribe(handle: Long) extends Args {
+private[net] case class Unsubscribe(handle: Long) extends Api {
   override val functionName: String = "net.unsubscribe"
   override val fieldName: Option[String] = Some("result")
   override type Out = String

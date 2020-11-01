@@ -1,6 +1,6 @@
 package com.radiance.scala.tonclient.processing
 
-import com.radiance.scala.tonclient.TONContext
+import com.radiance.scala.tonclient.TonContext
 import com.radiance.scala.tonclient.processing.api.{ProcessMessage, SendMessage, WaitForTransaction}
 import com.radiance.scala.tonclient.types.out.ResultOfProcessMessage
 import com.radiance.scala.tonclient.types.in.{CallSet, DeploySet}
@@ -11,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
  * Message processing module.<p> This module incorporates functions related to complex message processing scenarios.
  */
 
-class Processing(val ctx: TONContext)(implicit val ec: ExecutionContext) {
+class Processing(val ctx: TonContext)(implicit val ec: ExecutionContext) {
 
   /**
    * Creates message, sends it to the network and monitors its processing.<p> Creates ABI-compatible message, sends it to the network and monitors for the result transaction. Decodes the output messages's bodies.<p> If contract's ABI includes "expire" header then SDK implements retries in case of unsuccessful message delivery within the expiration timeout: SDK recreates the message, sends it and processes it again. <p> The intermediate events, such as `WillFetchFirstBlock`, `WillSend`, `DidSend`, `WillFetchNextBlock`, etc - are switched on/off by `send_events` flag  and logged into the supplied callback function. The retry configuration parameters are defined in config: &lt;add correct config params here&gt; pub const DEFAULT_EXPIRATION_RETRIES_LIMIT: i8 = 3; - max number of retries pub const DEFAULT_EXPIRATION_TIMEOUT: u32 = 40000;  - message expiration timeout in ms. pub const DEFAULT_....expiration_timeout_grow_factor... = 1.5 - factor that increases the expiration timeout for each retry<p> If contract's ABI does not include "expire" header then if no transaction is found within the network timeout (see config parameter ), exits with error.

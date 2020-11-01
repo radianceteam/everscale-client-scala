@@ -1,6 +1,6 @@
 package com.radiance.scala.tonclient.abi.api
 
-import com.radiance.scala.tonclient.Args
+import com.radiance.scala.tonclient.Api
 import io.circe._
 import io.circe.derivation._
 
@@ -9,7 +9,7 @@ private[abi] case class AttachSignatureToMessageBody(
                                                           public_key: String,
                                                           message: String,
                                                           signature: String
-                                                        ) extends Args {
+                                                        ) extends Api {
   override val functionName: String = "abi.attach_signature_to_message_body"
 
   override val fieldName: Option[String] = Some("body")

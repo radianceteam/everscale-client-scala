@@ -1,6 +1,6 @@
 package com.radiance.scala.tonclient.utils
 
-import com.radiance.scala.tonclient.TONContext
+import com.radiance.scala.tonclient.TonContext
 import com.radiance.scala.tonclient.utils.api.ConvertAddress
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -8,7 +8,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
  * Misc utility Functions.
  */
-class Utils(val ctx: TONContext)(implicit val ec: ExecutionContext) {
+class Utils(val ctx: TonContext)(implicit val ec: ExecutionContext) {
   /**
    * Converts address from any TON format to any TON format
    *

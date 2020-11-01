@@ -1,10 +1,10 @@
 package com.radiance.scala.tonclient.crypto.api
 
-import com.radiance.scala.tonclient.Args
+import com.radiance.scala.tonclient.Api
 import io.circe._
 import io.circe.derivation._
 
-private[crypto] case class NaclSignOpen(signed: String, public: String) extends Args {
+private[crypto] case class NaclSignOpen(signed: String, public: String) extends Api {
   override val functionName: String = "crypto.nacl_sign_open"
   override val fieldName: Option[String] = Some("unsigned")
   override type Out = String

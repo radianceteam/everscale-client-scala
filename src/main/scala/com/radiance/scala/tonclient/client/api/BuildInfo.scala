@@ -1,10 +1,10 @@
 package com.radiance.scala.tonclient.client.api
 
-import com.radiance.scala.tonclient.Args
+import com.radiance.scala.tonclient.Api
 import io.circe.{Decoder, Encoder}
 import io.circe.derivation.deriveEncoder
 
-private[client] case class BuildInfo() extends Args {
+private[client] case class BuildInfo() extends Api {
   override val functionName: String = "client.build_info"
   override val fieldName: Option[String] = Some("build_info")
   override type Out = String

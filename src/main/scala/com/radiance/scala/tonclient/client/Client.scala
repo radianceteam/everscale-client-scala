@@ -1,6 +1,6 @@
 package com.radiance.scala.tonclient.client
 
-import com.radiance.scala.tonclient.TONContext
+import com.radiance.scala.tonclient.TonContext
 import com.radiance.scala.tonclient.client.api._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -8,7 +8,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
  * Provides information about library.
  */
-class Client(val ctx: TONContext)(implicit val ec: ExecutionContext) {
+class Client(val ctx: TonContext)(implicit val ec: ExecutionContext) {
 
   /**
    *

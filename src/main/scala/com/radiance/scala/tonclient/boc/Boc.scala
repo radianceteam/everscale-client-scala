@@ -1,12 +1,12 @@
 package com.radiance.scala.tonclient.boc
 
-import com.radiance.scala.tonclient.TONContext
+import com.radiance.scala.tonclient.TonContext
 import com.radiance.scala.tonclient.boc.api._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 
-class Boc(val ctx: TONContext)(implicit val ec: ExecutionContext) {
+class Boc(val ctx: TonContext)(implicit val ec: ExecutionContext) {
 
   /**
    *TODO fill it

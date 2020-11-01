@@ -1,10 +1,10 @@
 package com.radiance.scala.tonclient.client.api
 
-import com.radiance.scala.tonclient.Args
+import com.radiance.scala.tonclient.Api
 import io.circe._
 import io.circe.derivation._
 
-private[client] case class Version() extends Args {
+private[client] case class Version() extends Api {
   override val functionName: String = "client.version"
   override val fieldName: Option[String] = Some("version")
   override type Out = String

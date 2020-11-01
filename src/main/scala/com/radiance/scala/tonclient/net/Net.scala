@@ -1,6 +1,6 @@
 package com.radiance.scala.tonclient.net
 
-import com.radiance.scala.tonclient.TONContext
+import com.radiance.scala.tonclient.TonContext
 import com.radiance.scala.tonclient.net.api.{QueryCollection, SubscribeCollection, Unsubscribe, WaitForCollection}
 import com.radiance.scala.tonclient.types.in.OrderBy
 
@@ -10,7 +10,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
  * Network access.
  */
-class Net(val context: TONContext)(implicit val ec: ExecutionContext) {
+class Net(val context: TonContext)(implicit val ec: ExecutionContext) {
 
   /**
    * Queries collection data<p> Queries data that satisfies the `filter` conditions, limits the number of returned records and orders them. The projection fields are limited to  `result` fields

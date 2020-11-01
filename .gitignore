@@ -3,3 +3,7 @@
 target
 */target
 
+ton_client.dll.lib
+ton_client.dll
+tonclient.dll
+api.json

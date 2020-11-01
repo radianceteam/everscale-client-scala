@@ -1,6 +1,6 @@
 package com.radiance.scala.tonclient.tvm
 
-import com.radiance.scala.tonclient.TONContext
+import com.radiance.scala.tonclient.TonContext
 import com.radiance.scala.tonclient.tvm.api.{RunExecutor, RunGet, RunTvm}
 import com.radiance.scala.tonclient.types.both.ExecutionOptions
 import com.radiance.scala.tonclient.types.out.{ResultOfRunExecutor, ResultOfRunTvm}
@@ -10,7 +10,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
  *
  */
-class Tvm(val ctx: TONContext)(implicit val ec: ExecutionContext) {
+class Tvm(val ctx: TonContext)(implicit val ec: ExecutionContext) {
   /**
    *
    *

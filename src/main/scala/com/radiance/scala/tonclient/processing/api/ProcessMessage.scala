@@ -1,6 +1,6 @@
 package com.radiance.scala.tonclient.processing.api
 
-import com.radiance.scala.tonclient.Args
+import com.radiance.scala.tonclient.Api
 import com.radiance.scala.tonclient.types.in.{CallSet, DeploySet}
 import com.radiance.scala.tonclient.types.out.ResultOfProcessMessage
 import io.circe._
@@ -14,7 +14,7 @@ private[processing] case class ProcessMessage(
                                                    signer: String,
                                                    processing_try_index: Long,
                                                    send_events: Boolean
-                                                 ) extends Args {
+                                                 ) extends Api {
   override val functionName: String = "processing.process_message"
   override type Out = ResultOfProcessMessage
   override val decoder: Decoder[ResultOfProcessMessage] = implicitly[Decoder[ResultOfProcessMessage]]

@@ -1,10 +1,10 @@
 package com.radiance.scala.tonclient.crypto.api
 
-import com.radiance.scala.tonclient.Args
+import com.radiance.scala.tonclient.Api
 import io.circe._
 import io.circe.derivation._
 
-private[crypto] case class Sha512(data: String) extends Args {
+private[crypto] case class Sha512(data: String) extends Api {
   override val functionName: String = "crypto.sha512"
   override val fieldName: Option[String] = Some("hash")
   override type Out = String

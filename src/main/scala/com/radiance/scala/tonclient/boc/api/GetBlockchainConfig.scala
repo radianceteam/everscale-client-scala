@@ -1,10 +1,10 @@
 package com.radiance.scala.tonclient.boc.api
 
-import com.radiance.scala.tonclient.Args
+import com.radiance.scala.tonclient.Api
 import io.circe._
 import io.circe.derivation._
 
-private [boc] case class GetBlockchainConfig(block_boc: String) extends Args {
+private [boc] case class GetBlockchainConfig(block_boc: String) extends Api {
   override val functionName: String = "boc.get_blockchain_config"
   override val fieldName: Option[String] = Some("config_boc")
   override type Out = String

@@ -3,6 +3,7 @@ package com.radiance.scala.tonclient
 import java.io._
 
 import com.radiance.scala.tonclient.crypto.Crypto
+import com.radiance.tonclient.TONContext
 import io.circe.Json
 import io.circe._
 import io.circe.parser._
@@ -13,15 +14,7 @@ import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.Success
 import io.circe.syntax._
 
-object TONContext {
-  @native
-  private def createContext(config: String): String
-  @native
-  private def destroyContext(context: Int): Unit
-  @native
-  private def request(context: Int, functionName: String, params: String, requestId: Int): Unit
-  @native
-  private def requestSync(context: Int, functionName: String, params: String)
+object TonContext {
 
   private var requestCount = 0
   private val responses =  mutable.Map[Int, Promise[String]]()
@@ -35,7 +28,7 @@ object TONContext {
 
   @throws[IOException]
   private def createTempDll(fileName: String) = {
-    val inputStream = classOf[TONContext].getResourceAsStream(fileName)
+    val inputStream = classOf[TonContext].getResourceAsStream(fileName)
     if (inputStream == null) throw new IOException("Cannot find resource '" + fileName + "'")
     val tempDll = File.createTempFile("TONLibrary", ".dll")
     val outputStream = new FileOutputStream(tempDll)
@@ -51,7 +44,7 @@ object TONContext {
     tempDll.getAbsolutePath
   }
 
-  private def responseHandler(id: Int, params: String, `type`: Int, finished: Boolean): Unit = {
+  def responseHandler(id: Int, params: String, `type`: Int, finished: Boolean): Unit = {
     this.synchronized({
         responses.remove(id).map(promise => {
           if (`type` == 1) {
@@ -68,30 +61,30 @@ object TONContext {
   }
 
   @throws[Exception]
-  def create(config: String): TONContext = {
-    val result = createContext(config)
+  def create(config: String): TonContext = {
+    val result = TONContext.createContext(config)
     val cursor = parse(result).getOrElse(Json.Null).hcursor
     cursor.downField("error").success.map(e => {
       val code = e.downField("code").as[Int]
       val message = e.downField("message").as[String]
       throw new RuntimeException(s"Code: $code; Message: $message")
     }).getOrElse({
-      cursor.downField("result").as[Int].map(i => new TONContext(i)).fold(
+      cursor.downField("result").as[Int].map(i => new TonContext(i)).fold(
         t => throw new RuntimeException(t),
         r => r
       )
     })
   }
 
-  def main(args: String*): Unit = {
-    val ctx = TONContext.create("{}")
+  def main(args: Array[String]): Unit = {
+    val ctx = TonContext.create("{}")
     val crypto = new Crypto(ctx)(ExecutionContext.global)
     //println(util.Arrays.asList(crypto.factorize("EE").get))
     println(Await.result(ctx.request("client.version", ""), 1.second))
   }
 }
 
-class TONContext private(var contextId: Int) {
+class TonContext private(var contextId: Int) {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   def destroy(): Unit = {
@@ -104,15 +97,15 @@ class TONContext private(var contextId: Int) {
   def request(functionName: String, params: String): Future[String] = {
     val promise: Promise[String] = Promise[String]()
     this.synchronized({
-      TONContext.requestCount += 1
-      val id = TONContext.requestCount
-      TONContext.responses.put(id, promise)
+      TonContext.requestCount += 1
+      val id = TonContext.requestCount
+      TonContext.responses.put(id, promise)
       TONContext.request(contextId, functionName, params, id)
     })
     promise.future
   }
 
-  def exec[In <: Args : Encoder](arg: In): Future[Either[Throwable, arg.Out]] =
+  def exec[In <: Api : Encoder](arg: In): Future[Either[Throwable, arg.Out]] =
     request(arg.functionName, arg.asJson.noSpaces).map(r => parse(r).fold(
       t => Left(t),
       a => arg.fieldName.map(f => a.hcursor.get[arg.Out](f)(arg.decoder)).getOrElse(a.as[arg.Out](arg.decoder))
