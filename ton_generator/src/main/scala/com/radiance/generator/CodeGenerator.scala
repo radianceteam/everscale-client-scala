@@ -26,8 +26,8 @@ object CodeGenerator extends App {
   root.modules.foreach { m =>
     //m.functions.foldLeft((Map.empty, Map.empty))(f => f.params.map(p => p.))
     // val declaredTypes = m.types.map(t => (s"${m.name}.${t.name}", t)).toMap
-    println(s"${m.name} ****************************************")
-    //generateType(m.types.map(t => ScalaRepr.toScalaTypeDecl(t)), m.name)
+    //println(s"${m.name} ****************************************")
+    generateType(m.types.map(t => ScalaRepr.toScalaTypeDecl(t)), m.name)
     generateFunctions(m.functions.map(f => ScalaRepr.toScalaFuncDecl(f)), declarationByName, m.name, "")
   }
   import treehugger.forest._
