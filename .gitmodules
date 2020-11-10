@@ -1,0 +1,3 @@
+[submodule "TON-SDK"]
+	path = TON-SDK
+	url = https://github.com/tonlabs/TON-SDK

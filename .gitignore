@@ -7,3 +7,6 @@ ton_client.dll.lib
 ton_client.dll
 tonclient.dll
 api.json
+/native_win/cmake-build-debug/
+/native/cmake-build-debug/
+/native/cmake-build-release-mingw/
