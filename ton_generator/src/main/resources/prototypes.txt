@@ -427,7 +427,11 @@ package boc {
   case class ParamsOfParseShardstate(boc: String, id: String, workchain_id: Int)
   case class ParamsOfGetBlockchainConfig(block_boc: String)
   case class ResultOfGetBlockchainConfig(config_boc: String)
+  case class ParamsOfGetBocHash(boc: String)
+  case class ResultOfGetBocHash(hash: String)
 }
+/**  Calculates BOC root hash@param boc  BOC encoded as base64 */
+def get_boc_hash(boc: String): boc.ResultOfGetBocHash
 /** @param block_boc  Key block BOC encoded as base64 */
 def get_blockchain_config(block_boc: String): boc.ResultOfGetBlockchainConfig
 /**

@@ -6,14 +6,12 @@ set(CMAKE_CXX_STANDARD 14)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 if (DEFINED ENV{JAVA_HOME})
-    string(REGEX REPLACE "\"" "" STRIPPED_JAVA_HOME $ENV{JAVA_HOME})
-    string(CONCAT INCLUDE_PATH ${STRIPPED_JAVA_HOME} /include)
-    file(TO_CMAKE_PATH ${INCLUDE_PATH} INCLUDE_NORMALIZED)
+    file(TO_CMAKE_PATH $ENV{JAVA_HOME}/include INCLUDE_NORMALIZED)
     message(WARNING "INCLUDE_NORMALIZED = ${INCLUDE_NORMALIZED}")
     if (WIN32)
         message(WARNING "Define operating system as Windows")
-        string(CONCAT INCLUDE_SUBSYSTEM_PATH ${STRIPPED_JAVA_HOME} /include/win32)
-        file(TO_CMAKE_PATH ${INCLUDE_SUBSYSTEM_PATH} INCLUDE_SUBSYSTEM_NORMALIZED)
+        #string(CONCAT INCLUDE_SUBSYSTEM_PATH ${STRIPPED_JAVA_HOME} /include/win32)
+        file(TO_CMAKE_PATH ${INCLUDE_NORMALIZED}/win32 INCLUDE_SUBSYSTEM_NORMALIZED)
         message(WARNING "INCLUDE_SUBSYSTEM_NORMALIZED = ${INCLUDE_SUBSYSTEM_NORMALIZED}")
     elseif(LINUX)
         message(WARNING "Define operating system as Unix")
@@ -38,10 +36,12 @@ link_directories(${INCLUDE_SUBSYSTEM_NORMALIZED})
 
 
 if (WIN32)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib" ".dll")
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".dll.lib")
 endif()
 
 find_library(ton_client_dll NAMES ton_client PATHS "${CMAKE_SOURCE_DIR}/../TON-SDK/ton_client/client/build")
+
+message(WARNING ${ton_client_dll})
 
 if (ton_client_dll)
     add_library(ton_client_ref SHARED IMPORTED)
