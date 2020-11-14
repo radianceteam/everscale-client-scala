@@ -36,7 +36,8 @@ void response_handler_ptr(void* request_ptr, tc_string_data_t params_json, uint3
     jclass clazz = env->GetObjectClass(site -> target);
     jmethodID jHandler = env->GetMethodID(clazz, "asyncHandler", "(ILjava/lang/String;Lscala/concurrent/Promise;)V");
     env->CallVoidMethod(site -> target, jHandler, response_type, jni_string(env, params_json), site -> promise);
-    delete site;
+
+    //TODO delete site;
 
     if (needDetach) {
         javaVM->DetachCurrentThread();

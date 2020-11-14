@@ -1,11 +1,14 @@
 package com.radiance.scala.types
 
+import com.radiance.scala.types.CryptoTypes.{KeyPair, SigningBoxHandle}
+import io.circe
 import io.circe.derivation.{deriveCodec, deriveDecoder, deriveEncoder}
 import io.circe.{Codec, Decoder, Encoder}
 import io.circe.syntax._
+import Utils._
 
 object AbiTypes {
-  type Value = String
+  type Value = circe.Json
 
   sealed trait Abi
 
@@ -40,9 +43,9 @@ object AbiTypes {
 
   case class External(public_key: String) extends Signer
 
-  case class Keys(keys: CryptoTypes.KeyPair) extends Signer
+  case class Keys(keys: KeyPair) extends Signer
 
-  case class SigningBox(handle: CryptoTypes.SigningBoxHandle) extends Signer
+  case class SigningBox(handle: SigningBoxHandle) extends Signer
 
   sealed trait MessageBodyType
 
@@ -135,11 +138,12 @@ object AbiTypes {
 
 
   object Abi {
+
     implicit val AbiEncoder: Encoder[Abi] = {
-      case a: Contract => a.asJson
-      case a: Json => a.asJson
-      case a: Handle => a.asJson
-      case a: Serialized => a.asJson
+      case a: Contract => a.asJson.deepMerge(generateType(a))
+      case a: Json => a.asJson.deepMerge(generateType(a))
+      case a: Handle => a.asJson.deepMerge(generateType(a))
+      case a: Serialized => a.asJson.deepMerge(generateType(a))
     }
   }
 
@@ -177,10 +181,10 @@ object AbiTypes {
 
   object Signer {
     implicit val SignerEncoder: Encoder[Signer] = {
-      case SignerNone => ().asJson
-      case a: External => a.asJson
-      case a: Keys => a.asJson
-      case a: SigningBox => a.asJson
+      case SignerNone => circe.Json.fromFields(Seq(("type" -> "None".asJson)))
+      case a: External => a.asJson.deepMerge(generateType(a))
+      case a: Keys => a.asJson.deepMerge(generateType(a))
+      case a: SigningBox => a.asJson.deepMerge(generateType(a))
     }
   }
 
@@ -196,7 +200,6 @@ object AbiTypes {
     implicit val SigningBoxEncoder: Encoder[SigningBox] = deriveEncoder[SigningBox]
   }
 
-  // TODO check it
   object MessageBodyType {
     implicit val MessageBodyTypeDecoder: Decoder[MessageBodyType] = Decoder[String].emap {
       case "Input" => Right(Input)
@@ -205,15 +208,13 @@ object AbiTypes {
       case "Event" => Right(Event)
       case x => Left(s"Can't read MessageBodyType from $x")
     }
-
-
   }
 
   object StateInitSource {
     implicit val StateInitSourceEncoder: Encoder[StateInitSource] = {
-      case a: Message => a.asJson
-      case a: StateInit => a.asJson
-      case a: Tvc => a.asJson
+      case a: Message => a.asJson.deepMerge(generateType(a))
+      case a: StateInit => a.asJson.deepMerge(generateType(a))
+      case a: Tvc => a.asJson.deepMerge(generateType(a))
     }
   }
 
@@ -235,8 +236,8 @@ object AbiTypes {
 
   object MessageSource {
     implicit val MessageSourceEncoder: Encoder[MessageSource] = {
-      case a: Encoded => a.asJson
-      case a: EncodingParams => a.asJson
+      case a: Encoded => a.asJson.deepMerge(generateType(a))
+      case a: EncodingParams => a.asJson.deepMerge(generateType(a))
     }
   }
 

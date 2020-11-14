@@ -215,7 +215,7 @@ class CryptoModule(private val ctx: TonContextScala) {
   /**  Calculates SHA256 hash of the specified data.@param data  Input data for hash calculation. Encoded with `base64`. */
   def sha256(data: String): Future[Either[Throwable, ResultOfHash]] = {
     val arg = ParamsOfHash256(data)
-    ctx.execAsync("crypto.sha512", arg)
+    ctx.execAsync("crypto.sha256", arg)
   }
   /**
    *  Verifies signed data using the provided public key.

@@ -18,7 +18,8 @@ lazy val ton_client_scala = project
       "io.circe" %% "circe-derivation" % "0.13.0-M4",
       "io.circe" %% "circe-parser" % "0.14.0-M1",
 
-      "org.scalatest" %% "scalatest-flatspec" % "3.2.3" % Test
+      "org.scalatest" %% "scalatest-flatspec" % "3.2.3" % Test,
+      "org.typelevel" %% "cats-core" % "2.3.0-M2" % Test
     ),
 
     pathToExternalDll := baseDirectory.in(`TON-SDK`).value.getAbsoluteFile  / "ton_client" / "client" / "build",
@@ -28,6 +29,10 @@ lazy val ton_client_scala = project
       pathToBridgeDll.value
     ),
     unmanagedResourceDirectories in Runtime ++= Seq(
+      pathToExternalDll.value,
+      pathToBridgeDll.value
+    ),
+    unmanagedResourceDirectories in Test ++= Seq(
       pathToExternalDll.value,
       pathToBridgeDll.value
     ),
@@ -43,19 +48,6 @@ lazy val `TON-SDK` = project
   .settings(
     buildDependentLib := buildDllImpl.value
   )
-
-lazy val ton_generator = project
-  .settings(
-    scalaVersion := "2.13.3",
-    version := "0.1",
-    libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core" % "0.14.0-M1",
-      "io.circe" %% "circe-derivation" % "0.13.0-M4",
-      "io.circe" %% "circe-parser" % "0.14.0-M1",
-      "com.eed3si9n" %% "treehugger" % "0.4.4"
-    )
-  )
-
 
 lazy val buildDllImpl = Def.task {
   val sbtLog = streams.value.log

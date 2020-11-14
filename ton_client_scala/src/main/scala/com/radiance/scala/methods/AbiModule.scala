@@ -35,7 +35,6 @@ class AbiModule(ctx: TonContextScala) {
    * @param message  Message BOC
    */
   def decode_message(abi: Abi, message: String): Future[Either[Throwable, DecodedMessageBody]] = {
-    // TODO sdvornik check
     val arg = ParamsOfDecodeMessageBody(abi, message, false)
     ctx.execAsync("abi.decode_message", arg)
   }
@@ -104,6 +103,8 @@ class AbiModule(ctx: TonContextScala) {
    */
   def encode_message(abi: Abi, address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], signer: Signer, processing_try_index: Option[Long]): Future[Either[Throwable, ResultOfEncodeMessage]] = {
     val arg = ParamsOfEncodeMessage(abi, address, deploy_set, call_set, signer, processing_try_index)
+    import io.circe.syntax._
+    println(arg.asJson.deepDropNullValues.noSpaces)
     ctx.execAsync("abi.encode_message", arg)
   }
   /**

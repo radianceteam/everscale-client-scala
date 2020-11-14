@@ -11,8 +11,9 @@ class ClientModule(private val ctx: TonContextScala) {
     ctx.execAsyncVoid[ResultOfBuildInfo]("client.build_info")
 
   /**  Returns Core Library version */
-  def version(): Future[Either[Throwable, ResultOfVersion]] =
+  def version(): Future[Either[Throwable, ResultOfVersion]] = {
     ctx.execAsyncVoid[ResultOfVersion]("client.version")
+  }
 
   /**  Returns Core Library API reference */
   def get_api_reference(): Future[Either[Throwable, ResultOfGetApiReference]] =

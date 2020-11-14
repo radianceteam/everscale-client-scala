@@ -1,11 +1,12 @@
 package com.radiance.scala.types
 
+import io.circe
 import io.circe.derivation.{deriveDecoder, deriveEncoder}
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, Json}
 import io.circe.syntax._
 
 object NetTypes {
-  type Value = String
+  type Value = Json
 
   case class OrderBy(path: String, direction: SortDirection)
 
@@ -42,11 +43,10 @@ object NetTypes {
     implicit val OrderByEncoder: Encoder[OrderBy] = deriveEncoder[OrderBy]
   }
 
-  // TODO check it
   object SortDirection {
     implicit val SortDirectionEncoder: Encoder[SortDirection] = {
-      case ASC => "ASC".asJson
-      case DESC => "DESC".asJson
+      case ASC => circe.Json.fromString("ASC")
+      case DESC => circe.Json.fromString("DESC")
     }
   }
 

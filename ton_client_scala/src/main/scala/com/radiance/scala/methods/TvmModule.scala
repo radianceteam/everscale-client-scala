@@ -3,11 +3,12 @@ package com.radiance.scala.methods
 import com.radiance.scala.tonclient.TonContextScala
 import com.radiance.scala.types.AbiTypes._
 import com.radiance.scala.types.TvmTypes._
+import io.circe
 
 import scala.concurrent.Future
 
 class TvmModule(private val ctx: TonContextScala) {
-  type Value = String
+  type Value = circe.Json
   /**
    *  Executes getmethod and returns data from TVM stack@param account  Account BOC in `base64`
    * @param function_name  Function name

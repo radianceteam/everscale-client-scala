@@ -1,7 +1,7 @@
 package com.radiance.scala.types
 
 import io.circe.derivation.{deriveDecoder, deriveEncoder}
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, Json}
 import io.circe.syntax._
 
 object UtilsTypes {
@@ -21,12 +21,11 @@ object UtilsTypes {
 
   case class ResultOfConvertAddress(address: String)
 
-
   object AddressStringFormat {
     implicit val AddressStringFormatEncoder: Encoder[AddressStringFormat] = {
-      case AccountId => "account_id".asJson
-      case Hex => "hex".asJson
-      case a: Base64 => a.asJson
+      case AccountId => Json.fromFields(Seq("type" -> "AccountId".asJson))
+      case Hex => Json.fromFields(Seq("type" -> "Hex".asJson))
+      case a: Base64 => a.asJson.deepMerge(Utils.generateType(a))
     }
   }
 

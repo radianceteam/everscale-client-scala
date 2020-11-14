@@ -1,16 +1,17 @@
 package com.radiance.scala.types
 
 import com.radiance.scala.types.AbiTypes._
+import io.circe
 import io.circe.derivation.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import io.circe.syntax._
 
 object ProcessingTypes {
-  type Value = String
+  type Value = circe.Json
 
+  // TODO Implement Decoder
   sealed trait ProcessingEvent
 
-  case class WillFetchFirstBlock() extends ProcessingEvent
+  case object WillFetchFirstBlock extends ProcessingEvent
 
   case class FetchFirstBlockFailed(error: ClientTypes.ClientError) extends ProcessingEvent
 
@@ -52,9 +53,6 @@ object ProcessingTypes {
 
   }
 
-  object WillFetchFirstBlock {
-
-  }
 
   object FetchFirstBlockFailed {
 

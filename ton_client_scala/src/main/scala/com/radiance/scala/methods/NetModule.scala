@@ -1,13 +1,14 @@
 package com.radiance.scala.methods
 
 import com.radiance.scala.tonclient.TonContextScala
+import com.radiance.scala.tonclient.TonContextScala.Request
 import com.radiance.scala.types.NetTypes._
+import io.circe.Json
 
 import scala.concurrent.Future
 
 class NetModule(private val ctx: TonContextScala) {
-  type Value = String
-  type Request = String
+  type Value = Json
   /**
    *  Creates a subscription
    *
@@ -20,7 +21,7 @@ class NetModule(private val ctx: TonContextScala) {
    */
   def subscribe_collection(collection: String, filter: Option[Value], result: String, callback: Request): Future[Either[Throwable, ResultOfSubscribeCollection]] = {
     val arg = ParamsOfSubscribeCollection(collection, filter, result)
-    ctx.execAsync("net.subscribe_collection", arg)
+    ctx.execAsyncWithCallback("net.subscribe_collection", arg, callback)
   }
   /**
    *  Cancels a subscription
@@ -29,6 +30,7 @@ class NetModule(private val ctx: TonContextScala) {
    */
   def unsubscribe(handle: Long): Future[Either[Throwable, Unit]] = {
     val arg = ParamsOfUnsubscribeCollection(handle)
+    println("Send unsubscribe")
     ctx.execAsync("net.unsubscribe", arg)
   }
   /**

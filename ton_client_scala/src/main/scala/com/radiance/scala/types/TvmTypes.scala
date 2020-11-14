@@ -1,20 +1,22 @@
 package com.radiance.scala.types
 
 import com.radiance.scala.types.AbiTypes._
+import com.radiance.scala.types.ProcessingTypes.DecodedOutput
+import io.circe
 import io.circe.derivation.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import io.circe.syntax._
 
 object TvmTypes {
-  type Value = String
+  type Value = circe.Json
 
   case class ExecutionOptions(blockchain_config: Option[String], block_time: Option[Long], block_lt: Option[BigInt], transaction_lt: Option[BigInt])
 
   sealed trait AccountForExecutor
 
-  case object NoneObj extends AccountForExecutor
+  case object NoneAccount extends AccountForExecutor
 
-  case object UninitObj extends AccountForExecutor
+  case object UninitAccount extends AccountForExecutor
 
   case class Account(boc: String, unlimited_balance: Option[Boolean]) extends AccountForExecutor
 
@@ -32,7 +34,7 @@ object TvmTypes {
     override val decoder: Decoder[ResultOfRunTvm] = implicitly[Decoder[ResultOfRunTvm]]
   }
 
-  case class ResultOfRunTvm(out_messages: List[String], decoded: Option[ProcessingTypes.DecodedOutput], account: String)
+  case class ResultOfRunTvm(out_messages: List[String], decoded: Option[DecodedOutput], account: String)
 
   case class ParamsOfRunGet(account: String, function_name: String, input: Option[Value], execution_options: Option[ExecutionOptions]) extends ApiNew {
     override type Out = ResultOfRunGet
@@ -46,12 +48,11 @@ object TvmTypes {
     implicit val ExecutionOptionsEncoder: Encoder[ExecutionOptions] = deriveEncoder[ExecutionOptions]
   }
 
-  // TODO check it
   object AccountForExecutor {
     implicit val AccountForExecutorEncoder: Encoder[AccountForExecutor] = {
-      case NoneObj => "None".asJson
-      case UninitObj => "Uninit".asJson
-      case a: Account => a.asJson
+      case NoneAccount => circe.Json.fromFields(Seq("type" -> "None".asJson))
+      case UninitAccount => circe.Json.fromFields(Seq("type" -> "Uninit".asJson))
+      case a: Account => a.asJson.deepMerge(Utils.generateType(a))
     }
   }
 

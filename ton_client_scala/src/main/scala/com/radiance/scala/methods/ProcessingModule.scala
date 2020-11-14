@@ -1,13 +1,14 @@
 package com.radiance.scala.methods
 
 import com.radiance.scala.tonclient.TonContextScala
+import com.radiance.scala.tonclient.TonContextScala.Request
 import com.radiance.scala.types.AbiTypes._
 import com.radiance.scala.types.ProcessingTypes._
 
 import scala.concurrent.Future
 
 class ProcessingModule(private val ctx: TonContextScala) {
-  type Request = String
+
   /**
    *  Creates message, sends it to the network and monitors its processing.
    *
@@ -33,9 +34,9 @@ class ProcessingModule(private val ctx: TonContextScala) {
    * @param send_events  Flag for requesting events sending
    * @param request
    */
-  def process_message(message_encode_params: ParamsOfEncodeMessage, send_events: Boolean, request: Request): Future[Either[Throwable, ResultOfProcessMessage]] = {
+  def process_message(message_encode_params: ParamsOfEncodeMessage, send_events: Boolean, callback: Request): Future[Either[Throwable, ResultOfProcessMessage]] = {
     val arg = ParamsOfProcessMessage(message_encode_params, send_events)
-    ctx.execAsync("processing.process_message", arg)
+    ctx.execAsyncWithCallback("processing.process_message", arg, callback)
   }
 
 

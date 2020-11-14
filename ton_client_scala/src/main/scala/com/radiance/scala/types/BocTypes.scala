@@ -1,11 +1,11 @@
 package com.radiance.scala.types
 
 import io.circe.derivation.{deriveDecoder, deriveEncoder}
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, Json}
 import io.circe.syntax._
 
 object BocTypes {
-  type Value = String
+  type Value = Json
 
   case class ParamsOfParse(boc: String) extends ApiNew {
     override type Out = ResultOfParse
