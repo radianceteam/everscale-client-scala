@@ -1,4 +1,4 @@
-package com.radiance.scala.methods
+package com.radiance.scala.modules
 
 import org.scalatest.flatspec.AnyFlatSpec
 
@@ -11,10 +11,12 @@ class ClientModuleTest  extends AnyFlatSpec with ConfigTest {
 
   it should "return correct version and buildInfo" in {
     val client = new ClientModule(context)
-    val res = client.version().get
+    val res = client.version.get
     println(s"Version: ${res.version}")
-    val buildInfo = client.build_info().get
+    val buildInfo = client.buildInfo.get
     println(s"BuildNumber: ${buildInfo.build_number}")
-    assert(res.version == "1.1.0" && buildInfo.dependencies.nonEmpty)
+    val apiReference = client.getApiReference.get.api.spaces2
+    println(apiReference)
+    assert(res.version == "1.1.0" && buildInfo.dependencies.nonEmpty && apiReference.nonEmpty)
   }
 }

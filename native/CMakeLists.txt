@@ -1,53 +1,56 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.10)
 project(TonClientScalaBridge)
 
 set(CMAKE_CXX_STANDARD 14)
-
+set(CMAKE_INCLUDE_DIRECTORIES_BEFORE OFF)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 if (DEFINED ENV{JAVA_HOME})
-    file(TO_CMAKE_PATH $ENV{JAVA_HOME}/include INCLUDE_NORMALIZED)
-    message(WARNING "INCLUDE_NORMALIZED = ${INCLUDE_NORMALIZED}")
     if (WIN32)
         message(WARNING "Define operating system as Windows")
-        #string(CONCAT INCLUDE_SUBSYSTEM_PATH ${STRIPPED_JAVA_HOME} /include/win32)
-        file(TO_CMAKE_PATH ${INCLUDE_NORMALIZED}/win32 INCLUDE_SUBSYSTEM_NORMALIZED)
-        message(WARNING "INCLUDE_SUBSYSTEM_NORMALIZED = ${INCLUDE_SUBSYSTEM_NORMALIZED}")
-    elseif(LINUX)
+        file(TO_CMAKE_PATH $ENV{JAVA_HOME}/include JNI_INCLUDE)
+        file(TO_CMAKE_PATH ${JNI_INCLUDE}/win32 JNI_SUBSYSTEM_INCLUDE)
+    elseif(CYGWIN)
+        message(WARNING "Define operating system as Cygwin")
+        find_file(PATH_TO_JNI_H "jni.h" HINTS ENV JAVA_HOME PATH_SUFFIXES "include")
+        get_filename_component(JNI_INCLUDE ${PATH_TO_JNI_H} DIRECTORY)
+        find_file(PATH_TO_JNI_MD_H "jni_md.h" HINTS ENV JAVA_HOME PATH_SUFFIXES "win32")
+        get_filename_component(JNI_SUBSYSTEM_INCLUDE ${PATH_TO_JNI_MD_H} DIRECTORY)
+    elseif(UNIX)
         message(WARNING "Define operating system as Unix")
-        string(CONCAT INCLUDE_SUBSYSTEM_PATH ${STRIPPED_JAVA_HOME} /include/linux)
-        file(TO_CMAKE_PATH ${INCLUDE_SUBSYSTEM_PATH} INCLUDE_SUBSYSTEM_NORMALIZED)
-        message(WARNING "INCLUDE_SUBSYSTEM_NORMALIZED = ${INCLUDE_SUBSYSTEM_NORMALIZED}")
+        file(TO_CMAKE_PATH $ENV{JAVA_HOME}/include JNI_INCLUDE)
+        file(TO_CMAKE_PATH $ENV{JAVA_HOME}/include/linux JNI_SUBSYSTEM_INCLUDE)
     else()
         message(FATAL_ERROR "Can't determine operation system")
-    endif ()
-
+    endif()
+    message(WARNING "JNI_INCLUDE = ${JNI_INCLUDE}")
+    message(WARNING "JNI_SUBSYSTEM_INCLUDE = ${JNI_SUBSYSTEM_INCLUDE}")
 else()
     message(FATAL_ERROR "Can't find JAVA_HOME environment variable.")
 endif()
 
-include_directories(${INCLUDE_NORMALIZED})
-
-link_directories("${INCLUDE_NORMALIZED}")
-
-include_directories(${INCLUDE_SUBSYSTEM_NORMALIZED})
-
-link_directories(${INCLUDE_SUBSYSTEM_NORMALIZED})
-
-
 if (WIN32)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".dll.lib")
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".dll.lib" ".dll")
+elseif(CYGWIN)
+    SET (CMAKE_FIND_LIBRARY_PREFIXES "")
+    SET (CMAKE_FIND_LIBRARY_SUFFIXES ".lib" ".dll")
 endif()
 
-find_library(ton_client_dll NAMES ton_client PATHS "${CMAKE_SOURCE_DIR}/../TON-SDK/ton_client/client/build")
-
+file(TO_CMAKE_PATH ${CMAKE_SOURCE_DIR}/../TON-SDK/ton_client/client/build PATH_TO_LIBRARY)
+find_library(ton_client_dll NAMES ton_client PATHS ${PATH_TO_LIBRARY})
+message(WARNING "${PATH_TO_LIBRARY}")
 message(WARNING ${ton_client_dll})
 
 if (ton_client_dll)
     add_library(ton_client_ref SHARED IMPORTED)
     set_property(TARGET ton_client_ref PROPERTY IMPORTED_LOCATION "${ton_client_dll}")
     add_library(TonClientScalaBridge SHARED src/bridge.cpp)
+
+    target_include_directories(TonClientScalaBridge PUBLIC ${JNI_INCLUDE})
+    target_include_directories(TonClientScalaBridge PUBLIC ${JNI_SUBSYSTEM_INCLUDE})
     target_link_libraries(TonClientScalaBridge ${ton_client_dll})
+
+    set_target_properties(TonClientScalaBridge PROPERTIES OUTPUT_NAME "ton_client_scala_bridge")
 else()
     message(FATAL_ERROR "Can't find ton_sdk library")
 endif()

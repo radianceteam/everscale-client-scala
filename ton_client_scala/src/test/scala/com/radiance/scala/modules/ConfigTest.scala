@@ -1,4 +1,4 @@
-package com.radiance.scala.methods
+package com.radiance.scala.modules
 
 import java.nio.file.{Files, Paths}
 import java.util.Base64
@@ -54,18 +54,21 @@ trait ConfigTest extends BeforeAndAfter { this: AnyFlatSpec =>
   protected var tvm: TvmModule = _
   protected var client: ClientModule = _
 
-
   implicit class FutureEitherWrapper[A](f: Future[Either[Throwable, A]]) {
     def get: A = Await.result(f, 10.minutes).fold(t => throw t, r => r)
   }
 
+  implicit class EitherWrapper[A](e: Either[Throwable, A]) {
+    def get: A = e.fold(t => throw t, r => r)
+  }
+
   protected def signDetached(data: String , keys: KeyPair): String = (for {
-    signKeys <- EitherT(crypto.nacl_sign_keypair_from_secret_key(keys.secret))
-    r <- EitherT(crypto.nacl_sign_detached(data, signKeys.secret))
-  } yield r).value.get.signature
+    signKeys <- crypto.naclSignKeypairFromSecretKey(keys.secret)
+    r <- crypto.naclSignDetached(data, signKeys.secret)
+  } yield r).get.signature
 
   protected def getGramsFromGiver(address: String): Future[Either[Throwable, ResultOfProcessMessage]] =
-    processing.process_message(
+    processing.processMessage(
       ParamsOfEncodeMessage(
         giverAbi,
         Some("0:841288ed3b55d9cdafa806807f02a0ae0c169aa5edfe88a789a6482429756a94"),
@@ -79,15 +82,15 @@ trait ConfigTest extends BeforeAndAfter { this: AnyFlatSpec =>
         None
       ),
       false,
-      _ => ()
+      e => println("Grams from Giver: \n" + e)
     )
 
-
   protected def deployWithGiver(a: Abi, deploySet: DeploySet, callSet: CallSet, signer: Signer): Future[Either[Throwable, String]] = {
+    println("Run deployWithGiver")
     (for {
-      encoded <- EitherT(abi.encode_message(a, None, Some(deploySet), Some(callSet), signer, None))
+      encoded <- EitherT(abi.encodeMessage(a, None, Some(deploySet), Some(callSet), signer, None))
       _ <- EitherT(getGramsFromGiver(encoded.address))
-      _ <- EitherT(processing.process_message(
+      _ <- EitherT(processing.processMessage(
         ParamsOfEncodeMessage(a, None, Some(deploySet), Some(callSet), signer, None), false, _ => ()
       ))
     } yield encoded.address).value

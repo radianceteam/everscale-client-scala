@@ -1,4 +1,4 @@
-package com.radiance.scala.methods
+package com.radiance.scala.modules
 
 import com.radiance.scala.tonclient.TonContextScala
 import com.radiance.scala.tonclient.TonContextScala.Request
@@ -17,9 +17,9 @@ class NetModule(private val ctx: TonContextScala) {
    *  The projection fields are limited to `result` fields.@param collection  Collection name (accounts, blocks, transactions, messages, block_signatures)
    * @param filter  Collection filter
    * @param result  Projection (result) string
-   * @param callback
+   * @param callback Callback io.circe.Json => Unit
    */
-  def subscribe_collection(collection: String, filter: Option[Value], result: String, callback: Request): Future[Either[Throwable, ResultOfSubscribeCollection]] = {
+  def subscribeCollection(collection: String, filter: Option[Value], result: String, callback: Request): Future[Either[Throwable, ResultOfSubscribeCollection]] = {
     val arg = ParamsOfSubscribeCollection(collection, filter, result)
     ctx.execAsyncWithCallback("net.subscribe_collection", arg, callback)
   }
@@ -30,7 +30,6 @@ class NetModule(private val ctx: TonContextScala) {
    */
   def unsubscribe(handle: Long): Future[Either[Throwable, Unit]] = {
     val arg = ParamsOfUnsubscribeCollection(handle)
-    println("Send unsubscribe")
     ctx.execAsync("net.unsubscribe", arg)
   }
   /**
@@ -46,7 +45,7 @@ class NetModule(private val ctx: TonContextScala) {
    * @param result  Projection (result) string
    * @param timeout  Query timeout
    */
-  def wait_for_collection(collection: String, filter: Option[Value], result: String, timeout: Option[Long]): Future[Either[Throwable, ResultOfWaitForCollection]] = {
+  def waitForCollection(collection: String, filter: Option[Value], result: String, timeout: Option[Long]): Future[Either[Throwable, ResultOfWaitForCollection]] = {
     val arg = ParamsOfWaitForCollection(collection, filter, result, timeout)
     ctx.execAsync("net.wait_for_collection", arg)
   }
@@ -61,7 +60,7 @@ class NetModule(private val ctx: TonContextScala) {
    * @param order  Sorting order
    * @param limit  Number of documents to return
    */
-  def query_collection(collection: String, filter: Option[Value], result: String, order: Option[List[OrderBy]], limit: Option[Long]): Future[Either[Throwable, ResultOfQueryCollection]] ={
+  def queryCollection(collection: String, filter: Option[Value], result: String, order: Option[List[OrderBy]], limit: Option[Long]): Future[Either[Throwable, ResultOfQueryCollection]] ={
     val arg = ParamsOfQueryCollection(collection, filter, result, order, limit)
     ctx.execAsync("net.query_collection", arg)
   }

@@ -1,4 +1,4 @@
-package com.radiance.scala.methods
+package com.radiance.scala.modules
 
 import com.radiance.scala.types.AbiTypes.{CallSet, DeploySet, External, FunctionHeader, Keys, SignerNone}
 import com.radiance.scala.types.CryptoTypes.KeyPair
@@ -25,17 +25,17 @@ class AbiModuleTest extends AnyFlatSpec with ConfigTest {
 
   private val address = "0:05beb555e942fa744fd96f45a9ea9d0a8248208ca12421947c06e59bc997d309"
 
-  private def unsigned = abi.encode_message(eventsAbi, None, Some(deploySet), Some(deployCallSet), External(keys.public), None).get
-  private def unsigned1 = abi.encode_message(eventsAbi, Some(address), None, Some(runCallSet), External(keys.public), None).get
+  private def unsigned = abi.encodeMessage(eventsAbi, None, Some(deploySet), Some(deployCallSet), External(keys.public), None).get
+  private def unsigned1 = abi.encodeMessage(eventsAbi, Some(address), None, Some(runCallSet), External(keys.public), None).get
 
   private def signature = signDetached(unsigned.data_to_sign.get, keys)
   private def signature1 = signDetached(unsigned1.data_to_sign.get, keys)
 
-  private def signed = abi.attach_signature(eventsAbi, keys.public, unsigned.message, signature).get
-  private def signed1 = abi.attach_signature(eventsAbi, keys.public, unsigned1.message, signature1).get
-  private def signed2 = abi.encode_message(eventsAbi, Some(address), None, Some(runCallSet), Keys(keys), None).get
+  private def signed = abi.attachSignature(eventsAbi, keys.public, unsigned.message, signature).get
+  private def signed1 = abi.attachSignature(eventsAbi, keys.public, unsigned1.message, signature1).get
+  private def signed2 = abi.encodeMessage(eventsAbi, Some(address), None, Some(runCallSet), Keys(keys), None).get
 
-  private def noPubkey = abi.encode_message(eventsAbi, Some(address), None, Some(runCallSet), SignerNone, None).get
+  private def noPubkey = abi.encodeMessage(eventsAbi, Some(address), None, Some(runCallSet), SignerNone, None).get
 
   "0" should "be equal" in {
     assert(unsigned.data_to_sign.contains("KCGM36iTYuCYynk+Jnemis+mcwi3RFCke95i7l96s4Q="))

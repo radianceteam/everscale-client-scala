@@ -2,41 +2,40 @@ package com.radiance.scala.types
 
 import io.circe.derivation.{deriveCodec, deriveDecoder, deriveEncoder}
 import io.circe.{Codec, Decoder, Encoder}
-import io.circe.syntax._
 
 object CryptoTypes {
 
   case class SigningBoxHandle(value: BigInt)
 
-  case class ParamsOfFactorize(composite: String) extends ApiNew {
+  case class ParamsOfFactorize(composite: String) extends Bind {
     override type Out = ResultOfFactorize
     override val decoder: Decoder[ResultOfFactorize] = implicitly[Decoder[ResultOfFactorize]]
   }
 
   case class ResultOfFactorize(factors: List[String])
 
-  case class ParamsOfModularPower(base: String, exponent: String, modulus: String) extends ApiNew {
+  case class ParamsOfModularPower(base: String, exponent: String, modulus: String) extends Bind {
     override type Out = ResultOfModularPower
     override val decoder: Decoder[ResultOfModularPower] = implicitly[Decoder[ResultOfModularPower]]
   }
 
   case class ResultOfModularPower(modular_power: String)
 
-  case class ParamsOfTonCrc16(data: String) extends ApiNew {
+  case class ParamsOfTonCrc16(data: String) extends Bind {
     override type Out = ResultOfTonCrc16
     override val decoder: Decoder[ResultOfTonCrc16] = implicitly[Decoder[ResultOfTonCrc16]]
   }
 
   case class ResultOfTonCrc16(crc: Long)
 
-  case class ParamsOfGenerateRandomBytes(length: Long) extends ApiNew {
+  case class ParamsOfGenerateRandomBytes(length: Long) extends Bind {
     override type Out = ResultOfGenerateRandomBytes
     override val decoder: Decoder[ResultOfGenerateRandomBytes] = implicitly[Decoder[ResultOfGenerateRandomBytes]]
   }
 
   case class ResultOfGenerateRandomBytes(bytes: String)
 
-  case class ParamsOfConvertPublicKeyToTonSafeFormat(public_key: String) extends ApiNew {
+  case class ParamsOfConvertPublicKeyToTonSafeFormat(public_key: String) extends Bind {
     override type Out = ResultOfConvertPublicKeyToTonSafeFormat
     override val decoder: Decoder[ResultOfConvertPublicKeyToTonSafeFormat] = implicitly[Decoder[ResultOfConvertPublicKeyToTonSafeFormat]]
   }
@@ -45,14 +44,14 @@ object CryptoTypes {
 
   case class KeyPair(public: String, secret: String)
 
-  case class ParamsOfSign(unsigned: String, keys: KeyPair) extends ApiNew {
+  case class ParamsOfSign(unsigned: String, keys: KeyPair) extends Bind {
     override type Out = ResultOfSign
     override val decoder: Decoder[ResultOfSign] = implicitly[Decoder[ResultOfSign]]
   }
 
   case class ResultOfSign(signed: String, signature: String)
 
-  case class ParamsOfVerifySignature(signed: String, public: String) extends ApiNew {
+  case class ParamsOfVerifySignature(signed: String, public: String) extends Bind {
     override type Out = ResultOfVerifySignature
     override val decoder: Decoder[ResultOfVerifySignature] = implicitly[Decoder[ResultOfVerifySignature]]
   }
@@ -60,33 +59,33 @@ object CryptoTypes {
   case class ResultOfVerifySignature(unsigned: String)
 
   // TODO was renamed
-  case class ParamsOfHash512(data: String) extends ApiNew {
+  case class ParamsOfHash512(data: String) extends Bind {
     override type Out = ResultOfHash
     override val decoder: Decoder[ResultOfHash] = implicitly[Decoder[ResultOfHash]]
   }
 
   case class ResultOfHash(hash: String)
 
-  case class ParamsOfScrypt(password: String, salt: String, log_n: Long, r: Long, p: Long, dk_len: Long) extends ApiNew {
+  case class ParamsOfScrypt(password: String, salt: String, log_n: Long, r: Long, p: Long, dk_len: Long) extends Bind {
     override type Out = ResultOfScrypt
     override val decoder: Decoder[ResultOfScrypt] = implicitly[Decoder[ResultOfScrypt]]
   }
 
   case class ResultOfScrypt(key: String)
 
-  case class ParamsOfNaclSignKeyPairFromSecret(secret: String) extends ApiNew {
+  case class ParamsOfNaclSignKeyPairFromSecret(secret: String) extends Bind {
     override type Out = KeyPair
     override val decoder: Decoder[KeyPair] = implicitly[Decoder[KeyPair]]
   }
 
-  case class ParamsOfNaclSign(unsigned: String, secret: String) extends ApiNew {
+  case class ParamsOfNaclSign(unsigned: String, secret: String) extends Bind {
     override type Out = ResultOfNaclSign
     override val decoder: Decoder[ResultOfNaclSign] = implicitly[Decoder[ResultOfNaclSign]]
   }
 
   case class ResultOfNaclSign(signed: String)
 
-  case class ParamsOfNaclSignOpen(signed: String, public: String) extends ApiNew {
+  case class ParamsOfNaclSignOpen(signed: String, public: String) extends Bind {
     override type Out = ResultOfNaclSignOpen
     override val decoder: Decoder[ResultOfNaclSignOpen] = implicitly[Decoder[ResultOfNaclSignOpen]]
   }
@@ -95,104 +94,104 @@ object CryptoTypes {
 
   case class ResultOfNaclSignDetached(signature: String)
 
-  case class ParamsOfNaclBoxKeyPairFromSecret(secret: String) extends ApiNew {
+  case class ParamsOfNaclBoxKeyPairFromSecret(secret: String) extends Bind {
     override type Out = KeyPair
     override val decoder: Decoder[KeyPair] = implicitly[Decoder[KeyPair]]
   }
 
-  case class ParamsOfNaclBox(decrypted: String, nonce: String, their_public: String, secret: String) extends ApiNew {
+  case class ParamsOfNaclBox(decrypted: String, nonce: String, their_public: String, secret: String) extends Bind {
     override type Out = ResultOfNaclBox
     override val decoder: Decoder[ResultOfNaclBox] = implicitly[Decoder[ResultOfNaclBox]]
   }
 
   case class ResultOfNaclBox(encrypted: String)
 
-  case class ParamsOfNaclBoxOpen(encrypted: String, nonce: String, their_public: String, secret: String) extends ApiNew {
+  case class ParamsOfNaclBoxOpen(encrypted: String, nonce: String, their_public: String, secret: String) extends Bind {
     override type Out = ResultOfNaclBoxOpen
     override val decoder: Decoder[ResultOfNaclBoxOpen] = implicitly[Decoder[ResultOfNaclBoxOpen]]
   }
 
   case class ResultOfNaclBoxOpen(decrypted: String)
 
-  case class ParamsOfNaclSecretBox(decrypted: String, nonce: String, key: String) extends ApiNew {
+  case class ParamsOfNaclSecretBox(decrypted: String, nonce: String, key: String) extends Bind {
     override type Out = ResultOfNaclBox
     override val decoder: Decoder[ResultOfNaclBox] = implicitly[Decoder[ResultOfNaclBox]]
   }
 
-  case class ParamsOfNaclSecretBoxOpen(encrypted: String, nonce: String, key: String) extends ApiNew {
+  case class ParamsOfNaclSecretBoxOpen(encrypted: String, nonce: String, key: String) extends Bind {
     override type Out = ResultOfNaclBoxOpen
     override val decoder: Decoder[ResultOfNaclBoxOpen] = implicitly[Decoder[ResultOfNaclBoxOpen]]
   }
 
-  case class ParamsOfMnemonicWords(dictionary: Option[Long]) extends ApiNew {
+  case class ParamsOfMnemonicWords(dictionary: Option[Long]) extends Bind {
     override type Out = ResultOfMnemonicWords
     override val decoder: Decoder[ResultOfMnemonicWords] = implicitly[Decoder[ResultOfMnemonicWords]]
   }
 
   case class ResultOfMnemonicWords(words: String)
 
-  case class ParamsOfMnemonicFromRandom(dictionary: Option[Long], word_count: Option[Long]) extends ApiNew {
+  case class ParamsOfMnemonicFromRandom(dictionary: Option[Long], word_count: Option[Long]) extends Bind {
     override type Out = ResultOfMnemonicFromRandom
     override val decoder: Decoder[ResultOfMnemonicFromRandom] = implicitly[Decoder[ResultOfMnemonicFromRandom]]
   }
 
   case class ResultOfMnemonicFromRandom(phrase: String)
 
-  case class ParamsOfMnemonicFromEntropy(entropy: String, dictionary: Option[Long], word_count: Option[Long]) extends ApiNew {
+  case class ParamsOfMnemonicFromEntropy(entropy: String, dictionary: Option[Long], word_count: Option[Long]) extends Bind {
     override type Out = ResultOfMnemonicFromEntropy
     override val decoder: Decoder[ResultOfMnemonicFromEntropy] = implicitly[Decoder[ResultOfMnemonicFromEntropy]]
   }
 
   case class ResultOfMnemonicFromEntropy(phrase: String)
 
-  case class ParamsOfMnemonicVerify(phrase: String, dictionary: Option[Long], word_count: Option[Long]) extends ApiNew {
+  case class ParamsOfMnemonicVerify(phrase: String, dictionary: Option[Long], word_count: Option[Long]) extends Bind {
     override type Out = ResultOfMnemonicVerify
     override val decoder: Decoder[ResultOfMnemonicVerify] = implicitly[Decoder[ResultOfMnemonicVerify]]
   }
 
   case class ResultOfMnemonicVerify(valid: Boolean)
 
-  case class ParamsOfMnemonicDeriveSignKeys(phrase: String, path: Option[String], dictionary: Option[Long], word_count: Option[Long]) extends ApiNew {
+  case class ParamsOfMnemonicDeriveSignKeys(phrase: String, path: Option[String], dictionary: Option[Long], word_count: Option[Long]) extends Bind {
     override type Out = KeyPair
     override val decoder: Decoder[KeyPair] = implicitly[Decoder[KeyPair]]
   }
 
-  case class ParamsOfHDKeyXPrvFromMnemonic(phrase: String, dictionary: Option[Long], word_count: Option[Long]) extends ApiNew {
+  case class ParamsOfHDKeyXPrvFromMnemonic(phrase: String, dictionary: Option[Long], word_count: Option[Long]) extends Bind {
     override type Out = ResultOfHDKeyXPrvFromMnemonic
     override val decoder: Decoder[ResultOfHDKeyXPrvFromMnemonic] = implicitly[Decoder[ResultOfHDKeyXPrvFromMnemonic]]
   }
 
   case class ResultOfHDKeyXPrvFromMnemonic(xprv: String)
 
-  case class ParamsOfHDKeyDeriveFromXPrv(xprv: String, child_index: Long, hardened: Boolean) extends ApiNew {
+  case class ParamsOfHDKeyDeriveFromXPrv(xprv: String, child_index: Long, hardened: Boolean) extends Bind {
     override type Out = ResultOfHDKeyDeriveFromXPrv
     override val decoder: Decoder[ResultOfHDKeyDeriveFromXPrv] = implicitly[Decoder[ResultOfHDKeyDeriveFromXPrv]]
   }
 
   case class ResultOfHDKeyDeriveFromXPrv(xprv: String)
 
-  case class ParamsOfHDKeyDeriveFromXPrvPath(xprv: String, path: String) extends ApiNew {
+  case class ParamsOfHDKeyDeriveFromXPrvPath(xprv: String, path: String) extends Bind {
     override type Out = ResultOfHDKeyDeriveFromXPrvPath
     override val decoder: Decoder[ResultOfHDKeyDeriveFromXPrvPath] = implicitly[Decoder[ResultOfHDKeyDeriveFromXPrvPath]]
   }
 
   case class ResultOfHDKeyDeriveFromXPrvPath(xprv: String)
 
-  case class ParamsOfHDKeySecretFromXPrv(xprv: String) extends ApiNew {
+  case class ParamsOfHDKeySecretFromXPrv(xprv: String) extends Bind {
     override type Out = ResultOfHDKeySecretFromXPrv
     override val decoder: Decoder[ResultOfHDKeySecretFromXPrv] = implicitly[Decoder[ResultOfHDKeySecretFromXPrv]]
   }
 
   case class ResultOfHDKeySecretFromXPrv(secret: String)
 
-  case class ParamsOfHDKeyPublicFromXPrv(xprv: String) extends ApiNew {
+  case class ParamsOfHDKeyPublicFromXPrv(xprv: String) extends Bind {
     override type Out = ResultOfHDKeyPublicFromXPrv
     override val decoder: Decoder[ResultOfHDKeyPublicFromXPrv] = implicitly[Decoder[ResultOfHDKeyPublicFromXPrv]]
   }
 
   case class ResultOfHDKeyPublicFromXPrv(public: String)
 
-  case class ParamsOfChaCha20(data: String, key: String, nonce: String) extends ApiNew {
+  case class ParamsOfChaCha20(data: String, key: String, nonce: String) extends Bind {
     override type Out = ResultOfChaCha20
     override val decoder: Decoder[ResultOfChaCha20] = implicitly[Decoder[ResultOfChaCha20]]
   }
@@ -417,7 +416,7 @@ object CryptoTypes {
   }
 
   // TODO were added
-  case class ParamsOfNaclSignDetached(unsigned: String, secret: String) extends ApiNew {
+  case class ParamsOfNaclSignDetached(unsigned: String, secret: String) extends Bind {
     override type Out = ResultOfNaclSignDetached
     override val decoder: Decoder[ResultOfNaclSignDetached] = implicitly[Decoder[ResultOfNaclSignDetached]]
   }
@@ -426,7 +425,7 @@ object CryptoTypes {
     implicit val ParamsOfNaclSignEncoder: Encoder[ParamsOfNaclSignDetached] = deriveEncoder[ParamsOfNaclSignDetached]
   }
 
-  case class ParamsOfHash256(data: String) extends ApiNew {
+  case class ParamsOfHash256(data: String) extends Bind {
     override type Out = ResultOfHash
     override val decoder: Decoder[ResultOfHash] = implicitly[Decoder[ResultOfHash]]
   }

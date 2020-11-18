@@ -1,9 +1,8 @@
 package com.radiance.scala.types
 
-import io.circe
 import io.circe.derivation.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder, Json}
-import io.circe.syntax._
+import io.circe.Json._
 
 object NetTypes {
   type Value = Json
@@ -16,14 +15,14 @@ object NetTypes {
 
   case object DESC extends SortDirection
 
-  case class ParamsOfQueryCollection(collection: String, filter: Option[Value], result: String, order: Option[List[OrderBy]], limit: Option[Long]) extends ApiNew {
+  case class ParamsOfQueryCollection(collection: String, filter: Option[Value], result: String, order: Option[List[OrderBy]], limit: Option[Long]) extends Bind {
     override type Out = ResultOfQueryCollection
     override val decoder: Decoder[ResultOfQueryCollection] = implicitly[Decoder[ResultOfQueryCollection]]
   }
 
   case class ResultOfQueryCollection(result: List[Value])
 
-  case class ParamsOfWaitForCollection(collection: String, filter: Option[Value], result: String, timeout: Option[Long]) extends ApiNew {
+  case class ParamsOfWaitForCollection(collection: String, filter: Option[Value], result: String, timeout: Option[Long]) extends Bind {
     override type Out = ResultOfWaitForCollection
     override val decoder: Decoder[ResultOfWaitForCollection] = implicitly[Decoder[ResultOfWaitForCollection]]
   }
@@ -32,9 +31,7 @@ object NetTypes {
 
   case class ResultOfSubscribeCollection(handle: Long)
 
-  case object unit
-
-  case class ParamsOfSubscribeCollection(collection: String, filter: Option[Value], result: String) extends ApiNew {
+  case class ParamsOfSubscribeCollection(collection: String, filter: Option[Value], result: String) extends Bind {
     override type Out = ResultOfSubscribeCollection
     override val decoder: Decoder[ResultOfSubscribeCollection] = implicitly[Decoder[ResultOfSubscribeCollection]]
   }
@@ -45,8 +42,8 @@ object NetTypes {
 
   object SortDirection {
     implicit val SortDirectionEncoder: Encoder[SortDirection] = {
-      case ASC => circe.Json.fromString("ASC")
-      case DESC => circe.Json.fromString("DESC")
+      case ASC => fromString("ASC")
+      case DESC => fromString("DESC")
     }
   }
 
@@ -80,9 +77,8 @@ object NetTypes {
       deriveEncoder[ParamsOfSubscribeCollection]
   }
 
-  // TODO were added
-
-  case class ParamsOfUnsubscribeCollection(handle: Long) extends ApiNew {
+  // were added
+  case class ParamsOfUnsubscribeCollection(handle: Long) extends Bind {
     override type Out = Unit
     override val decoder: Decoder[Unit] = implicitly[Decoder[Unit]]
   }

@@ -6,6 +6,7 @@ import io.circe
 import io.circe.derivation.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import io.circe.syntax._
+import io.circe.Json._
 
 object TvmTypes {
   type Value = circe.Json
@@ -22,21 +23,21 @@ object TvmTypes {
 
   case class TransactionFees(in_msg_fwd_fee: BigInt, storage_fee: BigInt, gas_fee: BigInt, out_msgs_fwd_fee: BigInt, total_account_fees: BigInt, total_output: BigInt)
 
-  case class ParamsOfRunExecutor(message: String, account: AccountForExecutor, execution_options: Option[ExecutionOptions], abi: Option[Abi], skip_transaction_check: Option[Boolean]) extends ApiNew {
+  case class ParamsOfRunExecutor(message: String, account: AccountForExecutor, execution_options: Option[ExecutionOptions], abi: Option[Abi], skip_transaction_check: Option[Boolean]) extends Bind {
     override type Out = ResultOfRunExecutor
     override val decoder: Decoder[ResultOfRunExecutor] = implicitly[Decoder[ResultOfRunExecutor]]
   }
 
   case class ResultOfRunExecutor(transaction: Value, out_messages: List[String], decoded: Option[ProcessingTypes.DecodedOutput], account: String, fees: TransactionFees)
 
-  case class ParamsOfRunTvm(message: String, account: String, execution_options: Option[ExecutionOptions], abi: Option[Abi]) extends ApiNew {
+  case class ParamsOfRunTvm(message: String, account: String, execution_options: Option[ExecutionOptions], abi: Option[Abi]) extends Bind {
     override type Out = ResultOfRunTvm
     override val decoder: Decoder[ResultOfRunTvm] = implicitly[Decoder[ResultOfRunTvm]]
   }
 
   case class ResultOfRunTvm(out_messages: List[String], decoded: Option[DecodedOutput], account: String)
 
-  case class ParamsOfRunGet(account: String, function_name: String, input: Option[Value], execution_options: Option[ExecutionOptions]) extends ApiNew {
+  case class ParamsOfRunGet(account: String, function_name: String, input: Option[Value], execution_options: Option[ExecutionOptions]) extends Bind {
     override type Out = ResultOfRunGet
     override val decoder: Decoder[ResultOfRunGet] = implicitly[Decoder[ResultOfRunGet]]
   }
@@ -50,8 +51,8 @@ object TvmTypes {
 
   object AccountForExecutor {
     implicit val AccountForExecutorEncoder: Encoder[AccountForExecutor] = {
-      case NoneAccount => circe.Json.fromFields(Seq("type" -> "None".asJson))
-      case UninitAccount => circe.Json.fromFields(Seq("type" -> "Uninit".asJson))
+      case NoneAccount => fromFields(Seq("type" -> fromString("None")))
+      case UninitAccount => fromFields(Seq("type" -> fromString("Uninit")))
       case a: Account => a.asJson.deepMerge(Utils.generateType(a))
     }
   }

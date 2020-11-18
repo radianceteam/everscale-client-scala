@@ -1,11 +1,12 @@
 package com.radiance.scala.types
 
-import io.circe.{Codec, Decoder, Encoder, Json, JsonObject}
+import io.circe
+import io.circe.{Codec, Decoder, Encoder}
 import io.circe.derivation.{deriveCodec, deriveDecoder, deriveEncoder}
 
 object ClientTypes {
-  type Value = JsonObject
-  type API = String
+  type Value = circe.Json
+  type API = circe.Json
 
   case class ClientError(code: Long, message: String, data: Value)
 

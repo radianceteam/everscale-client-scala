@@ -1,25 +1,25 @@
 package com.radiance.scala.types
 
+import io.circe
 import io.circe.derivation.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder, Json}
-import io.circe.syntax._
 
 object BocTypes {
-  type Value = Json
+  type Value = circe.Json
 
-  case class ParamsOfParse(boc: String) extends ApiNew {
+  case class ParamsOfParse(boc: String) extends Bind {
     override type Out = ResultOfParse
     override val decoder: Decoder[ResultOfParse] = implicitly[Decoder[ResultOfParse]]
   }
 
   case class ResultOfParse(parsed: Value)
 
-  case class ParamsOfParseShardstate(boc: String, id: String, workchain_id: Int) extends ApiNew {
+  case class ParamsOfParseShardstate(boc: String, id: String, workchain_id: Int) extends Bind {
     override type Out = ResultOfParse
     override val decoder: Decoder[ResultOfParse] = implicitly[Decoder[ResultOfParse]]
   }
 
-  case class ParamsOfGetBlockchainConfig(block_boc: String) extends ApiNew {
+  case class ParamsOfGetBlockchainConfig(block_boc: String) extends Bind {
     override type Out = ResultOfGetBlockchainConfig
     override val decoder: Decoder[ResultOfGetBlockchainConfig] =
       implicitly[Decoder[ResultOfGetBlockchainConfig]]
@@ -61,5 +61,4 @@ object BocTypes {
   case object ResultOfGetBocHash {
     implicit val ResultOfGetBocHashDecoder: Decoder[ResultOfGetBocHash] = deriveDecoder[ResultOfGetBocHash]
   }
-
 }

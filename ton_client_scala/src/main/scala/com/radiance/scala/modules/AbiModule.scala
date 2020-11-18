@@ -1,4 +1,4 @@
-package com.radiance.scala.methods
+package com.radiance.scala.modules
 
 import com.radiance.scala.tonclient.TonContextScala
 import com.radiance.scala.types.AbiTypes._
@@ -16,7 +16,7 @@ class AbiModule(ctx: TonContextScala) {
    * @param last_trans_lt  Initial value for the `last_trans_lt`.
    * @param last_paid  Initial value for the `last_paid`.
    */
-  def encode_account(state_init: StateInitSource, balance: Option[BigInt], last_trans_lt: Option[BigInt], last_paid: Option[Long]): Future[Either[Throwable, ResultOfEncodeAccount]] = {
+  def encodeAccount(state_init: StateInitSource, balance: Option[BigInt], last_trans_lt: Option[BigInt], last_paid: Option[Long]): Future[Either[Throwable, ResultOfEncodeAccount]] = {
     val arg = ParamsOfEncodeAccount(state_init, balance, last_trans_lt, last_paid)
     ctx.execAsync("abi.encode_account", arg)
   }
@@ -25,7 +25,7 @@ class AbiModule(ctx: TonContextScala) {
    * @param body  Message body BOC encoded in `base64`.
    * @param is_internal  True if the body belongs to the internal message.
    */
-  def decode_message_body(abi: Abi, body: String, is_internal: Boolean): Future[Either[Throwable, DecodedMessageBody]] = {
+  def decodeMessageBody(abi: Abi, body: String, is_internal: Boolean): Future[Either[Throwable, DecodedMessageBody]] = {
     val arg = ParamsOfDecodeMessageBody(abi, body, is_internal)
     ctx.execAsync("abi.decode_message_body", arg)
   }
@@ -34,7 +34,7 @@ class AbiModule(ctx: TonContextScala) {
    *  Decodes message body using provided message BOC and ABI.@param abi  contract ABI
    * @param message  Message BOC
    */
-  def decode_message(abi: Abi, message: String): Future[Either[Throwable, DecodedMessageBody]] = {
+  def decodeMessage(abi: Abi, message: String): Future[Either[Throwable, DecodedMessageBody]] = {
     val arg = ParamsOfDecodeMessageBody(abi, message, false)
     ctx.execAsync("abi.decode_message", arg)
   }
@@ -45,7 +45,7 @@ class AbiModule(ctx: TonContextScala) {
    * @param message  Unsigned message BOC encoded in `base64`.
    * @param signature  Signature encoded in `hex`.
    */
-  def attach_signature(abi: Abi, public_key: String, message: String, signature: String): Future[Either[Throwable, ResultOfAttachSignature]] = {
+  def attachSignature(abi: Abi, public_key: String, message: String, signature: String): Future[Either[Throwable, ResultOfAttachSignature]] = {
     val arg = ParamsOfAttachSignature(abi, public_key, message, signature)
     ctx.execAsync("abi.attach_signature", arg)
   }
@@ -101,10 +101,8 @@ class AbiModule(ctx: TonContextScala) {
    *
    *  Default value is 0.
    */
-  def encode_message(abi: Abi, address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], signer: Signer, processing_try_index: Option[Long]): Future[Either[Throwable, ResultOfEncodeMessage]] = {
+  def encodeMessage(abi: Abi, address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], signer: Signer, processing_try_index: Option[Long]): Future[Either[Throwable, ResultOfEncodeMessage]] = {
     val arg = ParamsOfEncodeMessage(abi, address, deploy_set, call_set, signer, processing_try_index)
-    import io.circe.syntax._
-    println(arg.asJson.deepDropNullValues.noSpaces)
     ctx.execAsync("abi.encode_message", arg)
   }
   /**
@@ -113,7 +111,7 @@ class AbiModule(ctx: TonContextScala) {
    * @param message  Unsigned message BOC. Must be encoded with `base64`.
    * @param signature  Signature. Must be encoded with `hex`.
    */
-  def attach_signature_to_message_body(abi: Abi, public_key: String, message: String, signature: String): Future[Either[Throwable, ResultOfAttachSignatureToMessageBody]] = {
+  def attachSignatureToMessageBody(abi: Abi, public_key: String, message: String, signature: String): Future[Either[Throwable, ResultOfAttachSignatureToMessageBody]] = {
     val arg = ParamsOfAttachSignatureToMessageBody(abi, public_key, message, signature)
     ctx.execAsync("abi.attach_signature_to_message_body", arg)
   }
@@ -137,7 +135,7 @@ class AbiModule(ctx: TonContextScala) {
    *
    *  Default value is 0.
    */
-  def encode_message_body(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long]): Future[Either[Throwable, ResultOfEncodeMessageBody]] = {
+  def encodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long]): Future[Either[Throwable, ResultOfEncodeMessageBody]] = {
     val arg = ParamsOfEncodeMessageBody(abi, call_set, is_internal, signer, processing_try_index)
     ctx.execAsync("abi.encode_message_body", arg)
   }

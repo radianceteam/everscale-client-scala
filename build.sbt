@@ -1,5 +1,8 @@
-import com.sun.javafx.PlatformUtil
-import scala.sys.process.{Process, ProcessLogger}
+import scala.sys.process.Process
+
+val currentBranch = "master"
+val pathToCmakeWin = """C:\Program Files\JetBrains\CLion 2020.2.4\bin\cmake\win\bin\cmake.exe"""
+val pathToCmakeLinux = """/usr/bin/cmake"""
 
 lazy val pathToExternalDll = SettingKey[File]("pathToExternalDll")
 lazy val pathToBridgeDll = SettingKey[File]("pathToBridgeDll")
@@ -24,19 +27,16 @@ lazy val ton_client_scala = project
 
     pathToExternalDll := baseDirectory.in(`TON-SDK`).value.getAbsoluteFile  / "ton_client" / "client" / "build",
     pathToBridgeDll := baseDirectory.in(native).value.getAbsoluteFile / "build",
-    unmanagedResourceDirectories in Compile ++= Seq(
-      pathToExternalDll.value,
-      pathToBridgeDll.value
-    ),
-    unmanagedResourceDirectories in Runtime ++= Seq(
-      pathToExternalDll.value,
-      pathToBridgeDll.value
-    ),
-    unmanagedResourceDirectories in Test ++= Seq(
-      pathToExternalDll.value,
-      pathToBridgeDll.value
-    ),
-    mainClass in assembly := Some("com.radiance.scala.tonclient.TonContextScala")
+
+    Compile / unmanagedResourceDirectories ++= Seq(pathToBridgeDll.value, pathToExternalDll.value),
+    Runtime / unmanagedResourceDirectories += pathToBridgeDll.value,
+    Test / unmanagedResourceDirectories += pathToBridgeDll.value,
+
+    includeFilter in unmanagedResources in Compile := "*.dll" || "*.dll.a" || "*.dll.lib" || "*.so",
+    includeFilter in unmanagedResources in Test := "*",
+
+    mainClass in assembly := Some("com.radiance.scala.tonclient.TonContextScala"),
+    test in assembly := {}
   )
 
 lazy val native = project
@@ -49,33 +49,42 @@ lazy val `TON-SDK` = project
     buildDependentLib := buildDllImpl.value
   )
 
+
 lazy val buildDllImpl = Def.task {
-  val sbtLog = streams.value.log
-  val logger: ProcessLogger = new ProcessLogger {
-    override def out(s: => String): Unit = sbtLog.info(s)
 
-    override def err(s: => String): Unit = sbtLog.info(s)
-
-    override def buffer[T](f: => T) = sbtLog.buffer(f)
-  }
-  if (PlatformUtil.isWindows) {
-    val currentDir = Process("cmd /C chcp 65001")
-    currentDir.run(logger)
+  OperationSystem.operationSystem match {
+    case Windows =>
+      Process("cmd /C chcp 65001")!
+    case _ => ()
   }
 
-  val initSubmodule = Process("git submodule init", new File("TON-SDK"))
-  initSubmodule.run(logger)
-  val runScript = Process("node build", new File("TON-SDK/ton_client/client/"))
-  runScript.run(logger)
+  Process(s"git submodule init", new File("TON-SDK")).!
+  Process(s"git checkout $currentBranch", new File("TON-SDK")).!
+  Process(s"git pull", new File("TON-SDK")).!
+  Process("node build", new File("TON-SDK/ton_client/client/")).!
+
 }
 
 lazy val buildBridgeImpl = Def.task {
-  val sbtLog = streams.value.log
-  val logger: ProcessLogger = new ProcessLogger {
-    override def out(s: => String): Unit = sbtLog.info(s)
-    override def err(s: => String): Unit = sbtLog.info(s)
-    override def buffer[T](f: => T) = sbtLog.buffer(f)
-  }
+  val pathToParent = baseDirectory.value.getAbsoluteFile
+  val pathToBuildDir = baseDirectory.value.getAbsoluteFile / "build"
 
-  // TODO
+  OperationSystem.operationSystem match {
+    case Windows =>
+      Process("cmd /C chcp 65001").!
+      val createDir = "cmd /C if not exist build mkdir build"
+      Process(createDir, new File("native")).!
+      val cmakeLoadCommand = s""""$pathToCmakeWin" -DCMAKE_BUILD_TYPE=Release -G "CodeBlocks - MinGW Makefiles" $pathToParent"""
+      Process(cmakeLoadCommand, new File("native/build")).!
+      val cmakeCommand = s""""$pathToCmakeWin" --build $pathToBuildDir --target all -- -j 6"""
+      Process(cmakeCommand, new File("native")).!
+    case Linux =>
+      Process("mkdir -p build", pathToParent)!
+      val cmakeLoadCommand = s"""$pathToCmakeLinux -DCMAKE_BUILD_TYPE=Release $pathToParent -B$pathToBuildDir"""
+      Process(cmakeLoadCommand).!
+      val cmakeCommand = s"""$pathToCmakeLinux --build $pathToBuildDir --target all -- -j 6"""
+      Process(cmakeCommand, new File("native")).!
+
+    case _ => ???
+  }
 }

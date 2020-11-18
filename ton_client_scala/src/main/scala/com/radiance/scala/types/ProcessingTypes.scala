@@ -31,19 +31,19 @@ object ProcessingTypes {
 
   case class DecodedOutput(out_messages: List[Option[DecodedMessageBody]], output: Option[Value])
 
-  case class ParamsOfSendMessage(message: String, abi: Option[Abi], send_events: Boolean) extends ApiNew {
+  case class ParamsOfSendMessage(message: String, abi: Option[Abi], send_events: Boolean) extends Bind {
     override type Out = ResultOfSendMessage
     override val decoder: Decoder[ResultOfSendMessage] = implicitly[Decoder[ResultOfSendMessage]]
   }
 
   case class ResultOfSendMessage(shard_block_id: String)
 
-  case class ParamsOfWaitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Boolean) extends ApiNew {
+  case class ParamsOfWaitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Boolean) extends Bind {
     override type Out = ResultOfProcessMessage
     override val decoder: Decoder[ResultOfProcessMessage] = implicitly[Decoder[ResultOfProcessMessage]]
   }
 
-  case class ParamsOfProcessMessage(message_encode_params: ParamsOfEncodeMessage, send_events: Boolean) extends ApiNew {
+  case class ParamsOfProcessMessage(message_encode_params: ParamsOfEncodeMessage, send_events: Boolean) extends Bind {
     override type Out = ResultOfProcessMessage
     override val decoder: Decoder[ResultOfProcessMessage] = implicitly[Decoder[ResultOfProcessMessage]]
   }

@@ -5,6 +5,7 @@ import io.circe
 import io.circe.derivation.{deriveCodec, deriveDecoder, deriveEncoder}
 import io.circe.{Codec, Decoder, Encoder}
 import io.circe.syntax._
+import io.circe.Json._
 import Utils._
 
 object AbiTypes {
@@ -92,28 +93,28 @@ object AbiTypes {
 
   case class AbiContract(`ABI version`: Option[Long], abi_version: Option[Long], header: Option[List[String]], functions: Option[List[AbiFunction]], events: Option[List[AbiEvent]], data: Option[List[AbiData]])
 
-  case class ParamsOfEncodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long]) extends ApiNew {
+  case class ParamsOfEncodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long]) extends Bind {
     override type Out = ResultOfEncodeMessageBody
     override val decoder: Decoder[ResultOfEncodeMessageBody] = implicitly[Decoder[ResultOfEncodeMessageBody]]
   }
 
   case class ResultOfEncodeMessageBody(body: String, data_to_sign: Option[String])
 
-  case class ParamsOfAttachSignatureToMessageBody(abi: Abi, public_key: String, message: String, signature: String) extends ApiNew {
+  case class ParamsOfAttachSignatureToMessageBody(abi: Abi, public_key: String, message: String, signature: String) extends Bind {
     override type Out = ResultOfAttachSignatureToMessageBody
     override val decoder: Decoder[ResultOfAttachSignatureToMessageBody] = implicitly[Decoder[ResultOfAttachSignatureToMessageBody]]
   }
 
   case class ResultOfAttachSignatureToMessageBody(body: String)
 
-  case class ParamsOfEncodeMessage(abi: Abi, address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], signer: Signer, processing_try_index: Option[Long]) extends ApiNew {
+  case class ParamsOfEncodeMessage(abi: Abi, address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], signer: Signer, processing_try_index: Option[Long]) extends Bind {
     override type Out = ResultOfEncodeMessage
     override val decoder: Decoder[ResultOfEncodeMessage] = implicitly[Decoder[ResultOfEncodeMessage]]
   }
 
   case class ResultOfEncodeMessage(message: String, data_to_sign: Option[String], address: String, message_id: String)
 
-  case class ParamsOfAttachSignature(abi: Abi, public_key: String, message: String, signature: String) extends ApiNew {
+  case class ParamsOfAttachSignature(abi: Abi, public_key: String, message: String, signature: String) extends Bind {
     override type Out = ResultOfAttachSignature
     override val decoder: Decoder[ResultOfAttachSignature] = implicitly[Decoder[ResultOfAttachSignature]]
   }
@@ -124,12 +125,12 @@ object AbiTypes {
 
   case class DecodedMessageBody(body_type: MessageBodyType, name: String, value: Option[Value], header: Option[FunctionHeader])
 
-  case class ParamsOfDecodeMessageBody(abi: Abi, body: String, is_internal: Boolean) extends ApiNew {
+  case class ParamsOfDecodeMessageBody(abi: Abi, body: String, is_internal: Boolean) extends Bind {
     override type Out = DecodedMessageBody
     override val decoder: Decoder[DecodedMessageBody] = implicitly[Decoder[DecodedMessageBody]]
   }
 
-  case class ParamsOfEncodeAccount(state_init: StateInitSource, balance: Option[BigInt], last_trans_lt: Option[BigInt], last_paid: Option[Long]) extends ApiNew {
+  case class ParamsOfEncodeAccount(state_init: StateInitSource, balance: Option[BigInt], last_trans_lt: Option[BigInt], last_paid: Option[Long]) extends Bind {
     override type Out = ResultOfEncodeAccount
     override val decoder: Decoder[ResultOfEncodeAccount] = implicitly[Decoder[ResultOfEncodeAccount]]
   }
@@ -181,7 +182,7 @@ object AbiTypes {
 
   object Signer {
     implicit val SignerEncoder: Encoder[Signer] = {
-      case SignerNone => circe.Json.fromFields(Seq(("type" -> "None".asJson)))
+      case SignerNone => circe.Json.fromFields(Seq("type" -> fromString("None")))
       case a: External => a.asJson.deepMerge(generateType(a))
       case a: Keys => a.asJson.deepMerge(generateType(a))
       case a: SigningBox => a.asJson.deepMerge(generateType(a))

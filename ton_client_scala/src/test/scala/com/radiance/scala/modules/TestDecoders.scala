@@ -1,4 +1,4 @@
-package com.radiance.scala.methods
+package com.radiance.scala.modules
 
 import com.radiance.scala.types.AbiTypes.{AbiContract, Serialized}
 import io.circe.Decoder

@@ -1,4 +1,4 @@
-package com.radiance.scala.methods
+package com.radiance.scala.modules
 
 import com.radiance.scala.tonclient.TonContextScala
 import com.radiance.scala.tonclient.TonContextScala.Request
@@ -31,10 +31,11 @@ class ProcessingModule(private val ctx: TonContextScala) {
    *
    *  If contract's ABI does not include "expire" header
    *  then, if no transaction is found within the network timeout (see config parameter ), exits with error.@param message_encode_params  Message encode parameters.
+   * @param message_encode_params Parameters of encode message
    * @param send_events  Flag for requesting events sending
-   * @param request
+   * @param callback Callback io.circe.Json => Unit
    */
-  def process_message(message_encode_params: ParamsOfEncodeMessage, send_events: Boolean, callback: Request): Future[Either[Throwable, ResultOfProcessMessage]] = {
+  def processMessage(message_encode_params: ParamsOfEncodeMessage, send_events: Boolean, callback: Request): Future[Either[Throwable, ResultOfProcessMessage]] = {
     val arg = ParamsOfProcessMessage(message_encode_params, send_events)
     ctx.execAsyncWithCallback("processing.process_message", arg, callback)
   }
@@ -78,9 +79,9 @@ class ProcessingModule(private val ctx: TonContextScala) {
    *
    *  You must provide the same value as the `send_message` has returned.
    * @param send_events  Flag that enables/disables intermediate events
-   * @param callback
+   * @param callback Callback io.circe.Json => Unit
    */
-  def wait_for_transaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Boolean, callback: Request):  Future[Either[Throwable, ResultOfProcessMessage]] = {
+  def waitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Boolean, callback: Request):  Future[Either[Throwable, ResultOfProcessMessage]] = {
     val arg = ParamsOfWaitForTransaction(abi, message, shard_block_id, send_events)
     ctx.execAsync("processing.wait_for_transaction", arg)
   }
@@ -102,9 +103,9 @@ class ProcessingModule(private val ctx: TonContextScala) {
    *  strongly recommended, so that proper processing strategy can be
    *  chosen.
    * @param send_events  Flag for requesting events sending
-   * @param callback
+   * @param callback Callback io.circe.Json => Unit
    */
-  def send_message(message: String, abi: Option[Abi], send_events: Boolean, callback: Request): Future[Either[Throwable, ResultOfSendMessage]] = {
+  def sendMessage(message: String, abi: Option[Abi], send_events: Boolean, callback: Request): Future[Either[Throwable, ResultOfSendMessage]] = {
     val arg = ParamsOfSendMessage(message, abi, send_events)
     ctx.execAsync("processing.send_message", arg)
   }

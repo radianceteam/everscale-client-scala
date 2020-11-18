@@ -1,4 +1,7 @@
 #include <stdint.h>
+#ifdef __CYGWIN__
+#define __int64 int64_t
+#endif
 #include <string.h>
 #include "TonContextScala.h"
 #include "tonclient.h"
@@ -16,7 +19,7 @@ tc_string_data_t tc_string(const char *string) {
 
 jstring jni_string(JNIEnv *env, tc_string_data_t string) {
     char *pChar = new char[string.len + 1];
-    strncpy_s(pChar, (size_t)string.len + 1, string.content, string.len);
+    strncpy(pChar, string.content, string.len);
     pChar[string.len] = 0;
     jstring result = env->NewStringUTF(pChar);
     delete[] pChar;
@@ -34,13 +37,14 @@ void response_handler_ptr(void* request_ptr, tc_string_data_t params_json, uint3
     call_site* site = (call_site*)request_ptr;
 
     jclass clazz = env->GetObjectClass(site -> target);
-    jmethodID jHandler = env->GetMethodID(clazz, "asyncHandler", "(ILjava/lang/String;Lscala/concurrent/Promise;)V");
-    env->CallVoidMethod(site -> target, jHandler, response_type, jni_string(env, params_json), site -> promise);
-
-    //TODO delete site;
+    jmethodID jHandler = env->GetMethodID(clazz, "asyncHandler", "(ILjava/lang/String;Lscala/concurrent/Promise;Z)V");
+    env->CallVoidMethod(site -> target, jHandler, response_type, jni_string(env, params_json), site -> promise, finished);
 
     if (needDetach) {
         javaVM->DetachCurrentThread();
+    }
+    if (finished) {
+        delete site;
     }
 }
 
@@ -108,6 +112,3 @@ Java_com_radiance_scala_tonclient_TonContextScala_syncRequest(
 
     return res;
 }
-
-
-

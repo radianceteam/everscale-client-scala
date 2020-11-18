@@ -2,7 +2,7 @@ package com.radiance.scala.types
 
 import io.circe.Decoder
 
-trait ApiNew {
+trait Bind {
   type Out
   val decoder: Decoder[Out]
 }
