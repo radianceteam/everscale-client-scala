@@ -1,4 +1,4 @@
-# Scala ton_client
+# Scala TON-SDK client
 
 ##Prerequisites
 1. Install on your computer latest [nodejs](https://nodejs.org/en/download/)
