@@ -49,6 +49,19 @@ lazy val `TON-SDK` = project
     buildDependentLib := buildDllImpl.value
   )
 
+lazy val ton_generator = project
+  .settings(
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-core" % "0.14.0-M1",
+      "io.circe" %% "circe-derivation" % "0.13.0-M4",
+      "io.circe" %% "circe-parser" % "0.14.0-M1",
+      "org.typelevel" %% "cats-core" % "2.3.0-M2",
+      "com.github.javaparser" % "javaparser-core" % "3.18.0",
+      "com.eed3si9n" %% "treehugger" % "0.4.4",
+
+      "org.scalatest" %% "scalatest-flatspec" % "3.2.3" % Test,
+    )
+  )
 
 lazy val buildDllImpl = Def.task {
 
