@@ -14,7 +14,7 @@ Features:
 - cpp compiler
 - cmake
 - __JAVA_HOME__ environment variable need to be defined
-- on Windows environment variable __PATH__ need contains absolute path to folder __TON-SDK/ton_client/client/build__. 
+- on Windows environment variable __PATH__ need contains absolute path to folder __TON-SDK/ton_client/build__. 
 
 ## Prerequisites
 
@@ -24,6 +24,10 @@ Features:
     1. [Mingw-w64](http://mingw-w64.org/doku.php)
     2. [Cygwin](https://cygwin.com/install.html)
     3. [Visual Studio Code](https://code.visualstudio.com/docs/cpp/config-msvc)
+    Architecture: x86_amd64
+    4. [msys2](https://www.msys2.org/)
+    https://stackoverflow.com/questions/30069830/how-to-install-mingw-w64-and-msys2
+    6. [Mingw-builds](http://mingw-w64.org/doku.php/download/mingw-builds)
     
     If you use Linux install cmake:
         

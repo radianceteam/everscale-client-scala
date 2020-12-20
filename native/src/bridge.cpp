@@ -3,7 +3,7 @@
 #define __int64 int64_t
 #endif
 #include <string.h>
-#include "TonContextScala.h"
+#include "Context.h"
 #include "tonclient.h"
 
 JavaVM *javaVM;
@@ -49,7 +49,7 @@ void response_handler_ptr(void* request_ptr, tc_string_data_t params_json, uint3
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_radiance_scala_tonclient_TonContextScala_createContext(JNIEnv *env, jobject obj, jstring jConfig) {
+Java_com_radiance_jvm_Context_createContext(JNIEnv *env, jobject obj, jstring jConfig) {
     env->
             GetJavaVM(&javaVM);
     const char *config = env->GetStringUTFChars(jConfig, NULL);
@@ -63,7 +63,7 @@ Java_com_radiance_scala_tonclient_TonContextScala_createContext(JNIEnv *env, job
 }
 
 JNIEXPORT void JNICALL
-Java_com_radiance_scala_tonclient_TonContextScala_destroyContext(
+Java_com_radiance_jvm_Context_destroyContext(
         JNIEnv *env,
         jobject obj,
         jint ctx
@@ -72,7 +72,7 @@ Java_com_radiance_scala_tonclient_TonContextScala_destroyContext(
 }
 
 JNIEXPORT void JNICALL
-Java_com_radiance_scala_tonclient_TonContextScala_asyncRequest(
+Java_com_radiance_jvm_Context_asyncRequest(
         JNIEnv *env,
         jobject jobj,
         jint ctx,
@@ -94,7 +94,7 @@ Java_com_radiance_scala_tonclient_TonContextScala_asyncRequest(
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_radiance_scala_tonclient_TonContextScala_syncRequest(
+Java_com_radiance_jvm_Context_syncRequest(
         JNIEnv *env,
         jobject obj,
         jint ctx,

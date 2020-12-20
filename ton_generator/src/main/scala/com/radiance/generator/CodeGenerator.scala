@@ -7,10 +7,14 @@ import io.circe._
 import io.circe.parser._
 import io.circe.syntax._
 
+import treehugger.forest._
+import definitions._
+import treehuggerDSL._
+
 object CodeGenerator extends App {
 
   import scala.io.Source
-  val jsonString : String = Source.fromResource("api.json").getLines.mkString("")
+  val jsonString : String = Source.fromResource("api-1.3.0-rc.json").getLines.mkString("")
 
   val rootRes = parse(jsonString).map(_.as[ApiDescription.Root])
   val root = rootRes.fold(
@@ -22,11 +26,7 @@ object CodeGenerator extends App {
   )
   val declarationByName: Map[String, TypeDecl] = root.modules
     .flatMap(m => m.types.map(t => (s"${m.name}.${t.name}", t))).toMap
-  //println(declarationByName)
   root.modules.foreach { m =>
-    //m.functions.foldLeft((Map.empty, Map.empty))(f => f.params.map(p => p.))
-    // val declaredTypes = m.types.map(t => (s"${m.name}.${t.name}", t)).toMap
-    //println(s"${m.name} ****************************************")
     generateType(m.types.map(t => ScalaRepr.toScalaTypeDecl(t)), m.name)
     generateFunctions(m.functions.map(f => ScalaRepr.toScalaFuncDecl(f)), declarationByName, m.name, "")
   }
@@ -37,12 +37,6 @@ object CodeGenerator extends App {
   def mergeComments(summary: Option[String], description: Option[String]): Option[String] = summary
     .flatMap(s => description.map(d => if(d.contains(s)) d else s"$s\n$d"))
     .orElse(description)
-
-  object sym {
-    val A = RootClass.newAliasType("A")
-    val B = RootClass.newAliasType("B")
-  }
-
 
   def generateFunctions(
                          fDecls: List[ScalaFunctionDecl],
@@ -71,17 +65,13 @@ object CodeGenerator extends App {
 
 
       val tree1 = (DEF(decl.name, toType(decl.result))
-        //.withTypeParams(decl.params.map(p => TYPEVAR(toType(p.typ).typeSymbol.newTypeParameter(p.name.get)))))
         .withParams(
-          extendedParams.map(p => PARAM(p.name.get, toType(p.typ))): Iterable[ValDef])
+          extendedParams.map(p => PARAM(p.name.get, toType(p.typ)): ValDef))
         ) : Tree
       val fullInfo = commentOpt.getOrElse("") + extendedParams
         .map(p => s"@param ${p.name.get} ${p.description.getOrElse("")}").mkString("\n")
       val tree = tree1.withDoc(fullInfo)
         println(treeToString(tree))
-//      decl.params.foldRight(DEF(decl.name, toType(decl.result))) { case (param, acc) =>
-//        acc.wit
-//      }
       null
     }
   }
@@ -142,10 +132,6 @@ object CodeGenerator extends App {
     val tree = (PACKAGE(packageName) := BLOCK(
       allDecls
     ))
-//    val tree = PACKAGE(packageName) ::: allDecls
-//      //.inPackage(packageName)
-
-    // pretty print the tree
     println(treeToString(tree))
   }
 
@@ -172,7 +158,16 @@ object CodeGenerator extends App {
 
       case GenericScalaType(name: String, arg :: Nil) => toType(arg)
 
+       // TODO what is it ?
+      case GenericScalaType(name: String, arg1 :: arg2 :: Nil) => {
+        println("ATTENTION: ")
+        println(name)
+        toType(arg1)
+      }
+
       case UnitScalaType => UnitClass
+
+      case x => throw new IllegalArgumentException(s"Match error on $x")
 
     }
 

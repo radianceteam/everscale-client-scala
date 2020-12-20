@@ -10,7 +10,7 @@ lazy val pathToBridgeDll = SettingKey[File]("pathToBridgeDll")
 lazy val buildDependentLib = taskKey[Unit]("Build dependent libraries.")
 lazy val buildBridge = taskKey[Unit]("Build bridge library.")
 
-lazy val root = project in file(".")
+val root = project in file(".")
 
 lazy val ton_client_scala = project
   .settings(
@@ -35,7 +35,6 @@ lazy val ton_client_scala = project
     includeFilter in unmanagedResources in Compile := "*.dll" || "*.dll.a" || "*.dll.lib" || "*.so",
     includeFilter in unmanagedResources in Test := "*",
 
-    mainClass in assembly := Some("com.radiance.scala.tonclient.TonContextScala"),
     test in assembly := {}
   )
 
@@ -64,8 +63,7 @@ lazy val ton_generator = project
   )
 
 lazy val buildDllImpl = Def.task {
-
-  OperationSystem.operationSystem match {
+  OperationSystem.define match {
     case Windows =>
       Process("cmd /C chcp 65001")!
     case _ => ()
@@ -74,15 +72,16 @@ lazy val buildDllImpl = Def.task {
   Process(s"git submodule init", new File("TON-SDK")).!
   Process(s"git checkout $currentBranch", new File("TON-SDK")).!
   Process(s"git pull", new File("TON-SDK")).!
-  Process("node build", new File("TON-SDK/ton_client/client/")).!
+  Process("node build", new File("TON-SDK/ton_client")).!
 
 }
 
+  // TODO copy tonclient.h
 lazy val buildBridgeImpl = Def.task {
   val pathToParent = baseDirectory.value.getAbsoluteFile
   val pathToBuildDir = baseDirectory.value.getAbsoluteFile / "build"
 
-  OperationSystem.operationSystem match {
+  OperationSystem.define match {
     case Windows =>
       Process("cmd /C chcp 65001").!
       val createDir = "cmd /C if not exist build mkdir build"
@@ -101,3 +100,6 @@ lazy val buildBridgeImpl = Def.task {
     case _ => ???
   }
 }
+
+
+
