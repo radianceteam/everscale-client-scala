@@ -38,7 +38,7 @@ class NetModule(private val ctx: Context) {
 
   /**  Resumes network module to enable network activity */
   def resume(): Future[Either[Throwable, Unit]] = {
-    ctx.execAsyncVoid[Unit]("net.resume")
+    ctx.execAsyncParameterless[Unit]("net.resume")
   }
 
   /**
@@ -63,7 +63,7 @@ class NetModule(private val ctx: Context) {
 
   /**  Suspends network module to stop any network activity */
   def suspend(): Future[Either[Throwable, Unit]] = {
-    ctx.execAsyncVoid[Unit]("net.suspend")
+    ctx.execAsyncParameterless[Unit]("net.suspend")
   }
 
   /**

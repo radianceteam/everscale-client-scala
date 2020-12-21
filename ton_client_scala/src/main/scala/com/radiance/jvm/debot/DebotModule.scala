@@ -1,8 +1,6 @@
 package com.radiance.jvm.debot
 
 import com.radiance.jvm._
-import com.radiance.jvm.debot._
-
 import scala.concurrent.Future
 
 class DebotModule(private val ctx: Context) {
@@ -32,19 +30,20 @@ class DebotModule(private val ctx: Context) {
     */
   def fetch(
       address: String,
-      app_object: ParamsOfAppDebotBrowser
-  ): RegisteredDebot = {
-    // TODO implement it
-    ???
+      // TODO implement callback
+      app_object: ParamsOfAppDebotBrowser => ResultOfAppDebotBrowser
+  ): Future[Either[Throwable, RegisteredDebot]] = {
+    val arg = ResultOfAppDebotBrowser.ParamsOfFetch(address)
+    ctx.execAsync("debot.fetch", arg)
   }
 
   /**
     * [UNSTABLE](UNSTABLE.md) Destroys debot handle.
     * Removes handle from Client Context and drops debot engine referenced by that handle.@param debot_handle
     */
-  def remove(debot_handle: DebotHandle): Unit = {
-    // TODO implement it
-    ???
+  def remove(debot_handle: DebotHandle): Future[Either[Throwable, Unit]] = {
+    val arg = RegisteredDebot(debot_handle)
+    ctx.execAsyncVoid[RegisteredDebot]("debot.remove", arg)
   }
 
   /**
@@ -62,9 +61,10 @@ class DebotModule(private val ctx: Context) {
     */
   def start(
       address: String,
-      app_object: ParamsOfAppDebotBrowser
-  ): RegisteredDebot = {
-    // TODO implement it
-    ???
+      // TODO implement callback
+      app_object: ParamsOfAppDebotBrowser => ResultOfAppDebotBrowser
+  ): Future[Either[Throwable, RegisteredDebot]] = {
+    val arg = ParamsOfStart(address)
+    ctx.execAsync("debot.start", arg)
   }
 }

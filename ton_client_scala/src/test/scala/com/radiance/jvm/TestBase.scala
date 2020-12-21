@@ -12,6 +12,8 @@ import com.radiance.jvm.crypto.{CryptoModule, KeyPair}
 import com.radiance.jvm.net.NetModule
 import com.radiance.jvm.processing.{ProcessingModule, ResultOfProcessMessage}
 import com.radiance.jvm.tvm.TvmModule
+import io.circe.Decoder
+import io.circe.derivation.deriveDecoder
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 
@@ -21,9 +23,11 @@ import io.circe.parser._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 
-trait ConfigTest extends BeforeAndAfter { this: AnyFlatSpec =>
-  import TestDecoders._
+trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
+
   implicit val ec: ExecutionContext
+
+  implicit val abiContractdecoder: Decoder[AbiContract] = deriveDecoder[AbiContract]
 
   protected def encode(arr: Array[Byte]): String = Base64.getEncoder.encodeToString(arr)
 

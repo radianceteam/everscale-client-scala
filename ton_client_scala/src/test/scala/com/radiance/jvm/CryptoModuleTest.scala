@@ -5,7 +5,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.concurrent.ExecutionContext
 
-class CryptoModuleTest extends AnyFlatSpec with ConfigTest {
+class CryptoModuleTest extends AnyFlatSpec with TestBase {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   behavior.of("CryptoModule")

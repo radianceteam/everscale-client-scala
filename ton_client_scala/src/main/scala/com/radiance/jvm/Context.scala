@@ -143,12 +143,17 @@ class Context private(var contextId: Int)(implicit val ec: ExecutionContext) {
       a => a.as[arg.Out](arg.decoder)
     ))
 
+  private[jvm] def execAsyncVoid[In : Encoder](functionName: String, arg: In): Future[Either[Throwable, Unit]] =
+    callNativeAsync(functionName, arg.asJson.deepDropNullValues.noSpaces).map(_ => Right(()))
+      .recover(Left(_))
+
+
+  private[jvm] def execAsyncParameterless[Out : Decoder](functionName: String): Future[Either[Throwable, Out]] =
+    callNativeAsync(functionName, "").map(r => parse(r).fold(t => Left(t), a => a.as[Out]))
+
   private[jvm] def execAsyncWithCallback[In <: Bind : Encoder](functionName: String, arg: In, callback: Request): Future[Either[Throwable, arg.Out]] =
     callNativeAsyncWithCallback(functionName, arg.asJson.deepDropNullValues.noSpaces, callback)
       .map(r => parse(r).fold(t => Left(t), a => a.as[arg.Out](arg.decoder)))
-
-  private[jvm] def execAsyncVoid[Out : Decoder](functionName: String): Future[Either[Throwable, Out]] =
-    callNativeAsync(functionName, "").map(r => parse(r).fold(t => Left(t), a => a.as[Out]))
 
   private[jvm] def execSync[In <: Bind : Encoder](functionName: String, arg: In): Either[Throwable, arg.Out] = {
     implicit val d: Decoder[arg.Out] = arg.decoder
@@ -161,7 +166,7 @@ class Context private(var contextId: Int)(implicit val ec: ExecutionContext) {
       }
     }
 
-  private[jvm] def execSyncVoid[Out: Decoder](functionName: String): Either[Throwable, Out] =
+  private[jvm] def execSyncParameterless[Out: Decoder](functionName: String): Either[Throwable, Out] =
     Try { syncRequest(contextId, functionName, "") }.toEither
       .flatMap(r => parse(r))
       .flatMap(a => a.as[OperationResponse[Out]])

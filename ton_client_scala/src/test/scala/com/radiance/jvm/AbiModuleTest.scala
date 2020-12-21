@@ -7,7 +7,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.concurrent.ExecutionContext
 
-class AbiModuleTest extends AnyFlatSpec with ConfigTest {
+class AbiModuleTest extends AnyFlatSpec with TestBase {
 
   override implicit val ec: ExecutionContext = ExecutionContext.global
 

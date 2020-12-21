@@ -15,13 +15,13 @@ case class DebotAction(
 )
 
 object DebotAction {
-  // TODO implement it
+  implicit val encoder: Encoder[DebotAction] = deriveEncoder[DebotAction]
 }
 
 case class DebotHandle(value: BigInt)
 
 object DebotHandle {
-  // TODO implement it
+  implicit val codec: Codec[DebotHandle] = deriveCodec[DebotHandle]
 }
 
 /**
@@ -72,25 +72,37 @@ object ParamsOfAppDebotBrowser {
   // TODO add encoder
 }
 
-case class ParamsOfStart(address: String)
+case class ParamsOfStart(address: String) extends Bind {
+  override type Out = RegisteredDebot
+  override val decoder: Decoder[RegisteredDebot] = implicitly[Decoder[RegisteredDebot]]
+}
 
 object ParamsOfStart {
-  // TODO implement it
+  implicit val encoder: Encoder[ParamsOfStart] = deriveEncoder[ParamsOfStart]
 }
 
 case class RegisteredDebot(debot_handle: DebotHandle)
 
 object RegisteredDebot {
-  // TODO implement it
+  implicit val codec: Codec[RegisteredDebot] = deriveCodec[RegisteredDebot]
 }
 
 sealed trait ResultOfAppDebotBrowser
+
 object ResultOfAppDebotBrowser {
   case class Input(value: String) extends ResultOfAppDebotBrowser
   case class GetSigningBox(signing_box: SigningBoxHandle)
       extends ResultOfAppDebotBrowser
   case object InvokeDebot extends ResultOfAppDebotBrowser
-  case class ParamsOfFetch(address: String)
+
+  case class ParamsOfFetch(address: String) extends Bind {
+    override type Out = RegisteredDebot
+    override val decoder: Decoder[RegisteredDebot] = implicitly[Decoder[RegisteredDebot]]
+  }
+
+  object ParamsOfFetch {
+    implicit val encoder: Encoder[ParamsOfFetch] = deriveEncoder[ParamsOfFetch]
+  }
 
   case class ParamsOfExecute(debot_handle: DebotHandle, action: DebotAction) extends Bind {
     override type Out = Unit

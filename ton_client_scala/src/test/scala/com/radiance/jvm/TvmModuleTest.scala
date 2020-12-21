@@ -9,7 +9,7 @@ import io.circe.Json._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class TvmModuleTest extends AnyFlatSpec with ConfigTest {
+class TvmModuleTest extends AnyFlatSpec with TestBase {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   behavior.of("TvmModule")

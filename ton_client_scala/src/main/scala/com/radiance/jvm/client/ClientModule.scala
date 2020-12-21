@@ -6,11 +6,11 @@ class ClientModule(private val ctx: Context) {
 
   /**  Returns detailed information about this build. */
   def buildInfo: Either[Throwable, ResultOfBuildInfo] =
-    ctx.execSyncVoid[ResultOfBuildInfo]("client.build_info")
+    ctx.execSyncParameterless[ResultOfBuildInfo]("client.build_info")
 
   /**  Returns Core Library API reference */
   def getApiReference: Either[Throwable, ResultOfGetApiReference] =
-    ctx.execSyncVoid[ResultOfGetApiReference]("client.get_api_reference")
+    ctx.execSyncParameterless[ResultOfGetApiReference]("client.get_api_reference")
 
   /**
     * @param app_request_id
@@ -26,6 +26,6 @@ class ClientModule(private val ctx: Context) {
 
   /**  Returns Core Library version */
   def version: Either[Throwable, ResultOfVersion] =
-    ctx.execSyncVoid[ResultOfVersion]("client.version")
+    ctx.execSyncParameterless[ResultOfVersion]("client.version")
 
 }

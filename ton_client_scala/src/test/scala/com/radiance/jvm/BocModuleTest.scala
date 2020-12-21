@@ -4,7 +4,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.concurrent.ExecutionContext
 
-class BocModuleTest extends AnyFlatSpec with ConfigTest {
+class BocModuleTest extends AnyFlatSpec with TestBase {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   behavior.of("BocModule")

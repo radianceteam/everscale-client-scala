@@ -7,7 +7,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.concurrent.ExecutionContext
 
-class NetModuleTest  extends AnyFlatSpec with ConfigTest {
+class NetModuleTest  extends AnyFlatSpec with TestBase {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   behavior.of("NetModule")

@@ -49,7 +49,7 @@ class CryptoModule(private val ctx: Context) {
   /**  Generates random ed25519 key pair. */
   def generateRandomSignKeys: Either[Throwable, KeyPair] =
     ctx
-      .execSyncVoid[KeyPair]("crypto.generate_random_sign_keys")
+      .execSyncParameterless[KeyPair]("crypto.generate_random_sign_keys")
 
   /**
     * @param public
@@ -236,7 +236,7 @@ class CryptoModule(private val ctx: Context) {
   /**
     */
   def naclBoxKeypair: Either[Throwable, KeyPair] =
-    ctx.execSyncVoid[KeyPair]("crypto.nacl_box_keypair")
+    ctx.execSyncParameterless[KeyPair]("crypto.nacl_box_keypair")
 
   /**  Generates key pair from a secret key@param secret  Secret key - unprefixed 0-padded to 64 symbols hex string  */
   def naclBoxKeypairFromSecretKey(secret: String): Either[Throwable, KeyPair] =
