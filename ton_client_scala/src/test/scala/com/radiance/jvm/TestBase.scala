@@ -33,24 +33,27 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
 
   protected def decode(str: String) = new String(Base64.getDecoder.decode(str))
 
-  private def extractAbi(path: String) = parse(Source.fromResource(path).mkString)
+  private def extractAbi(version: Version, path: String) = parse(Source.fromResource(s"${version.name}/$path").mkString)
     .flatMap(_.as[AbiContract].map(u => Abi.Serialized(u))).fold(t => throw t, r => r)
 
-  private def extractEncodedString(path: String): String = encode(
-    Files.readAllBytes(Paths.get(getClass.getResource(s"/$path").toURI))
+  private def extractEncodedString(version: Version, path: String): String = encode(
+    Files.readAllBytes(Paths.get(getClass.getResource(s"/${version.name}/$path").toURI))
   )
 
-  protected val eventsAbi: Abi = extractAbi("Events.abi.json")
-  protected val walletAbi: Abi  = extractAbi("Wallet.abi.json")
-  protected val giverAbi: Abi  = extractAbi("Giver.abi.json")
-  protected val giverWalletAbi: Abi  = extractAbi("GiverWallet.abi.json")
-  protected val multisigWalletAbi: Abi  = extractAbi("SetcodeMultisigWallet.abi.json")
-  protected val subscriptionAbi: Abi  = extractAbi("Subscription.abi.json")
+  protected val eventsAbi: Abi = extractAbi(V2, "Events.abi.json")
+  protected val walletAbi: Abi  = extractAbi(V2, "Wallet.abi.json")
+  protected val giverAbi: Abi  = extractAbi(V1, "Giver.abi.json")
+  protected val giverWalletAbi: Abi  = extractAbi(V2, "GiverWallet.abi.json")
+  protected val subscriptionAbi: Abi  = extractAbi(V2, "Subscription.abi.json")
 
-  protected val eventsTvc: String = extractEncodedString("Events.tvc")
-  protected val subscriptionTvc: String = extractEncodedString("Subscription.tvc")
+  protected val eventsTvc: String = extractEncodedString(V2, "Events.tvc")
+  protected val subscriptionTvc: String = extractEncodedString(V2, "Subscription.tvc")
 
-  private val config = ClientConfig(Some(NetworkConfig("net.ton.dev", None, None, None, None, None, None)), None, None)
+  private val config = ClientConfig(
+    Some(NetworkConfig(/*"http://192.168.99.100:8888"*/"net.ton.dev", None, None, None, None, None, None)),
+    None,
+    None
+  )
 
   protected var context: Context = _
   protected var crypto: CryptoModule = _
