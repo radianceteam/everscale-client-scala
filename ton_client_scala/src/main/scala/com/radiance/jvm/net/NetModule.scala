@@ -99,4 +99,25 @@ class NetModule(private val ctx: Context) {
     ctx.execAsync("net.wait_for_collection", arg)
   }
 
+  /** Sets the list of endpoints to use on reinit
+   * @param endpoints
+   * */
+  def setEndpoints(endpoints: List[String]): Future[Either[Throwable, Unit]] = {
+    val arg = EndpointsSet(endpoints)
+    ctx.execAsyncVoid("net.set_endpoints", arg)
+  }
+
+  /** Requests the list of alternative endpoints from server */
+  def fetchEndpoints(): Future[Either[Throwable, EndpointsSet]] = {
+    ctx.execAsyncParameterless[EndpointsSet]("net.fetch_endpoints")
+  }
+
+  /** Returns ID of the last block in a specified account shard
+   * @param address
+   * */
+  def findLastShardBlock(address: String): Future[Either[Throwable, ResultOfFindLastShardBlock]] = {
+    val arg = ParamsOfFindLastShardBlock(address)
+    ctx.execAsync("net.find_last_shard_block", arg)
+  }
+
 }

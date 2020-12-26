@@ -50,7 +50,7 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
   protected val subscriptionTvc: String = extractEncodedString(V2, "Subscription.tvc")
 
   private val config = ClientConfig(
-    Some(NetworkConfig(/*"http://192.168.99.100:8888"*/"net.ton.dev", None, None, None, None, None, None)),
+    Some(NetworkConfig(/*"http://192.168.99.100:8888"*/Some("net.ton.dev"), None, None, None, None, None, None, None, None)),
     None,
     None
   )

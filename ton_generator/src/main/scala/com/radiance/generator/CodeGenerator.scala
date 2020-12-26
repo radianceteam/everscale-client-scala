@@ -10,11 +10,11 @@ import io.circe.syntax._
 import treehugger.forest._
 import definitions._
 import treehuggerDSL._
-
+import cats.implicits._
 object CodeGenerator extends App {
 
   import scala.io.Source
-  val jsonString : String = Source.fromResource("api-1.3.0-rc.json").getLines.mkString("")
+  val jsonString : String = Source.fromResource("api-1.5.0.json").getLines.mkString("")
 
   val rootRes = parse(jsonString).map(_.as[ApiDescription.Root])
   val root = rootRes.fold(
@@ -34,9 +34,12 @@ object CodeGenerator extends App {
   import definitions._
   import treehuggerDSL._
 
-  def mergeComments(summary: Option[String], description: Option[String]): Option[String] = summary
-    .flatMap(s => description.map(d => if(d.contains(s)) d else s"$s\n$d"))
-    .orElse(description)
+  def mergeComments(summary: Option[String], description: Option[String]): Option[String] = (summary, description) match {
+    case (Some(x), Some(y)) => if (y.contains(x)) y.some else s"$x\n$y".some
+    case (Some(x), None) => x.some
+    case (None, Some(y)) => y.some
+    case _ => None
+  }
 
   def generateFunctions(
                          fDecls: List[ScalaFunctionDecl],
@@ -86,15 +89,16 @@ object CodeGenerator extends App {
           val elm = CASECLASSDEF(RootClass.newClass(name)).withParams(params).tree
           commentOpt.map(elm.withDoc(_)).getOrElse(elm) :: acc
 
-        case CaseObjectScalaType(name, _, _) =>
+        case CaseObjectScalaType(name, value, _, _) =>
           val elm = OBJECTDEF(name).tree
-          commentOpt.map(elm.withDoc(_)).getOrElse(elm) :: acc
+          mergeComments(value.map(v => "Important: " + v + "\n"), commentOpt)
+            .map(elm.withDoc(_)).getOrElse(elm) :: acc
 
         case SimpleAdtScalaType(traitName, _, _, list) =>
           val sealedTrait = TRAITDEF(traitName).withFlags(Flags.SEALED).tree
           val first = commentOpt.map(sealedTrait.withDoc(_)).getOrElse(sealedTrait)
-          val objDecls = list.map { case CaseObjectScalaType(objectName, summary, description) =>
-            val subCommentOpt = mergeComments(summary, description)
+          val objDecls = list.map { case CaseObjectScalaType(objectName, value, summary, description) =>
+            val subCommentOpt = mergeComments(value.map(v => "Important: " + v + "\n"), mergeComments(summary, description))
             val elm = (OBJECTDEF(objectName) withParents traitName).tree
             subCommentOpt.map(elm.withDoc(_)).getOrElse(elm)
           }
@@ -105,8 +109,8 @@ object CodeGenerator extends App {
           val first = commentOpt.map(sealedTrait.withDoc(_)).getOrElse(sealedTrait)
 
           val childDecls = list.map {
-            case CaseObjectScalaType(objectName, summary, description) =>
-              val subCommentOpt = mergeComments(summary, description)
+            case CaseObjectScalaType(objectName, value, summary, description) =>
+              val subCommentOpt = mergeComments(Some(s"Important: $value"), mergeComments(summary, description))
               val elm = (OBJECTDEF(objectName) withParents traitName).tree
               subCommentOpt.map(elm.withDoc(_)).getOrElse(elm)
 
@@ -135,6 +139,10 @@ object CodeGenerator extends App {
     println(treeToString(tree))
   }
 
+  private def toType(fieldType1: ScalaType, fieldType2: ScalaType): Type = {
+    functionType(List(toType(fieldType1)), toType(fieldType2))
+  }
+
   private def toType(fieldType: ScalaType): Type = fieldType match {
       case ScalaRefType(name) => TYPE_REF(name)
 
@@ -158,11 +166,8 @@ object CodeGenerator extends App {
 
       case GenericScalaType(name: String, arg :: Nil) => toType(arg)
 
-       // TODO what is it ?
       case GenericScalaType(name: String, arg1 :: arg2 :: Nil) => {
-        println("ATTENTION: ")
-        println(name)
-        toType(arg1)
+        toType(arg1, arg2)
       }
 
       case UnitScalaType => UnitClass

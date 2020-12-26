@@ -62,6 +62,58 @@ object AbiData {
   implicit val codec: Codec[AbiData] = deriveCodec[AbiData]
 }
 
+sealed trait AbiErrorCode {
+  val code: String
+}
+
+object AbiErrorCode {
+
+  case object RequiredAddressMissingForEncodeMessage extends AbiErrorCode {
+    override val code: String = "301"
+  }
+
+  case object RequiredCallSetMissingForEncodeMessage extends AbiErrorCode {
+    override val code: String = "302"
+  }
+
+  case object InvalidJson extends AbiErrorCode {
+    override val code: String = "303"
+  }
+
+  case object InvalidMessage extends AbiErrorCode {
+    override val code: String = "304"
+  }
+
+  case object EncodeDeployMessageFailed extends AbiErrorCode {
+    override val code: String = "305"
+  }
+
+  case object EncodeRunMessageFailed extends AbiErrorCode {
+    override val code: String = "306"
+  }
+
+  case object AttachSignatureFailed extends AbiErrorCode {
+    override val code: String = "307"
+  }
+
+  case object InvalidTvcImage extends AbiErrorCode {
+    override val code: String = "308"
+  }
+
+  case object RequiredPublicKeyMissingForFunctionHeader extends AbiErrorCode {
+    override val code: String = "309"
+  }
+
+  case object InvalidSigner extends AbiErrorCode {
+    override val code: String = "310"
+  }
+
+  case object InvalidAbi extends AbiErrorCode {
+    override val code: String = "311"
+  }
+
+}
+
 case class AbiEvent(
     name: String,
     inputs: List[AbiParam],

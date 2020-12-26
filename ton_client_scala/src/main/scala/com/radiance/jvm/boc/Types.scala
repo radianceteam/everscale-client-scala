@@ -4,6 +4,29 @@ import com.radiance.jvm._
 import io.circe.derivation._
 import io.circe._
 
+sealed trait BocErrorCode {
+  val code: String
+}
+
+object BocErrorCode {
+
+  case object InvalidBoc extends BocErrorCode {
+    override val code: String = "201"
+  }
+
+  case object SerializationError extends BocErrorCode {
+    override val code: String = "202"
+  }
+
+  case object InappropriateBlock extends BocErrorCode {
+    override val code: String = "203"
+  }
+
+  case object MissingSourceBoc extends BocErrorCode {
+    override val code: String = "204"
+  }
+
+}
 case class ParamsOfGetBlockchainConfig(block_boc: String) extends Bind {
   override type Out = ResultOfGetBlockchainConfig
   override val decoder: Decoder[ResultOfGetBlockchainConfig] =
@@ -11,8 +34,7 @@ case class ParamsOfGetBlockchainConfig(block_boc: String) extends Bind {
 }
 
 object ParamsOfGetBlockchainConfig {
-  implicit val ParamsOfGetBlockchainConfigEncoder
-      : Encoder[ParamsOfGetBlockchainConfig] =
+  implicit val encoder: Encoder[ParamsOfGetBlockchainConfig] =
     deriveEncoder[ParamsOfGetBlockchainConfig]
 }
 
@@ -23,8 +45,17 @@ case class ParamsOfGetBocHash(boc: String) extends Bind {
 }
 
 object ParamsOfGetBocHash {
-  implicit val ParamsOfGetBocHashEncoder: Encoder[ParamsOfGetBocHash] =
+  implicit val encoder: Encoder[ParamsOfGetBocHash] =
     deriveEncoder[ParamsOfGetBocHash]
+}
+
+case class ParamsOfGetCodeFromTvc(tvc: String) extends Bind {
+  override type Out = ResultOfGetCodeFromTvc
+  override val decoder: Decoder[ResultOfGetCodeFromTvc] = implicitly[Decoder[ResultOfGetCodeFromTvc]]
+}
+
+object ParamsOfGetCodeFromTvc {
+  implicit val encoder: Encoder[ParamsOfGetCodeFromTvc] = deriveEncoder[ParamsOfGetCodeFromTvc]
 }
 
 case class ParamsOfParse(boc: String) extends Bind {
@@ -45,28 +76,33 @@ case class ParamsOfParseShardstate(boc: String, id: String, workchain_id: Int)
 }
 
 object ParamsOfParseShardstate {
-  implicit val ParamsOfParseShardstateEncoder
-      : Encoder[ParamsOfParseShardstate] =
+  implicit val encoder: Encoder[ParamsOfParseShardstate] =
     deriveEncoder[ParamsOfParseShardstate]
 }
 
 case class ResultOfGetBlockchainConfig(config_boc: String)
 
 object ResultOfGetBlockchainConfig {
-  implicit val ResultOfGetBlockchainConfigDecoder
-      : Decoder[ResultOfGetBlockchainConfig] =
+  implicit val decoder: Decoder[ResultOfGetBlockchainConfig] =
     deriveDecoder[ResultOfGetBlockchainConfig]
 }
 
 case class ResultOfGetBocHash(hash: String)
 
 object ResultOfGetBocHash {
-  implicit val ResultOfGetBocHashDecoder: Decoder[ResultOfGetBocHash] =
+  implicit val decoder: Decoder[ResultOfGetBocHash] =
     deriveDecoder[ResultOfGetBocHash]
+}
+
+case class ResultOfGetCodeFromTvc(code: String)
+
+object ResultOfGetCodeFromTvc {
+  implicit val decoder: Decoder[ResultOfGetCodeFromTvc] =
+    deriveDecoder[ResultOfGetCodeFromTvc]
 }
 
 case class ResultOfParse(parsed: Value)
 object ResultOfParse {
-  implicit val ResultOfParseDecoder: Decoder[ResultOfParse] =
+  implicit val decoder: Decoder[ResultOfParse] =
     deriveDecoder[ResultOfParse]
 }

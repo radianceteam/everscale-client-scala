@@ -99,7 +99,8 @@ object ApiDescription {
                        enum_consts: Option[List[TypeDecl]],
                        ref_name: Option[String],
                        number_type: Option[SubtypeOfNumber],
-                       number_size: Option[Int]
+                       number_size: Option[Int],
+                       value: Option[String]
                      )
 
   object TypeDecl {

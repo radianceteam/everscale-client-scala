@@ -61,6 +61,65 @@ object ParamsOfWaitForTransaction {
     deriveEncoder[ParamsOfWaitForTransaction]
 }
 
+sealed trait ProcessingErrorCode {
+  val code: String
+}
+object ProcessingErrorCode {
+
+  case object MessageAlreadyExpired extends ProcessingErrorCode {
+    override val code: String = "501"
+  }
+
+  case object MessageHasNotDestinationAddress extends ProcessingErrorCode {
+    override val code: String = "502"
+  }
+
+  case object CanNotBuildMessageCell extends ProcessingErrorCode {
+    override val code: String = "503"
+  }
+
+  case object FetchBlockFailed extends ProcessingErrorCode {
+    override val code: String = "504"
+  }
+
+  case object SendMessageFailed extends ProcessingErrorCode {
+    override val code: String = "505"
+  }
+
+  case object InvalidMessageBoc extends ProcessingErrorCode {
+    override val code: String = "506"
+  }
+
+  case object MessageExpired extends ProcessingErrorCode {
+    override val code: String = "507"
+  }
+
+  case object TransactionWaitTimeout extends ProcessingErrorCode {
+    override val code: String = "508"
+  }
+
+  case object InvalidBlockReceived extends ProcessingErrorCode {
+    override val code: String = "509"
+  }
+
+  case object CanNotCheckBlockShard extends ProcessingErrorCode {
+    override val code: String = "510"
+  }
+
+  case object BlockNotFound extends ProcessingErrorCode {
+    override val code: String = "511"
+  }
+
+  case object InvalidData extends ProcessingErrorCode {
+    override val code: String = "512"
+  }
+
+  case object ExternalSignerMustNotBeUsed extends ProcessingErrorCode {
+    override val code: String = "513"
+  }
+
+}
+
 case class ResultOfProcessMessage(
                                    transaction: Value,
                                    out_messages: List[String],

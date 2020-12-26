@@ -137,3 +137,67 @@ object TransactionFees {
   implicit val decoder: Decoder[TransactionFees] =
     deriveDecoder[TransactionFees]
 }
+
+sealed trait TvmErrorCode {
+  val code: String
+}
+
+object TvmErrorCode {
+
+  case object CanNotReadTransaction extends TvmErrorCode {
+    override val code: String = "401"
+  }
+
+  case object CanNotReadBlockchainConfig extends TvmErrorCode {
+    override val code: String = "402"
+  }
+
+  case object TransactionAborted extends TvmErrorCode {
+    override val code: String = "403"
+  }
+
+  case object InternalError extends TvmErrorCode {
+    override val code: String = "404"
+  }
+
+  case object ActionPhaseFailed extends TvmErrorCode {
+    override val code: String = "405"
+  }
+
+  case object AccountCodeMissing extends TvmErrorCode {
+    override val code: String = "406"
+  }
+
+  case object LowBalance extends TvmErrorCode {
+    override val code: String = "407"
+  }
+
+  case object AccountFrozenOrDeleted extends TvmErrorCode {
+    override val code: String = "408"
+  }
+
+  case object AccountMissing extends TvmErrorCode {
+    override val code: String = "409"
+  }
+
+  case object UnknownExecutionError extends TvmErrorCode {
+    override val code: String = "410"
+  }
+
+  case object InvalidInputStack extends TvmErrorCode {
+    override val code: String = "411"
+  }
+
+  case object InvalidAccountBoc extends TvmErrorCode {
+    override val code: String = "412"
+  }
+
+  case object InvalidMessageType extends TvmErrorCode {
+    override val code: String = "413"
+  }
+
+  case object ContractExecutionError extends TvmErrorCode {
+    override val code: String = "414"
+  }
+
+}

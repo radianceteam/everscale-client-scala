@@ -18,6 +18,30 @@ object DebotAction {
   implicit val encoder: Encoder[DebotAction] = deriveEncoder[DebotAction]
 }
 
+sealed trait DebotErrorCode {
+  val code: String
+}
+
+object DebotErrorCode {
+
+  case object DebotStartFailed extends DebotErrorCode {
+    override val code: String = "801"
+  }
+
+  case object DebotFetchFailed extends DebotErrorCode {
+    override val code: String = "802"
+  }
+
+  case object DebotExecutionFailed extends DebotErrorCode {
+    override val code: String = "803"
+  }
+
+  case object DebotInvalidHandle extends DebotErrorCode {
+    override val code: String = "804"
+  }
+
+}
+
 case class DebotHandle(value: BigInt)
 
 object DebotHandle {
@@ -68,6 +92,12 @@ object ParamsOfAppDebotBrowser {
     */
   case class InvokeDebot(debot_addr: String, action: DebotAction)
       extends ParamsOfAppDebotBrowser
+
+  /**
+   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
+   * Called by debot engine to communicate with debot browser.
+   */
+  case object SwitchCompleted extends ParamsOfAppDebotBrowser
 
   // TODO add encoder
 }

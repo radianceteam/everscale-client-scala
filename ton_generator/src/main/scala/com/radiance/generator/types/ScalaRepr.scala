@@ -2,6 +2,8 @@ package com.radiance.generator.types
 
 import com.radiance.generator.types.ApiDescription._
 
+import scala.util.Try
+
 
 object ScalaRepr {
 
@@ -56,7 +58,7 @@ object ScalaRepr {
 
   case class ScalaCaseClass(name: String, summary: Option[String], description: Option[String], fields: List[FieldDescription]) extends ScalaTypeDecl
 
-  case class CaseObjectScalaType(name: String, summary: Option[String], description: Option[String]) extends ScalaTypeDecl
+  case class CaseObjectScalaType(name: String, value: Option[String], summary: Option[String], description: Option[String]) extends ScalaTypeDecl
 
   case class SimpleAdtScalaType(name: String, summary: Option[String], description: Option[String], list: List[CaseObjectScalaType]) extends ScalaTypeDecl
 
@@ -108,6 +110,9 @@ object ScalaRepr {
     case x => ScalaRefType(x)
   }
 
+  def toCaseObjectDecl(td: TypeDecl): CaseObjectScalaType =
+    CaseObjectScalaType(td.name, td.value, td.summary, td.description)
+
   def toScalaTypeDecl(td: TypeDecl): ScalaTypeDecl = td.`type` match {
     case StructTypeDecl =>
       td.struct_fields.map(list => (td.name, list.map(t =>
@@ -121,10 +126,10 @@ object ScalaRepr {
     ).getOrElse(ContentIsEmptyError("Error in EnumOfTypes decl", td, None, None))
 
     case EnumOfConstsDecl => td.enum_consts.map(list =>
-      SimpleAdtScalaType(td.name, td.summary, td.description, list.map(e => toScalaTypeDecl(e).asInstanceOf[CaseObjectScalaType]))
+      SimpleAdtScalaType(td.name, td.summary, td.description, list.map(toCaseObjectDecl))
     ).getOrElse(ContentIsEmptyError("Error in EnumOfConsts", td, None, None))
 
-    case NoneDecl => CaseObjectScalaType(td.name, td.summary, td.description)
+    case NoneDecl => CaseObjectScalaType(td.name, td.value, td.summary, td.description)
 
     case ValueClassDeclForRef => td.ref_name.map { n =>
       ScalaCaseClass(

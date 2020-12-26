@@ -5,6 +5,90 @@ import com.radiance.jvm._
 import io.circe._
 import io.circe.derivation._
 
+sealed trait CryptoErrorCode {
+  val code: String
+}
+
+object CryptoErrorCode {
+
+  case object InvalidPublicKey extends CryptoErrorCode {
+    override val code: String = "100"
+  }
+
+  case object InvalidSecretKey extends CryptoErrorCode {
+    override val code: String = "101"
+  }
+
+  case object InvalidKey extends CryptoErrorCode {
+    override val code: String = "102"
+  }
+
+  case object InvalidFactorizeChallenge extends CryptoErrorCode {
+    override val code: String = "106"
+  }
+
+  case object InvalidBigInt extends CryptoErrorCode {
+    override val code: String = "107"
+  }
+
+  case object ScryptFailed extends CryptoErrorCode {
+    override val code: String = "108"
+  }
+
+  case object InvalidKeySize extends CryptoErrorCode {
+    override val code: String = "109"
+  }
+
+  case object NaclSecretBoxFailed extends CryptoErrorCode {
+    override val code: String = "110"
+  }
+
+  case object NaclBoxFailed extends CryptoErrorCode {
+    override val code: String = "111"
+  }
+
+  case object NaclSignFailed extends CryptoErrorCode {
+    override val code: String = "112"
+  }
+
+  case object Bip39InvalidEntropy extends CryptoErrorCode {
+    override val code: String = "113"
+  }
+
+  case object Bip39InvalidPhrase extends CryptoErrorCode {
+    override val code: String = "114"
+  }
+
+  case object Bip32InvalidKey extends CryptoErrorCode {
+    override val code: String = "115"
+  }
+
+  case object Bip32InvalidDerivePath extends CryptoErrorCode {
+    override val code: String = "116"
+  }
+
+  case object Bip39InvalidDictionary extends CryptoErrorCode {
+    override val code: String = "117"
+  }
+
+  case object Bip39InvalidWordCount extends CryptoErrorCode {
+    override val code: String = "118"
+  }
+
+  case object MnemonicGenerationFailed extends CryptoErrorCode {
+    override val code: String = "119"
+  }
+
+  case object MnemonicFromEntropyFailed extends CryptoErrorCode {
+    override val code: String = "120"
+  }
+
+  case object SigningBoxNotRegistered extends CryptoErrorCode {
+    override val code: String = "121"
+  }
+
+}
+
 case class KeyPair(public: String, secret: String) extends Bind {
   override type Out = RegisteredSigningBox
   override val decoder: Decoder[RegisteredSigningBox] = implicitly[Decoder[RegisteredSigningBox]]

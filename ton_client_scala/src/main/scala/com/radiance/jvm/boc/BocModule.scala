@@ -26,6 +26,12 @@ class BocModule(private val ctx: Context) {
     ctx.execAsync("boc.get_boc_hash", arg)
   }
 
+  /** Extracts code from TVC contract image@param tvc  */
+  def getCodeFromTvc(tvc: String): Future[Either[Throwable, ResultOfGetCodeFromTvc]] = {
+    val arg = ParamsOfGetCodeFromTvc(tvc)
+    ctx.execAsync("boc.get_code_from_tvc", arg)
+  }
+
   /**
     *  Parses account boc into a JSON
     *
