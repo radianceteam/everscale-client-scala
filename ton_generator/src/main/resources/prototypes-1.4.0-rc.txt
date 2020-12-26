@@ -1,75 +1,7 @@
 package client {
-  sealed trait ClientErrorCode
-  /** Important: 1 */
-  object NotImplemented extends ClientErrorCode
-  /** Important: 2 */
-  object InvalidHex extends ClientErrorCode
-  /** Important: 3 */
-  object InvalidBase64 extends ClientErrorCode
-  /** Important: 4 */
-  object InvalidAddress extends ClientErrorCode
-  /** Important: 5 */
-  object CallbackParamsCantBeConvertedToJson extends ClientErrorCode
-  /** Important: 6 */
-  object WebsocketConnectError extends ClientErrorCode
-  /** Important: 7 */
-  object WebsocketReceiveError extends ClientErrorCode
-  /** Important: 8 */
-  object WebsocketSendError extends ClientErrorCode
-  /** Important: 9 */
-  object HttpClientCreateError extends ClientErrorCode
-  /** Important: 10 */
-  object HttpRequestCreateError extends ClientErrorCode
-  /** Important: 11 */
-  object HttpRequestSendError extends ClientErrorCode
-  /** Important: 12 */
-  object HttpRequestParseError extends ClientErrorCode
-  /** Important: 13 */
-  object CallbackNotRegistered extends ClientErrorCode
-  /** Important: 14 */
-  object NetModuleNotInit extends ClientErrorCode
-  /** Important: 15 */
-  object InvalidConfig extends ClientErrorCode
-  /** Important: 16 */
-  object CannotCreateRuntime extends ClientErrorCode
-  /** Important: 17 */
-  object InvalidContextHandle extends ClientErrorCode
-  /** Important: 18 */
-  object CannotSerializeResult extends ClientErrorCode
-  /** Important: 19 */
-  object CannotSerializeError extends ClientErrorCode
-  /** Important: 20 */
-  object CannotConvertJsValueToJson extends ClientErrorCode
-  /** Important: 21 */
-  object CannotReceiveSpawnedResult extends ClientErrorCode
-  /** Important: 22 */
-  object SetTimerError extends ClientErrorCode
-  /** Important: 23 */
-  object InvalidParams extends ClientErrorCode
-  /** Important: 24 */
-  object ContractsAddressConversionFailed extends ClientErrorCode
-  /** Important: 25 */
-  object UnknownFunction extends ClientErrorCode
-  /** Important: 26 */
-  object AppRequestError extends ClientErrorCode
-  /** Important: 27 */
-  object NoSuchRequest extends ClientErrorCode
-  /** Important: 28 */
-  object CanNotSendRequestResult extends ClientErrorCode
-  /** Important: 29 */
-  object CanNotReceiveRequestResult extends ClientErrorCode
-  /** Important: 30 */
-  object CanNotParseRequestResult extends ClientErrorCode
-  /** Important: 31 */
-  object UnexpectedCallbackResponse extends ClientErrorCode
-  /** Important: 32 */
-  object CanNotParseNumber extends ClientErrorCode
-  /** Important: 33 */
-  object InternalError extends ClientErrorCode
   case class ClientError(code: Long, message: String, data: com.radiance.Value)
   case class ClientConfig(network: Option[client.NetworkConfig], crypto: Option[client.CryptoConfig], abi: Option[client.AbiConfig])
-  case class NetworkConfig(server_address: Option[String], endpoints: Option[List[String]], network_retries_count: Option[Int], message_retries_count: Option[Int], message_processing_timeout: Option[Long], wait_for_timeout: Option[Long], out_of_sync_threshold: Option[Long], reconnect_timeout: Option[Long], access_key: Option[String])
-  /** Crypto config. */
+  case class NetworkConfig(server_address: String, network_retries_count: Option[Int], message_retries_count: Option[Int], message_processing_timeout: Option[Long], wait_for_timeout: Option[Long], out_of_sync_threshold: Option[Long], access_key: Option[String])
   case class CryptoConfig(mnemonic_dictionary: Option[Long], mnemonic_word_count: Option[Long], hdkey_derivation_path: Option[String])
   case class AbiConfig(workchain: Option[Int], message_expiration_timeout: Option[Long], message_expiration_timeout_grow_factor: Option[Float])
   case class BuildInfoDependency(name: String, git_commit: String)
@@ -83,56 +15,20 @@ package client {
   case class ParamsOfResolveAppRequest(app_request_id: Long, result: client.AppRequestResult)
 }
 /**
- * Resolves application request processing result@param app_request_id
+ * @param app_request_id
  * @param result
  */
 def resolve_app_request(app_request_id: Long, result: client.AppRequestResult): Unit
-/** Returns detailed information about this build. */
+/**
+ */
 def build_info(): client.ResultOfBuildInfo
-/** Returns Core Library version */
+/**
+ */
 def version(): client.ResultOfVersion
-/** Returns Core Library API reference */
+/**
+ */
 def get_api_reference(): client.ResultOfGetApiReference
 package crypto {
-  sealed trait CryptoErrorCode
-  /** Important: 100 */
-  object InvalidPublicKey extends CryptoErrorCode
-  /** Important: 101 */
-  object InvalidSecretKey extends CryptoErrorCode
-  /** Important: 102 */
-  object InvalidKey extends CryptoErrorCode
-  /** Important: 106 */
-  object InvalidFactorizeChallenge extends CryptoErrorCode
-  /** Important: 107 */
-  object InvalidBigInt extends CryptoErrorCode
-  /** Important: 108 */
-  object ScryptFailed extends CryptoErrorCode
-  /** Important: 109 */
-  object InvalidKeySize extends CryptoErrorCode
-  /** Important: 110 */
-  object NaclSecretBoxFailed extends CryptoErrorCode
-  /** Important: 111 */
-  object NaclBoxFailed extends CryptoErrorCode
-  /** Important: 112 */
-  object NaclSignFailed extends CryptoErrorCode
-  /** Important: 113 */
-  object Bip39InvalidEntropy extends CryptoErrorCode
-  /** Important: 114 */
-  object Bip39InvalidPhrase extends CryptoErrorCode
-  /** Important: 115 */
-  object Bip32InvalidKey extends CryptoErrorCode
-  /** Important: 116 */
-  object Bip32InvalidDerivePath extends CryptoErrorCode
-  /** Important: 117 */
-  object Bip39InvalidDictionary extends CryptoErrorCode
-  /** Important: 118 */
-  object Bip39InvalidWordCount extends CryptoErrorCode
-  /** Important: 119 */
-  object MnemonicGenerationFailed extends CryptoErrorCode
-  /** Important: 120 */
-  object MnemonicFromEntropyFailed extends CryptoErrorCode
-  /** Important: 121 */
-  object SigningBoxNotRegistered extends CryptoErrorCode
   case class SigningBoxHandle(value: BigInt)
   case class ParamsOfFactorize(composite: String)
   case class ResultOfFactorize(factors: List[String])
@@ -188,105 +84,99 @@ package crypto {
   case class ParamsOfChaCha20(data: String, key: String, nonce: String)
   case class ResultOfChaCha20(data: String)
   case class RegisteredSigningBox(handle: crypto.SigningBoxHandle)
-  /** Signing box callbacks. */
   sealed trait ParamsOfAppSigningBox
-  /** Signing box callbacks. */
   case class GetPublicKey() extends ParamsOfAppSigningBox
-  /** Signing box callbacks. */
   case class Sign(unsigned: String) extends ParamsOfAppSigningBox
-  /** Returning values from signing box callbacks. */
   sealed trait ResultOfAppSigningBox
-  /** Returning values from signing box callbacks. */
   case class GetPublicKey(public_key: String) extends ResultOfAppSigningBox
-  /** Returning values from signing box callbacks. */
   case class Sign(signature: String) extends ResultOfAppSigningBox
   case class ResultOfSigningBoxGetPublicKey(pubkey: String)
   case class ParamsOfSigningBoxSign(signing_box: crypto.SigningBoxHandle, unsigned: String)
   case class ResultOfSigningBoxSign(signature: String)
 }
-/** Removes signing box from SDK.@param handle  */
+/** @param handle  */
 def remove_signing_box(handle: crypto.SigningBoxHandle): Unit
 /**
- * Returns signed user data.@param signing_box
+ * @param signing_box
  * @param unsigned Must be encoded with `base64`.
  */
 def signing_box_sign(signing_box: crypto.SigningBoxHandle, unsigned: String): crypto.ResultOfSigningBoxSign
-/** Returns public key of signing key pair.@param handle  */
+/** @param handle  */
 def signing_box_get_public_key(handle: crypto.SigningBoxHandle): crypto.ResultOfSigningBoxGetPublicKey
 /**
- * Creates a default signing box implementation.@param public
+ * @param public
  * @param secret
  */
 def get_signing_box(public: String, secret: String): crypto.RegisteredSigningBox
-/** Register an application implemented signing box.@param app_object  */
-def register_signing_box(app_object: crypto.ParamsOfAppSigningBox => crypto.ResultOfAppSigningBox): crypto.RegisteredSigningBox
+/** @param app_object  */
+def register_signing_box(app_object: crypto.ParamsOfAppSigningBox): crypto.RegisteredSigningBox
 /**
- * Performs symmetric `chacha20` encryption.@param data Must be encoded with `base64`.
+ * @param data Must be encoded with `base64`.
  * @param key Must be encoded with `hex`.
  * @param nonce Must be encoded with `hex`.
  */
 def chacha20(data: String, key: String, nonce: String): crypto.ResultOfChaCha20
-/** Extracts the public key from the serialized extended private key@param xprv  */
+/** @param xprv  */
 def hdkey_public_from_xprv(xprv: String): crypto.ResultOfHDKeyPublicFromXPrv
-/** Extracts the private key from the serialized extended private key@param xprv  */
+/** @param xprv  */
 def hdkey_secret_from_xprv(xprv: String): crypto.ResultOfHDKeySecretFromXPrv
 /**
- * Derives the extended private key from the specified key and path@param xprv
+ * @param xprv
  * @param path
  */
 def hdkey_derive_from_xprv_path(xprv: String, path: String): crypto.ResultOfHDKeyDeriveFromXPrvPath
 /**
- * Returns extended private key derived from the specified extended private key and child index@param xprv
+ * @param xprv
  * @param child_index
  * @param hardened
  */
 def hdkey_derive_from_xprv(xprv: String, child_index: Long, hardened: Boolean): crypto.ResultOfHDKeyDeriveFromXPrv
 /**
- * Generates an extended master private key that will be the root for all the derived keys@param phrase
+ * @param phrase
  * @param dictionary
  * @param word_count
  */
 def hdkey_xprv_from_mnemonic(phrase: String, dictionary: Option[Long], word_count: Option[Long]): crypto.ResultOfHDKeyXPrvFromMnemonic
 /**
- * Validates the seed phrase, generates master key and then derives the key pair from the master key and the specified path@param phrase
+ * @param phrase
  * @param path
  * @param dictionary
  * @param word_count
  */
 def mnemonic_derive_sign_keys(phrase: String, path: Option[String], dictionary: Option[Long], word_count: Option[Long]): crypto.KeyPair
 /**
- * The phrase supplied will be checked for word length and validated according to the checksum specified in BIP0039.@param phrase
+ * @param phrase
  * @param dictionary
  * @param word_count
  */
 def mnemonic_verify(phrase: String, dictionary: Option[Long], word_count: Option[Long]): crypto.ResultOfMnemonicVerify
 /**
- * Generates mnemonic from pre-generated entropy@param entropy Hex encoded.
+ * @param entropy Hex encoded.
  * @param dictionary
  * @param word_count
  */
 def mnemonic_from_entropy(entropy: String, dictionary: Option[Long], word_count: Option[Long]): crypto.ResultOfMnemonicFromEntropy
 /**
- * Generates a random mnemonic from the specified dictionary and word count@param dictionary
+ * @param dictionary
  * @param word_count
  */
 def mnemonic_from_random(dictionary: Option[Long], word_count: Option[Long]): crypto.ResultOfMnemonicFromRandom
-/** Prints the list of words from the specified dictionary@param dictionary  */
+/** @param dictionary  */
 def mnemonic_words(dictionary: Option[Long]): crypto.ResultOfMnemonicWords
 /**
- * Decrypts and verifies cipher text using `nonce` and secret `key`.@param encrypted Encoded with `base64`.
+ * @param encrypted Encoded with `base64`.
  * @param nonce
  * @param key
  */
 def nacl_secret_box_open(encrypted: String, nonce: String, key: String): crypto.ResultOfNaclBoxOpen
 /**
- * Encrypt and authenticate message using nonce and secret key.@param decrypted Encoded with `base64`.
+ * @param decrypted Encoded with `base64`.
  * @param nonce
  * @param key
  */
 def nacl_secret_box(decrypted: String, nonce: String, key: String): crypto.ResultOfNaclBox
 /**
- * Decrypt and verify the cipher text using the recievers secret key, the senders public key, and the nonce.@param encrypted Encoded with `base64`.
+ * @param encrypted Encoded with `base64`.
  * @param nonce
  * @param their_public
  * @param secret
@@ -301,32 +191,27 @@ def nacl_box_open(encrypted: String, nonce: String, their_public: String, secret
  * @param secret
  */
 def nacl_box(decrypted: String, nonce: String, their_public: String, secret: String): crypto.ResultOfNaclBox
-/** Generates key pair from a secret key@param secret  */
+/** @param secret  */
 def nacl_box_keypair_from_secret_key(secret: String): crypto.KeyPair
-/** Generates a random NaCl key pair */
+/**
+ */
 def nacl_box_keypair(): crypto.KeyPair
 /**
- * Signs the message using the secret key and returns a signature.
- * Signs the message `unsigned` using the secret key `secret`
- * and returns a signature `signature`.@param unsigned
+ * @param unsigned
  * @param secret
  */
 def nacl_sign_detached(unsigned: String, secret: String): crypto.ResultOfNaclSignDetached
 /**
- * Verifies the signature and returns the unsigned message
- * Verifies the signature in `signed` using the signer's public key `public`
- * and returns the message `unsigned`.
- *
- * If the signature fails verification, crypto_sign_open raises an exception.@param signed Encoded with `base64`.
+ * @param signed Encoded with `base64`.
  * @param public
  */
 def nacl_sign_open(signed: String, public: String): crypto.ResultOfNaclSignOpen
 /**
- * Signs data using the signer's secret key.@param unsigned
+ * @param unsigned
  * @param secret
  */
 def nacl_sign(unsigned: String, secret: String): crypto.ResultOfNaclSign
-/** Generates a key pair for signing from the secret key@param secret  */
+/** @param secret  */
 def nacl_sign_keypair_from_secret_key(secret: String): crypto.KeyPair
 /**
  * Derives key from `password` and `key` using `scrypt` algorithm. See [https://en.wikipedia.org/wiki/Scrypt].
@@ -349,60 +234,38 @@ def nacl_sign_keypair_from_secret_key(secret: String): crypto.KeyPair
  * @param dk_len
  */
 def scrypt(password: String, salt: String, log_n: Long, r: Long, p: Long, dk_len: Long): crypto.ResultOfScrypt
-/** Calculates SHA512 hash of the specified data.@param data Encoded with `base64`. */
+/** @param data Encoded with `base64`. */
 def sha512(data: String): crypto.ResultOfHash
-/** Calculates SHA256 hash of the specified data.@param data Encoded with `base64`. */
+/** @param data Encoded with `base64`. */
 def sha256(data: String): crypto.ResultOfHash
 /**
- * Verifies signed data using the provided public key. Raises error if verification is failed.@param signed
+ * @param signed
  * @param public
  */
 def verify_signature(signed: String, public: String): crypto.ResultOfVerifySignature
 /**
- * Signs a data using the provided keys.@param unsigned
+ * @param unsigned
  * @param keys
  */
 def sign(unsigned: String, keys: crypto.KeyPair): crypto.ResultOfSign
-/** Generates random ed25519 key pair. */
+/**
+ */
 def generate_random_sign_keys(): crypto.KeyPair
-/** Converts public key to ton safe_format@param public_key  */
+/** @param public_key  */
 def convert_public_key_to_ton_safe_format(public_key: String): crypto.ResultOfConvertPublicKeyToTonSafeFormat
-/** Generates random byte array of the specified length and returns it in `base64` format@param length  */
+/** @param length  */
 def generate_random_bytes(length: Long): crypto.ResultOfGenerateRandomBytes
-/** Calculates CRC16 using TON algorithm.@param data Encoded with `base64`. */
+/** @param data Encoded with `base64`. */
 def ton_crc16(data: String): crypto.ResultOfTonCrc16
 /**
- * Performs modular exponentiation for big integers (`base`^`exponent` mod `modulus`). See [https://en.wikipedia.org/wiki/Modular_exponentiation]@param base
+ * @param base
  * @param exponent
  * @param modulus
  */
 def modular_power(base: String, exponent: String, modulus: String): crypto.ResultOfModularPower
-/** Performs prime factorization – decomposition of a composite number into a product of smaller prime integers (factors). See [https://en.wikipedia.org/wiki/Integer_factorization]@param composite  */
+/** @param composite  */
 def factorize(composite: String): crypto.ResultOfFactorize
 package abi {
-  sealed trait AbiErrorCode
-  /** Important: 301 */
-  object RequiredAddressMissingForEncodeMessage extends AbiErrorCode
-  /** Important: 302 */
-  object RequiredCallSetMissingForEncodeMessage extends AbiErrorCode
-  /** Important: 303 */
-  object InvalidJson extends AbiErrorCode
-  /** Important: 304 */
-  object InvalidMessage extends AbiErrorCode
-  /** Important: 305 */
-  object EncodeDeployMessageFailed extends AbiErrorCode
-  /** Important: 306 */
-  object EncodeRunMessageFailed extends AbiErrorCode
-  /** Important: 307 */
-  object AttachSignatureFailed extends AbiErrorCode
-  /** Important: 308 */
-  object InvalidTvcImage extends AbiErrorCode
-  /** Important: 309 */
-  object RequiredPublicKeyMissingForFunctionHeader extends AbiErrorCode
-  /** Important: 310 */
-  object InvalidSigner extends AbiErrorCode
-  /** Important: 311 */
-  object InvalidAbi extends AbiErrorCode
   sealed trait Abi
   case class Contract(value: abi.AbiContract) extends Abi
   case class Json(value: String) extends Abi
@@ -426,9 +289,7 @@ package abi {
   case class Keys(keys: crypto.KeyPair) extends Signer
   case class SigningBox(handle: crypto.SigningBoxHandle) extends Signer
   sealed trait MessageBodyType
-  /** Message contains the input of the ABI function. */
   object Input extends MessageBodyType
-  /** Message contains the output of the ABI function. */
   object Output extends MessageBodyType
   /**
    * Message contains the input of the imported ABI function.
@@ -436,7 +297,6 @@ package abi {
    * contract.
    */
   object InternalOutput extends MessageBodyType
-  /** Message contains the input of the ABI event. */
   object Event extends MessageBodyType
   sealed trait StateInitSource
   case class Message(source: abi.MessageSource) extends StateInitSource
@@ -476,18 +336,18 @@ package abi {
  */
 def encode_account(state_init: abi.StateInitSource, balance: Option[BigInt], last_trans_lt: Option[BigInt], last_paid: Option[Long]): abi.ResultOfEncodeAccount
 /**
- * Decodes message body using provided body BOC and ABI.@param abi
+ * @param abi
  * @param body
  * @param is_internal
  */
 def decode_message_body(abi: abi.Abi, body: String, is_internal: Boolean): abi.DecodedMessageBody
 /**
- * Decodes message body using provided message BOC and ABI.@param abi
+ * @param abi
  * @param message
  */
 def decode_message(abi: abi.Abi, message: String): abi.DecodedMessageBody
 /**
- * Combines `hex`-encoded `signature` with `base64`-encoded `unsigned_message`. Returns signed message encoded in `base64`.@param abi
+ * @param abi
  * @param public_key
  * @param message
  * @param signature
@@ -545,7 +405,7 @@ def encode_message(abi: abi.Abi, address: Option[String], deploy_set: Option[abi
  */
 def attach_signature_to_message_body(abi: abi.Abi, public_key: String, message: String, signature: String): abi.ResultOfAttachSignatureToMessageBody
 /**
- * Encodes message body according to ABI function call.@param abi
+ * @param abi
  * @param call_set Must be specified in non deploy message.
  *
  * In case of deploy message contains parameters of constructor.
@@ -562,15 +422,6 @@ def attach_signature_to_message_body(abi: abi.Abi, public_key: String, message: 
  */
 def encode_message_body(abi: abi.Abi, call_set: abi.CallSet, is_internal: Boolean, signer: abi.Signer, processing_try_index: Option[Long]): abi.ResultOfEncodeMessageBody
 package boc {
-  sealed trait BocErrorCode
-  /** Important: 201 */
-  object InvalidBoc extends BocErrorCode
-  /** Important: 202 */
-  object SerializationError extends BocErrorCode
-  /** Important: 203 */
-  object InappropriateBlock extends BocErrorCode
-  /** Important: 204 */
-  object MissingSourceBoc extends BocErrorCode
   case class ParamsOfParse(boc: String)
   case class ResultOfParse(parsed: com.radiance.Value)
   case class ParamsOfParseShardstate(boc: String, id: String, workchain_id: Int)
@@ -578,12 +429,8 @@ package boc {
   case class ResultOfGetBlockchainConfig(config_boc: String)
   case class ParamsOfGetBocHash(boc: String)
   case class ResultOfGetBocHash(hash: String)
-  case class ParamsOfGetCodeFromTvc(tvc: String)
-  case class ResultOfGetCodeFromTvc(code: String)
 }
-/** Extracts code from TVC contract image@param tvc  */
-def get_code_from_tvc(tvc: String): boc.ResultOfGetCodeFromTvc
-/** Calculates BOC root hash@param boc  */
+/** @param boc  */
 def get_boc_hash(boc: String): boc.ResultOfGetBocHash
 /** @param block_boc  */
 def get_blockchain_config(block_boc: String): boc.ResultOfGetBlockchainConfig
@@ -615,33 +462,6 @@ def parse_transaction(boc: String): boc.ResultOfParse
  */
 def parse_message(boc: String): boc.ResultOfParse
 package processing {
-  sealed trait ProcessingErrorCode
-  /** Important: 501 */
-  object MessageAlreadyExpired extends ProcessingErrorCode
-  /** Important: 502 */
-  object MessageHasNotDestinationAddress extends ProcessingErrorCode
-  /** Important: 503 */
-  object CanNotBuildMessageCell extends ProcessingErrorCode
-  /** Important: 504 */
-  object FetchBlockFailed extends ProcessingErrorCode
-  /** Important: 505 */
-  object SendMessageFailed extends ProcessingErrorCode
-  /** Important: 506 */
-  object InvalidMessageBoc extends ProcessingErrorCode
-  /** Important: 507 */
-  object MessageExpired extends ProcessingErrorCode
-  /** Important: 508 */
-  object TransactionWaitTimeout extends ProcessingErrorCode
-  /** Important: 509 */
-  object InvalidBlockReceived extends ProcessingErrorCode
-  /** Important: 510 */
-  object CanNotCheckBlockShard extends ProcessingErrorCode
-  /** Important: 511 */
-  object BlockNotFound extends ProcessingErrorCode
-  /** Important: 512 */
-  object InvalidData extends ProcessingErrorCode
-  /** Important: 513 */
-  object ExternalSignerMustNotBeUsed extends ProcessingErrorCode
   sealed trait ProcessingEvent
   case class WillFetchFirstBlock() extends ProcessingEvent
   case class FetchFirstBlockFailed(error: client.ClientError) extends ProcessingEvent
@@ -671,7 +491,11 @@ package processing {
  * The intermediate events, such as `WillFetchFirstBlock`, `WillSend`, `DidSend`,
  * `WillFetchNextBlock`, etc - are switched on/off by `send_events` flag
  * and logged into the supplied callback function.
- * The retry configuration parameters are defined in client's `NetworkConfig`.
+ * The retry configuration parameters are defined in config:
+ * <add correct config params here>
+ * pub const DEFAULT_EXPIRATION_RETRIES_LIMIT: i8 = 3; - max number of retries
+ * pub const DEFAULT_EXPIRATION_TIMEOUT: u32 = 40000;  - message expiration timeout in ms.
+ * pub const DEFAULT_....expiration_timeout_grow_factor... = 1.5 - factor that increases the expiration timeout for each retry
  *
  * If contract's ABI does not include "expire" header
  * then, if no transaction is found within the network timeout (see config parameter ), exits with error.@param message_encode_params
@@ -740,40 +564,11 @@ package utils {
   case class ResultOfConvertAddress(address: String)
 }
 /**
- * Converts address from any TON format to any TON format@param address
+ * @param address
  * @param output_format
  */
 def convert_address(address: String, output_format: utils.AddressStringFormat): utils.ResultOfConvertAddress
 package tvm {
-  sealed trait TvmErrorCode
-  /** Important: 401 */
-  object CanNotReadTransaction extends TvmErrorCode
-  /** Important: 402 */
-  object CanNotReadBlockchainConfig extends TvmErrorCode
-  /** Important: 403 */
-  object TransactionAborted extends TvmErrorCode
-  /** Important: 404 */
-  object InternalError extends TvmErrorCode
-  /** Important: 405 */
-  object ActionPhaseFailed extends TvmErrorCode
-  /** Important: 406 */
-  object AccountCodeMissing extends TvmErrorCode
-  /** Important: 407 */
-  object LowBalance extends TvmErrorCode
-  /** Important: 408 */
-  object AccountFrozenOrDeleted extends TvmErrorCode
-  /** Important: 409 */
-  object AccountMissing extends TvmErrorCode
-  /** Important: 410 */
-  object UnknownExecutionError extends TvmErrorCode
-  /** Important: 411 */
-  object InvalidInputStack extends TvmErrorCode
-  /** Important: 412 */
-  object InvalidAccountBoc extends TvmErrorCode
-  /** Important: 413 */
-  object InvalidMessageType extends TvmErrorCode
-  /** Important: 414 */
-  object ContractExecutionError extends TvmErrorCode
   case class ExecutionOptions(blockchain_config: Option[String], block_time: Option[Long], block_lt: Option[BigInt], transaction_lt: Option[BigInt])
   sealed trait AccountForExecutor
   case class None() extends AccountForExecutor
@@ -788,53 +583,21 @@ package tvm {
   case class ResultOfRunGet(output: com.radiance.Value)
 }
 /**
- * Executes a getmethod of FIFT contract that fulfills the smc-guidelines https://test.ton.org/smc-guidelines.txt
- * and returns the result data from TVM's stack@param account
+ * @param account
  * @param function_name
  * @param input
  * @param execution_options
  */
 def run_get(account: String, function_name: String, input: Option[com.radiance.Value], execution_options: Option[tvm.ExecutionOptions]): tvm.ResultOfRunGet
 /**
- * Executes get methods of ABI-compatible contracts
- * Performs only a part of compute phase of transaction execution
- * that is used to run get-methods of ABI-compatible contracts.
- *
- * If you try to run get methods with `run_executor` you will get an error, because it checks ACCEPT and exits
- * if there is none, which is actually true for get methods.
- *
- *  To get the account boc (bag of cells) - use `net.query` method to download it from graphql api
- * (field `boc` of `account`) or generate it with `abi.encode_account method`.
- * To get the message boc - use `abi.encode_message` or prepare it any other way, for instance, with Fift script.
- *
- * Attention! Updated account state is produces as well, but only
- * `account_state.storage.state.data`  part of the boc is updated.@param message Must be encoded as base64.
+ * @param message Must be encoded as base64.
  * @param account Must be encoded as base64.
  * @param execution_options
  * @param abi
  */
 def run_tvm(message: String, account: String, execution_options: Option[tvm.ExecutionOptions], abi: Option[abi.Abi]): tvm.ResultOfRunTvm
 /**
- * Emulates all the phases of contract execution locally
- * Performs all the phases of contract execution on Transaction Executor -
- * the same component that is used on Validator Nodes.
- *
- * Can be used for contract debug, to find out the reason of message unsuccessful
- * delivery - as Validators just throw away failed transactions, here you can catch it.
- *
- * Another use case is to estimate fees for message execution. Set  `AccountForExecutor::Account.unlimited_balance`
- * to `true` so that emulation will not depend on the actual balance.
- *
- * One more use case - you can procude the sequence of operations,
- * thus emulating the multiple contract calls locally.
- * And so on.
- *
- * To get the account boc (bag of cells) - use `net.query` method to download it from graphql api
- * (field `boc` of `account`) or generate it with `abi.encode_account method`.
- * To get the message boc - use `abi.encode_message` or prepare it any other way, for instance, with Fift script.
- *
- * If you need this emulation to be as precise as possible then specify `ParamsOfRunExecutor` parameter.
- * If you need to see the aborted transaction as a result, not as an error, set `skip_transaction_check` to `true`.@param message Must be encoded as base64.
+ * @param message Must be encoded as base64.
  * @param account
  * @param execution_options
  * @param abi
@@ -842,31 +605,6 @@ def run_tvm(message: String, account: String, execution_options: Option[tvm.Exec
  */
 def run_executor(message: String, account: tvm.AccountForExecutor, execution_options: Option[tvm.ExecutionOptions], abi: Option[abi.Abi], skip_transaction_check: Option[Boolean]): tvm.ResultOfRunExecutor
 package net {
-  sealed trait NetErrorCode
-  /** Important: 601 */
-  object QueryFailed extends NetErrorCode
-  /** Important: 602 */
-  object SubscribeFailed extends NetErrorCode
-  /** Important: 603 */
-  object WaitForFailed extends NetErrorCode
-  /** Important: 604 */
-  object GetSubscriptionResultFailed extends NetErrorCode
-  /** Important: 605 */
-  object InvalidServerResponse extends NetErrorCode
-  /** Important: 606 */
-  object ClockOutOfSync extends NetErrorCode
-  /** Important: 607 */
-  object WaitForTimeout extends NetErrorCode
-  /** Important: 608 */
-  object GraphqlError extends NetErrorCode
-  /** Important: 609 */
-  object NetworkModuleSuspended extends NetErrorCode
-  /** Important: 610 */
-  object WebsocketDisconnected extends NetErrorCode
-  /** Important: 611 */
-  object NotSupported extends NetErrorCode
-  /** Important: 612 */
-  object NoEndpointsProvided extends NetErrorCode
   case class OrderBy(path: String, direction: net.SortDirection)
   sealed trait SortDirection
   object ASC extends SortDirection
@@ -879,19 +617,10 @@ package net {
   case class ResultOfWaitForCollection(result: com.radiance.Value)
   case class ResultOfSubscribeCollection(handle: Long)
   case class ParamsOfSubscribeCollection(collection: String, filter: Option[com.radiance.Value], result: String)
-  case class ParamsOfFindLastShardBlock(address: String)
-  case class ResultOfFindLastShardBlock(block_id: String)
-  case class EndpointsSet(endpoints: List[String])
 }
-/** Sets the list of endpoints to use on reinit@param endpoints  */
-def set_endpoints(endpoints: List[String]): Unit
-/** Requests the list of alternative endpoints from server */
-def fetch_endpoints(): net.EndpointsSet
-/** Returns ID of the last block in a specified account shard@param address  */
-def find_last_shard_block(address: String): net.ResultOfFindLastShardBlock
-/** Resumes network module to enable network activity */
+/**  Resumes network module to enable network activity */
 def resume(): Unit
-/** Suspends network module to stop any network activity */
+/**  Suspends network module to stop any network activity */
 def suspend(): Unit
 /**
  * Creates a subscription
@@ -930,27 +659,14 @@ def wait_for_collection(collection: String, filter: Option[com.radiance.Value], 
  */
 def query_collection(collection: String, filter: Option[com.radiance.Value], result: String, order: Option[List[net.OrderBy]], limit: Option[Long]): net.ResultOfQueryCollection
 /**
- * Performs DAppServer GraphQL query.@param query
+ * @param query
  * @param variables Must be a map with named values thatcan be used in query.
  */
 def query(query: String, variables: Option[com.radiance.Value]): net.ResultOfQuery
 package debot {
-  sealed trait DebotErrorCode
-  /** Important: 801 */
-  object DebotStartFailed extends DebotErrorCode
-  /** Important: 802 */
-  object DebotFetchFailed extends DebotErrorCode
-  /** Important: 803 */
-  object DebotExecutionFailed extends DebotErrorCode
-  /** Important: 804 */
-  object DebotInvalidHandle extends DebotErrorCode
-  /** [UNSTABLE](UNSTABLE.md) Handle of registered in SDK debot */
   case class DebotHandle(value: BigInt)
-  /** [UNSTABLE](UNSTABLE.md) Describes a debot action in a Debot Context. */
   case class DebotAction(description: String, name: String, action_type: Long, to: Long, attributes: String, misc: String)
-  /** [UNSTABLE](UNSTABLE.md) Parameters to start debot. */
   case class ParamsOfStart(address: String)
-  /** [UNSTABLE](UNSTABLE.md) Structure for storing debot handle returned from `start` and `fetch` functions. */
   case class RegisteredDebot(debot_handle: debot.DebotHandle)
   /**
    * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
@@ -971,11 +687,6 @@ package debot {
    * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
    * Called by debot engine to communicate with debot browser.
    */
-  case class SwitchCompleted() extends ParamsOfAppDebotBrowser
-  /**
-   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
-   * Called by debot engine to communicate with debot browser.
-   */
   case class ShowAction(action: debot.DebotAction) extends ParamsOfAppDebotBrowser
   /**
    * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
@@ -992,17 +703,11 @@ package debot {
    * Called by debot engine to communicate with debot browser.
    */
   case class InvokeDebot(debot_addr: String, action: debot.DebotAction) extends ParamsOfAppDebotBrowser
-  /** [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks. */
   sealed trait ResultOfAppDebotBrowser
-  /** [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks. */
   case class Input(value: String) extends ResultOfAppDebotBrowser
-  /** [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks. */
   case class GetSigningBox(signing_box: crypto.SigningBoxHandle) extends ResultOfAppDebotBrowser
-  /** [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks. */
   case class InvokeDebot() extends ResultOfAppDebotBrowser
-  /** [UNSTABLE](UNSTABLE.md) Parameters to fetch debot. */
   case class ParamsOfFetch(address: String)
-  /** [UNSTABLE](UNSTABLE.md) Parameters for executing debot action. */
   case class ParamsOfExecute(debot_handle: debot.DebotHandle, action: debot.DebotAction)
 }
 /**
@@ -1029,7 +734,7 @@ def execute(debot_handle: debot.DebotHandle, action: debot.DebotAction): Unit
  * It does not switch debot to context 0. Browser Callbacks are not called.@param address
  * @param app_object
  */
-def fetch(address: String, app_object: debot.ParamsOfAppDebotBrowser => debot.ResultOfAppDebotBrowser): debot.RegisteredDebot
+def fetch(address: String, app_object: debot.ParamsOfAppDebotBrowser): debot.RegisteredDebot
 /**
  * [UNSTABLE](UNSTABLE.md) Starts an instance of debot.
  * Downloads debot smart contract from blockchain and switches it to
@@ -1043,4 +748,4 @@ def fetch(address: String, app_object: debot.ParamsOfAppDebotBrowser => debot.Re
  * `start` is equivalent to `fetch` + switch to context 0.@param address
  * @param app_object
  */
-def start(address: String, app_object: debot.ParamsOfAppDebotBrowser => debot.ResultOfAppDebotBrowser): debot.RegisteredDebot
+def start(address: String, app_object: debot.ParamsOfAppDebotBrowser): debot.RegisteredDebot

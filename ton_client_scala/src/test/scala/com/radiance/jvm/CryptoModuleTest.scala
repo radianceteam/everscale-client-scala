@@ -4,6 +4,7 @@ import com.radiance.jvm.crypto.KeyPair
 import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.concurrent.ExecutionContext
+import cats.implicits._
 
 class CryptoModuleTest extends AnyFlatSpec with TestBase {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -84,7 +85,7 @@ class CryptoModuleTest extends AnyFlatSpec with TestBase {
   }
 
   it should "show the correct behavior of mnemonic words" in {
-    val words = crypto.mnemonicWords(Some(1)).get.words
+    val words = crypto.mnemonicWords(1L.some).get.words
     println(s"Word: '$words'")
 
     val xPrivate: String = crypto.hdkeyXprvFromMnemonic("abuse boss fly battle rubber wasp afraid hamster guide essence vibrant tattoo", None, None).get.xprv

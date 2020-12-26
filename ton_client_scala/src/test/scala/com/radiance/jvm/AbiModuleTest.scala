@@ -6,6 +6,7 @@ import io.circe.{Json, JsonObject}
 import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.concurrent.ExecutionContext
+import cats.implicits._
 
 class AbiModuleTest extends AnyFlatSpec with TestBase {
 
@@ -16,26 +17,36 @@ class AbiModuleTest extends AnyFlatSpec with TestBase {
     "cc8929d635719612a9478b9cd17675a39cfad52d8959e8a177389b8c0b9122a7"
   )
 
-  private val time = 1599458364291L
-  private val expire = 1599458404
+  private val time = BigInt(1599458364291L)
+  private val expire = 1599458404L
 
   private val deploySet = DeploySet(eventsTvc, None, None)
-  private val deployCallSet = CallSet("constructor", Some(FunctionHeader(Some(expire), Some(time), Some(keys.public))), None)
-  private val runCallSet = CallSet("returnValue", Some(FunctionHeader(Some(expire), Some(time), None)), Some(Json.fromJsonObject(JsonObject(("id", Json.fromString("0"))))))
+
+  private val deployCallSet = CallSet(
+    "constructor",
+    FunctionHeader(expire.some, time.some, keys.public.some).some,
+    None
+  )
+
+  private val runCallSet = CallSet(
+    "returnValue",
+    FunctionHeader(expire.some, time.some, None).some,
+    Json.fromJsonObject(JsonObject(("id", Json.fromString("0")))).some
+  )
 
   private val address = "0:05beb555e942fa744fd96f45a9ea9d0a8248208ca12421947c06e59bc997d309"
 
-  private def unsigned = abi.encodeMessage(eventsAbi, None, Some(deploySet), Some(deployCallSet), Signer.External(keys.public), None).get
-  private def unsigned1 = abi.encodeMessage(eventsAbi, Some(address), None, Some(runCallSet), Signer.External(keys.public), None).get
+  private def unsigned = abi.encodeMessage(eventsAbi, None, deploySet.some, deployCallSet.some, Signer.External(keys.public), None).get
+  private def unsigned1 = abi.encodeMessage(eventsAbi, address.some, None, runCallSet.some, Signer.External(keys.public), None).get
 
   private def signature = signDetached(unsigned.data_to_sign.get, keys)
   private def signature1 = signDetached(unsigned1.data_to_sign.get, keys)
 
   private def signed = abi.attachSignature(eventsAbi, keys.public, unsigned.message, signature).get
   private def signed1 = abi.attachSignature(eventsAbi, keys.public, unsigned1.message, signature1).get
-  private def signed2 = abi.encodeMessage(eventsAbi, Some(address), None, Some(runCallSet), Signer.Keys(keys), None).get
+  private def signed2 = abi.encodeMessage(eventsAbi, address.some, None, runCallSet.some, Signer.Keys(keys), None).get
 
-  private def noPubkey = abi.encodeMessage(eventsAbi, Some(address), None, Some(runCallSet), Signer.None, None).get
+  private def noPubkey = abi.encodeMessage(eventsAbi, address.some, None, runCallSet.some, Signer.None, None).get
 
   "0" should "be equal" in {
     assert(unsigned.data_to_sign.contains("KCGM36iTYuCYynk+Jnemis+mcwi3RFCke95i7l96s4Q="))

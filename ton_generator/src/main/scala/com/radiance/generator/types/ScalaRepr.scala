@@ -2,9 +2,6 @@ package com.radiance.generator.types
 
 import com.radiance.generator.types.ApiDescription._
 
-import scala.util.Try
-
-
 object ScalaRepr {
 
   case class ScalaModuleDescription(
@@ -56,11 +53,11 @@ object ScalaRepr {
     val description: Option[String]
   }
 
-  case class ScalaCaseClass(name: String, summary: Option[String], description: Option[String], fields: List[FieldDescription]) extends ScalaTypeDecl
+  case class ScalaCaseClassType(name: String, summary: Option[String], description: Option[String], fields: List[FieldDescription]) extends ScalaTypeDecl
 
-  case class CaseObjectScalaType(name: String, value: Option[String], summary: Option[String], description: Option[String]) extends ScalaTypeDecl
+  case class ScalaCaseObjectType(name: String, value: Option[String], summary: Option[String], description: Option[String]) extends ScalaTypeDecl
 
-  case class SimpleAdtScalaType(name: String, summary: Option[String], description: Option[String], list: List[CaseObjectScalaType]) extends ScalaTypeDecl
+  case class SimpleAdtScalaType(name: String, summary: Option[String], description: Option[String], list: List[ScalaCaseObjectType]) extends ScalaTypeDecl
 
   case class Adt(name: String, summary: Option[String], description: Option[String], list: List[ScalaTypeDecl]) extends ScalaTypeDecl
 
@@ -104,21 +101,30 @@ object ScalaRepr {
 
   private def sanitize(name: String) = if (name.contains(" ")) s"`$name`" else name
 
+  private def toCamelCase(name: String): String = {
+    val segments = name.split("_").filter(_.nonEmpty).toList
+    (segments.head :: segments.drop(1).map(_.capitalize)).mkString("")
+  }
+
   private def fixUndefinedType(n: String): ScalaRefType = n match {
-    case "Value" => ScalaRefType("com.radiance.Value")
-    case "API" => ScalaRefType("com.radiance.API")
+    case "Value"   => ScalaRefType("Value")
+    case "API"     => ScalaRefType("API")
+    case "Request" => ScalaRefType("Request")
     case x => ScalaRefType(x)
   }
 
-  def toCaseObjectDecl(td: TypeDecl): CaseObjectScalaType =
-    CaseObjectScalaType(td.name, td.value, td.summary, td.description)
+  def toCaseObjectDecl(td: TypeDecl): ScalaCaseObjectType =
+    ScalaCaseObjectType(td.name, td.value, td.summary, td.description)
 
   def toScalaTypeDecl(td: TypeDecl): ScalaTypeDecl = td.`type` match {
     case StructTypeDecl =>
       td.struct_fields.map(list => (td.name, list.map(t =>
         FieldDescription(sanitize(t.name.get), toScalaType(t), t.summary, t.description)
       )))
-        .map { case (n, list) => ScalaCaseClass(sanitize(n), td.summary, td.description, list) }
+        .map {
+          case (n, Nil) => ScalaCaseObjectType(sanitize(n), td.value, td.summary, td.description)
+          case (n, list) => ScalaCaseClassType(sanitize(n), td.summary, td.description, list)
+        }
         .getOrElse(ContentIsEmptyError("Error in struct declaration", td, None, None))
 
     case EnumOfTypesDecl => td.enum_types.map(t =>
@@ -129,10 +135,10 @@ object ScalaRepr {
       SimpleAdtScalaType(td.name, td.summary, td.description, list.map(toCaseObjectDecl))
     ).getOrElse(ContentIsEmptyError("Error in EnumOfConsts", td, None, None))
 
-    case NoneDecl => CaseObjectScalaType(td.name, td.value, td.summary, td.description)
+    case NoneDecl => ScalaCaseObjectType(td.name, td.value, td.summary, td.description)
 
     case ValueClassDeclForRef => td.ref_name.map { n =>
-      ScalaCaseClass(
+      ScalaCaseClassType(
         td.name,
         td.summary,
         td.description,
@@ -142,13 +148,13 @@ object ScalaRepr {
 
     case ValueClassDeclForNumber => td.number_type.flatMap(nt => td.number_size.map(ns => (nt, ns)))
       .map {
-        case (IntSubtype, 64) =>  ScalaCaseClass(
+        case (IntSubtype, 64) =>  ScalaCaseClassType(
           td.name,
           td.summary,
           td.description,
           List(FieldDescription("value", ScalaLongType, None, None))
         )
-        case _ => ScalaCaseClass(
+        case _ => ScalaCaseClassType(
           td.name,
           td.summary,
           td.description,
@@ -168,6 +174,7 @@ object ScalaRepr {
 
   case class ScalaFunctionDecl(
                                 name: String,
+                                camelName: String,
                                 summary: Option[String],
                                 description: Option[String],
                                 params: List[Param],
@@ -178,6 +185,7 @@ object ScalaRepr {
     case FunctionDecl(name, summary, description, params, result, _) =>
      ScalaFunctionDecl(
        name,
+       toCamelCase(name),
        summary,
        description,
        params.map(p => Param(p.name, p.summary, p.description, toScalaType(p))),

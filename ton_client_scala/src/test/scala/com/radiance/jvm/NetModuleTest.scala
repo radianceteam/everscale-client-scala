@@ -6,6 +6,7 @@ import io.circe.parser._
 import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.concurrent.ExecutionContext
+import cats.implicits._
 
 class NetModuleTest  extends AnyFlatSpec with TestBase {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -17,9 +18,9 @@ class NetModuleTest  extends AnyFlatSpec with TestBase {
     println(s"Query:\n${query.spaces2}")
     val res = net.waitForCollection(
       "accounts",
-      Some(query),
+      query.some,
       "id,last_paid",
-      Some(60000)
+      60000L.some
     ).get
     println(s"Result:\n$res")
     assert(res.result.hcursor.get[Long]("last_paid").get == 1601331924)
@@ -30,10 +31,10 @@ class NetModuleTest  extends AnyFlatSpec with TestBase {
     println(s"Query:\n${query.spaces2}")
     val res = net.queryCollection(
       "accounts",
-      Some(query),
+      query.some,
       "acc_type,acc_type_name,balance,boc,id,last_paid,workchain_id",
-      Some(List(OrderBy("last_paid", SortDirection.ASC))),
-      Some(2)
+      List(OrderBy("last_paid", SortDirection.ASC)).some,
+      2L.some
     ).get
     println(s"Result:\n$res")
     assert(res.result.size == 2)
@@ -63,7 +64,7 @@ class NetModuleTest  extends AnyFlatSpec with TestBase {
 
     val res = net.subscribeCollection(
       "transactions",
-      Some(query),
+      query.some,
       "id,block_id,balance_delta",
       e => eventsAcc = e :: eventsAcc
     ).get

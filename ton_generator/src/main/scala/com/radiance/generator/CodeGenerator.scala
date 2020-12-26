@@ -3,14 +3,13 @@ package com.radiance.generator
 import com.radiance.generator.types.ApiDescription.TypeDecl
 import com.radiance.generator.types.ScalaRepr._
 import com.radiance.generator.types.{ApiDescription, ScalaRepr}
-import io.circe._
 import io.circe.parser._
-import io.circe.syntax._
-
 import treehugger.forest._
 import definitions._
 import treehuggerDSL._
 import cats.implicits._
+
+import scala.collection.mutable
 object CodeGenerator extends App {
 
   import scala.io.Source
@@ -30,9 +29,6 @@ object CodeGenerator extends App {
     generateType(m.types.map(t => ScalaRepr.toScalaTypeDecl(t)), m.name)
     generateFunctions(m.functions.map(f => ScalaRepr.toScalaFuncDecl(f)), declarationByName, m.name, "")
   }
-  import treehugger.forest._
-  import definitions._
-  import treehuggerDSL._
 
   def mergeComments(summary: Option[String], description: Option[String]): Option[String] = (summary, description) match {
     case (Some(x), Some(y)) => if (y.contains(x)) y.some else s"$x\n$y".some
@@ -47,10 +43,12 @@ object CodeGenerator extends App {
                          packageName: String,
                          objName: String
                        ): Unit = {
-    val allDecls = fDecls.foldRight(Nil: List[Tree]) { case (decl, acc) =>
+    val allDecls = fDecls.sortBy(_.camelName).foldRight(Nil: List[Tree]) { case (decl, acc) =>
       val commentOpt: Option[String] = mergeComments(decl.summary, decl.description)
 
-      val filteredParams = decl.params.filter(p => p.name.get != "context" && p.name.get != "_context")
+      val filteredParams: List[Param] = decl.params.filter(p => p.name.get != "context" && p.name.get != "_context")
+
+      val usedModules: mutable.Set[String] = mutable.Set()
 
       val extendedParams = filteredParams.flatMap { p =>
         p.typ match {
@@ -66,73 +64,72 @@ object CodeGenerator extends App {
         }
       }
 
-
-      val tree1 = (DEF(decl.name, toType(decl.result))
+      val tree1 = (DEF(decl.camelName, toType(decl.result))
         .withParams(
           extendedParams.map(p => PARAM(p.name.get, toType(p.typ)): ValDef))
-        ) : Tree
-      val fullInfo = commentOpt.getOrElse("") + extendedParams
+        ): Tree
+      val fullInfo = commentOpt.fold("")(u => u.stripSuffix("\n") + "\n") + extendedParams
         .map(p => s"@param ${p.name.get} ${p.description.getOrElse("")}").mkString("\n")
       val tree = tree1.withDoc(fullInfo)
-        println(treeToString(tree))
-      null
+      tree :: acc
     }
+
+    val tree = (PACKAGE(packageName) := BLOCK(
+      allDecls
+    ))
+    println(treeToString(tree))
   }
 
+
   def generateType(decls: List[ScalaTypeDecl], packageName: String): Unit = {
-    val allDecls = decls.foldRight(Nil: List[Tree]) { case (decl, acc) =>
+    val allDecls = decls.sortBy(_.name).foldRight(Nil: List[Tree]) { case (decl, acc) =>
       val commentOpt: Option[String] = mergeComments(decl.summary, decl.description)
 
       decl match {
-        case ScalaCaseClass(name, _, _, fields) =>
+        case ScalaCaseClassType(name, _, _, fields) =>
           val params = fields.map { f => PARAM(f.name, toType(f.typ)): ValDef }
           val elm = CASECLASSDEF(RootClass.newClass(name)).withParams(params).tree
           commentOpt.map(elm.withDoc(_)).getOrElse(elm) :: acc
 
-        case CaseObjectScalaType(name, value, _, _) =>
-          val elm = OBJECTDEF(name).tree
-          mergeComments(value.map(v => "Important: " + v + "\n"), commentOpt)
-            .map(elm.withDoc(_)).getOrElse(elm) :: acc
-
         case SimpleAdtScalaType(traitName, _, _, list) =>
           val sealedTrait = TRAITDEF(traitName).withFlags(Flags.SEALED).tree
           val first = commentOpt.map(sealedTrait.withDoc(_)).getOrElse(sealedTrait)
-          val objDecls = list.map { case CaseObjectScalaType(objectName, value, summary, description) =>
-            val subCommentOpt = mergeComments(value.map(v => "Important: " + v + "\n"), mergeComments(summary, description))
-            val elm = (OBJECTDEF(objectName) withParents traitName).tree
+
+          val objDecls = list.sortBy(_.name).map { case ScalaCaseObjectType(objectName, value, summary, description) =>
+            val subCommentOpt = mergeComments(summary, description)
+            val elm = (CASEOBJECTDEF(objectName) withParents traitName).tree
+
             subCommentOpt.map(elm.withDoc(_)).getOrElse(elm)
           }
-          first :: objDecls ::: acc
+
+          val scopeObject = OBJECTDEF(traitName).mkTree(objDecls)
+
+          first :: scopeObject :: acc
 
         case Adt(traitName,_, _, list) =>
           val sealedTrait = TRAITDEF(traitName).withFlags(Flags.SEALED).tree
           val first = commentOpt.map(sealedTrait.withDoc(_)).getOrElse(sealedTrait)
 
-          val childDecls = list.map {
-            case CaseObjectScalaType(objectName, value, summary, description) =>
-              val subCommentOpt = mergeComments(Some(s"Important: $value"), mergeComments(summary, description))
-              val elm = (OBJECTDEF(objectName) withParents traitName).tree
+          val childDecls = list.sortBy(_.name).map {
+            case ScalaCaseObjectType(objectName, value, summary, description) =>
+              val subCommentOpt = mergeComments(summary, description)
+              val elm = (CASEOBJECTDEF(objectName) withParents traitName).tree
               subCommentOpt.map(elm.withDoc(_)).getOrElse(elm)
 
-            case ScalaCaseClass(name, _, _, fields) =>
+            case ScalaCaseClassType(name, _, _, fields) =>
               val params = fields.map { f => PARAM(f.name, toType(f.typ)): ValDef }
               val elm = CASECLASSDEF(RootClass.newClass(name)).withParams(params).withParents(traitName).tree
               commentOpt.map(elm.withDoc(_)).getOrElse(elm)
 
-            case x =>
-              println("***************************************************")
-              println(x)
-              Block()
-
+            case x => throw new IllegalArgumentException(s"Unexpected value: $x in ADT definition")
           }
-          first :: childDecls ::: acc
+          val scopeObject = OBJECTDEF(traitName).mkTree(childDecls)
+          first :: scopeObject :: acc
 
-        case _ => acc
-
+        case x => throw new IllegalArgumentException(s"Unexpected value: $x while types pattern matching")
       }
     }
 
-    // generate class definition
     val tree = (PACKAGE(packageName) := BLOCK(
       allDecls
     ))

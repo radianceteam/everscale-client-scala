@@ -22,6 +22,7 @@ import io.circe.parser._
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
+import cats.implicits._
 
 trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
 
@@ -50,7 +51,7 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
   protected val subscriptionTvc: String = extractEncodedString(V2, "Subscription.tvc")
 
   private val config = ClientConfig(
-    Some(NetworkConfig(/*"http://192.168.99.100:8888"*/Some("net.ton.dev"), None, None, None, None, None, None, None, None)),
+    NetworkConfig(/*"http://192.168.99.100:8888"*/"net.ton.dev".some, None, None, None, None, None, None, None, None).some,
     None,
     None
   )
@@ -81,13 +82,13 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
     processing.processMessage(
       ParamsOfEncodeMessage(
         giverAbi,
-        Some("0:841288ed3b55d9cdafa806807f02a0ae0c169aa5edfe88a789a6482429756a94"),
+        "0:841288ed3b55d9cdafa806807f02a0ae0c169aa5edfe88a789a6482429756a94".some,
         None,
-        Some(CallSet(
+        CallSet(
           "sendGrams",
           None,
-          Some(parse(s"""{"dest":"$address","amount":500000000}""").getOrElse(throw new IllegalArgumentException("Not a Json")))
-        )),
+          parse(s"""{"dest":"$address","amount":500000000}""").getOrElse(throw new IllegalArgumentException("Not a Json")).some
+        ).some,
         Signer.None,
         None
       ),
@@ -98,10 +99,10 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
   protected def deployWithGiver(a: Abi, deploySet: DeploySet, callSet: CallSet, signer: Signer): Future[Either[Throwable, String]] = {
     println("Run deployWithGiver")
     (for {
-      encoded <- EitherT(abi.encodeMessage(a, None, Some(deploySet), Some(callSet), signer, None))
+      encoded <- EitherT(abi.encodeMessage(a, None, deploySet.some, callSet.some, signer, None))
       _ <- EitherT(getGramsFromGiver(encoded.address))
       _ <- EitherT(processing.processMessage(
-        ParamsOfEncodeMessage(a, None, Some(deploySet), Some(callSet), signer, None), false, _ => ()
+        ParamsOfEncodeMessage(a, None, deploySet.some, callSet.some, signer, None), false, _ => ()
       ))
     } yield encoded.address).value
   }
