@@ -43,12 +43,12 @@ object CodeGenerator extends App {
                          packageName: String,
                          objName: String
                        ): Unit = {
+    val usedModules: mutable.Set[String] = mutable.Set()
+
     val allDecls = fDecls.sortBy(_.camelName).foldRight(Nil: List[Tree]) { case (decl, acc) =>
       val commentOpt: Option[String] = mergeComments(decl.summary, decl.description)
 
       val filteredParams: List[Param] = decl.params.filter(p => p.name.get != "context" && p.name.get != "_context")
-
-      val usedModules: mutable.Set[String] = mutable.Set()
 
       val extendedParams = filteredParams.flatMap { p =>
         p.typ match {
@@ -63,10 +63,17 @@ object CodeGenerator extends App {
           case _ => List(p)
         }
       }
+      val returnType = TYPE_REF("Future") TYPE_OF (
+        TYPE_EITHER(
+          TYPE_REF("Throwable"),
+          toType(decl.result, usedModules)
+        )
+      )
 
-      val tree1 = (DEF(decl.camelName, toType(decl.result))
+
+      val tree1 = (DEF(decl.camelName, returnType)
         .withParams(
-          extendedParams.map(p => PARAM(p.name.get, toType(p.typ)): ValDef))
+          extendedParams.map(p => PARAM(p.name.get, toType(p.typ, usedModules)): ValDef))
         ): Tree
       val fullInfo = commentOpt.fold("")(u => u.stripSuffix("\n") + "\n") + extendedParams
         .map(p => s"@param ${p.name.get} ${p.description.getOrElse("")}").mkString("\n")
@@ -82,29 +89,48 @@ object CodeGenerator extends App {
 
 
   def generateType(decls: List[ScalaTypeDecl], packageName: String): Unit = {
+    val usedModules: mutable.Set[String] = mutable.Set()
+
     val allDecls = decls.sortBy(_.name).foldRight(Nil: List[Tree]) { case (decl, acc) =>
       val commentOpt: Option[String] = mergeComments(decl.summary, decl.description)
 
       decl match {
         case ScalaCaseClassType(name, _, _, fields) =>
-          val params = fields.map { f => PARAM(f.name, toType(f.typ)): ValDef }
+          val params = fields.map { f => PARAM(f.name, toType(f.typ, usedModules)): ValDef }
           val elm = CASECLASSDEF(RootClass.newClass(name)).withParams(params).tree
           commentOpt.map(elm.withDoc(_)).getOrElse(elm) :: acc
 
         case SimpleAdtScalaType(traitName, _, _, list) =>
-          val sealedTrait = TRAITDEF(traitName).withFlags(Flags.SEALED).tree
-          val first = commentOpt.map(sealedTrait.withDoc(_)).getOrElse(sealedTrait)
+
+
+          val valueCheck: mutable.Set[Option[String]] = mutable.Set()
 
           val objDecls = list.sortBy(_.name).map { case ScalaCaseObjectType(objectName, value, summary, description) =>
+            valueCheck.add(value)
             val subCommentOpt = mergeComments(summary, description)
-            val elm = (CASEOBJECTDEF(objectName) withParents traitName).tree
-
+            val elm = if (value.isEmpty) {
+              (CASEOBJECTDEF(objectName) withParents traitName).tree
+            } else {
+              (CASEOBJECTDEF(objectName) withParents traitName).mkTree(
+                VAL("code", StringClass) withFlags(Flags.OVERRIDE) := Literal(Constant(value.get))
+              )
+            }
             subCommentOpt.map(elm.withDoc(_)).getOrElse(elm)
           }
+          val valueSet = valueCheck.flatten.toSet
+          val sealedTrait: Tree = if (valueSet.isEmpty) {
+            TRAITDEF(traitName).withFlags(Flags.SEALED).tree
+          } else if (valueSet.size == list.size) {
+            TRAITDEF(traitName).withFlags(Flags.SEALED).mkTree(
+              VAL("code", StringClass): Tree
+            )
+          } else {
+            throw new IllegalArgumentException("Something wrong with value field")
+          }
+          val first = commentOpt.fold(sealedTrait)(sealedTrait.withDoc(_))
+          val second = OBJECTDEF(traitName).mkTree(objDecls)
 
-          val scopeObject = OBJECTDEF(traitName).mkTree(objDecls)
-
-          first :: scopeObject :: acc
+          first :: second :: acc
 
         case Adt(traitName,_, _, list) =>
           val sealedTrait = TRAITDEF(traitName).withFlags(Flags.SEALED).tree
@@ -117,7 +143,7 @@ object CodeGenerator extends App {
               subCommentOpt.map(elm.withDoc(_)).getOrElse(elm)
 
             case ScalaCaseClassType(name, _, _, fields) =>
-              val params = fields.map { f => PARAM(f.name, toType(f.typ)): ValDef }
+              val params = fields.map { f => PARAM(f.name, toType(f.typ, usedModules)): ValDef }
               val elm = CASECLASSDEF(RootClass.newClass(name)).withParams(params).withParents(traitName).tree
               commentOpt.map(elm.withDoc(_)).getOrElse(elm)
 
@@ -136,12 +162,21 @@ object CodeGenerator extends App {
     println(treeToString(tree))
   }
 
-  private def toType(fieldType1: ScalaType, fieldType2: ScalaType): Type = {
-    functionType(List(toType(fieldType1)), toType(fieldType2))
+  private def toType(fieldType1: ScalaType, fieldType2: ScalaType, importSet: mutable.Set[String]): Type = {
+    functionType(List(toType(fieldType1, importSet)), toType(fieldType2, importSet))
   }
 
-  private def toType(fieldType: ScalaType): Type = fieldType match {
-      case ScalaRefType(name) => TYPE_REF(name)
+  private def toType(fieldType: ScalaType, importSet: mutable.Set[String]): Type = fieldType match {
+      case ScalaRefType(name) =>
+        val refName = name.split("\\.").toList match {
+          case List(m, r) =>
+            importSet.add(m)
+            r
+          case List(r) => r
+
+          case x => throw new IllegalArgumentException(s"Unexpected argument in refName: $x")
+        }
+        TYPE_REF(refName)
 
       case ScalaIntType => IntClass
 
@@ -157,14 +192,14 @@ object CodeGenerator extends App {
 
       case ScalaBigIntType =>BigIntClass
 
-      case ScalaOptionType(t: ScalaType) => OptionClass TYPE_OF toType(t)
+      case ScalaOptionType(t: ScalaType) => OptionClass TYPE_OF toType(t, importSet)
 
-      case ListScalaType(t: ScalaType) => ListClass TYPE_OF toType(t)
+      case ListScalaType(t: ScalaType) => ListClass TYPE_OF toType(t, importSet)
 
-      case GenericScalaType(name: String, arg :: Nil) => toType(arg)
+      case GenericScalaType(name: String, arg :: Nil) => toType(arg, importSet)
 
       case GenericScalaType(name: String, arg1 :: arg2 :: Nil) => {
-        toType(arg1, arg2)
+        toType(arg1, arg2, importSet)
       }
 
       case UnitScalaType => UnitClass

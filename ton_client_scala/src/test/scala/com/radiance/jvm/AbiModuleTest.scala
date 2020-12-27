@@ -20,7 +20,7 @@ class AbiModuleTest extends AnyFlatSpec with TestBase {
   private val time = BigInt(1599458364291L)
   private val expire = 1599458404L
 
-  private val deploySet = DeploySet(eventsTvc, None, None)
+  private val deploySet = DeploySet(eventsTvcV2, None, None)
 
   private val deployCallSet = CallSet(
     "constructor",
@@ -36,17 +36,17 @@ class AbiModuleTest extends AnyFlatSpec with TestBase {
 
   private val address = "0:05beb555e942fa744fd96f45a9ea9d0a8248208ca12421947c06e59bc997d309"
 
-  private def unsigned = abi.encodeMessage(eventsAbi, None, deploySet.some, deployCallSet.some, Signer.External(keys.public), None).get
-  private def unsigned1 = abi.encodeMessage(eventsAbi, address.some, None, runCallSet.some, Signer.External(keys.public), None).get
+  private def unsigned = abiModule.encodeMessage(eventsAbiV2, None, deploySet.some, deployCallSet.some, Signer.External(keys.public), None).get
+  private def unsigned1 = abiModule.encodeMessage(eventsAbiV2, address.some, None, runCallSet.some, Signer.External(keys.public), None).get
 
   private def signature = signDetached(unsigned.data_to_sign.get, keys)
   private def signature1 = signDetached(unsigned1.data_to_sign.get, keys)
 
-  private def signed = abi.attachSignature(eventsAbi, keys.public, unsigned.message, signature).get
-  private def signed1 = abi.attachSignature(eventsAbi, keys.public, unsigned1.message, signature1).get
-  private def signed2 = abi.encodeMessage(eventsAbi, address.some, None, runCallSet.some, Signer.Keys(keys), None).get
+  private def signed = abiModule.attachSignature(eventsAbiV2, keys.public, unsigned.message, signature).get
+  private def signed1 = abiModule.attachSignature(eventsAbiV2, keys.public, unsigned1.message, signature1).get
+  private def signed2 = abiModule.encodeMessage(eventsAbiV2, address.some, None, runCallSet.some, Signer.Keys(keys), None).get
 
-  private def noPubkey = abi.encodeMessage(eventsAbi, address.some, None, runCallSet.some, Signer.None, None).get
+  private def noPubkey = abiModule.encodeMessage(eventsAbiV2, address.some, None, runCallSet.some, Signer.None, None).get
 
   "0" should "be equal" in {
     assert(unsigned.data_to_sign.contains("KCGM36iTYuCYynk+Jnemis+mcwi3RFCke95i7l96s4Q="))

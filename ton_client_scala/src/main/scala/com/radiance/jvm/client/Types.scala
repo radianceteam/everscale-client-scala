@@ -45,8 +45,8 @@ object BuildInfoDependency {
 
 case class ClientConfig(
     network: Option[NetworkConfig],
-    crypto: Option[CryptoConfig],
-    abi: Option[AbiConfig]
+    crypto: Option[CryptoConfig] = None,
+    abi: Option[AbiConfig] = None
 )
 
 object ClientConfig {
@@ -212,14 +212,14 @@ object CryptoConfig {
 
 case class NetworkConfig(
     server_address: Option[String],
-    endpoints: Option[List[String]],
-    network_retries_count: Option[Int],
-    message_retries_count: Option[Int],
-    message_processing_timeout: Option[Long],
-    wait_for_timeout: Option[Long],
-    out_of_sync_threshold: Option[Long],
-    reconnect_timeout: Option[Long],
-    access_key: Option[String]
+    endpoints: Option[List[String]] = None,
+    network_retries_count: Option[Int] = None,
+    message_retries_count: Option[Int] = None,
+    message_processing_timeout: Option[Long] = None,
+    wait_for_timeout: Option[Long] = None,
+    out_of_sync_threshold: Option[Long] = None,
+    reconnect_timeout: Option[Long] = None,
+    access_key: Option[String] = None
 )
 
 object NetworkConfig {

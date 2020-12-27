@@ -1,162 +1,10 @@
-# Scala TON Client
+package com.radiance.samples
 
-**Scala TON Client** is a simple scala binding to the [TON SDK](https://github.com/tonlabs/TON-SDK). 
+import scala.concurrent.Future
 
-Features:
-* All methods of the TON SDK v1.5.0 are implemented
-* Interaction with the TON SDK through synchronous an asynchronous calls
-* The every method contains inline-doc
-* The automatic download of the TON SDK library for the current environment
+object Modules {
 
-## Requirements
-
-- Scala 2.13
-- cpp compiler
-- cmake
-- __JAVA_HOME__ environment variable need to be defined
-- on Windows environment variable __PATH__ need contains absolute path to folder __TON-SDK/ton_client/build__. 
-
-## Prerequisites
-
-1. If you use Windows install on your computer one of below enumerated toolchains:
-    1. [Visual Studio Code](https://code.visualstudio.com/docs/cpp/config-msvc)
-        Architecture: x86_amd64
-    2. [Mingw-w64](http://mingw-w64.org/doku.php)
-    3. [Cygwin](https://cygwin.com/install.html)
-    4. [msys2](https://www.msys2.org/)
-    5. [Mingw-builds](http://mingw-w64.org/doku.php/download/mingw-builds)
-    [Read more about installation](https://stackoverflow.com/questions/30069830/how-to-install-mingw-w64-and-msys2)
- Important: Be sure you use the same toolchain for building TON-SDK client and bridge library 
- from __native__ subproject, in other case you can get __UnsatisfiedLinkError__ with message:  Can't find dependent libraries.
- 
- If you use Linux install cmake:
-        
-```sudo apt install cmake```
-    
-2. Install on your computer latest [nodejs](https://nodejs.org/en/download/)
-
-3. Install on your computer latest [Rust](https://www.rust-lang.org/tools/install)
-   
-## Project structure
-
-Project contains several subprojects:
-1. __native__ - cpp project, that you can edit with any cpp IDE you prefer (CLion, Visual Studio Code etc.).
-2. __TON-SDK__ - [git submodule](https://git-scm.com/docs/git-submodule) of TON-SDK repo.
-3. __ton_client_scala__ - Scala binding itself.
-4. __ton_generator__ - code generator for ton_client_scala.
-
-## Installation
-
-1. By hands.
-    
-    * Update git submodule
-     
-    Select branch in TON-SDK you want to build and execute in the folder __TON-SDK__ console next commands:
-    
-    ```git checkout <branch>```
-    
-    ```git pull```
-    
-    * Build ton_client binary library
-    
-    In the folder __TON-SDK/ton_client/client__ run nodejs build script:
-    
-    ```node build```
-    
-    * Copy header file tonclient.h from __TON-SDK/ton_client/client__ to folder __native/include__
-    
-    * Compile project native with toolchain you prefer
-    
-    * Compile project ton_client_scala with sbt compile
-    
-2. In semi-auto mode
-    
-    * Set in build.sbt branch value you want to build
-    
-    * Select sbt project __TON-SDK__ and run sbt command 
-    
-    ```buildDependentLib```
-    
-    * Select sbt project __native__ and run sbt command
-    
-    ```buildBridge```
-    
-    * Select sbt project __ton_client_scala__ and run sbt command
-    
-    ```compile```
-
-## How to use
-Simple TonContextScala instantiation:
-```scala
-    import com.radiance.jvm.Context
-    import com.radiance.jvm.client._
-    import cats.implicits._
-    import scala.concurrent.ExecutionContext
-
-    val networkConfig: NetworkConfig = NetworkConfig(
-      "net.ton.dev".some,                     // server_address:             Option[String]
-      None,                                   // endpoints:                  Option[List[String]]
-      5.some,                                 // network_retries_count:      Option[Int] 
-      5.some,                                 // message_retries_count:      Option[Int]
-      60000L.some,                            // message_processing_timeout: Option[Long]
-      60000L.some,                            // wait_for_timeout:           Option[Long]
-      30000L.some,                            // out_of_sync_threshold:      Option[Long]
-      30000L.some,                            // reconnect_timeout:          Option[Long]
-      "".some                                 // access_key:                 Option[String]
-    )
-
-    val cryptoConfig: CryptoConfig = CryptoConfig(
-      1L.some,                                // mnemonic_dictionary:        Option[Long]
-      12L.some,                               // mnemonic_word_count:        Option[Long]
-      "m/44'/396'/0'/0/0".some,               // hdkey_derivation_path:      Option[String] 
-      true.some                               // hdkey_compliant:            Option[Boolean]
-    )
-
-    val abiConfig: AbiConfig = AbiConfig(
-      0.some,                                 // workchain:                              Option[Int]
-      60000L.some,                            // message_expiration_timeout:             Option[Long]
-      1.35F.some                              // message_expiration_timeout_grow_factor: Option[Float]
-    )
-
-    val clientConfig: ClientConfig = ClientConfig(
-      networkConfig.some,
-      cryptoConfig.some,
-      abiConfig.some
-    )
-    implicit val ec: ExecutionContext = ExecutionContext.global
-    val ctx: Context = Context(clientConfig)
-```
-
-Or you can use simpler configuration: 
-```scala
-    import com.radiance.jvm.Context
-    import com.radiance.jvm.client._
-    import cats.implicits._
-    import scala.concurrent.ExecutionContext
-
-    val clientConfig: ClientConfig = ClientConfig(NetworkConfig("net.ton.dev".some).some)
-    implicit val ec: ExecutionContext = ExecutionContext.global
-    val ctx: Context = Context(clientConfig)
-```
-
-More details you can find [here](https://github.com/tonlabs/TON-SDK/blob/1.5.0/docs/mod_client.md#ClientConfig). 
-
-## Basic usage
-In subpackages of __com.radiance.jvm__ you can find modules that encapsulate definite functionality of Scala TON Client:
-    
-* AbiModule
-* BocModule
-* ClientModule
-* CryptoModule
-* DebotModule
-* NetModule
-* ProcessingModule
-* TvmModule
-* UtilsModule
-    
-### Example of usage ClientModule
-    
-```scala
+  object ClientModuleSamples {
     import com.radiance.jvm.Context
     import com.radiance.jvm.client._
 
@@ -166,11 +14,9 @@ In subpackages of __com.radiance.jvm__ you can find modules that encapsulate def
     val result1: Either[Throwable, ResultOfVersion] = clientModule.version
     // Get TON SDK build info
     val result2: Either[Throwable, ResultOfBuildInfo] = clientModule.buildInfo
-```
+  }
 
-### Example of usage CryptoModule
-
-```scala
+  object CryptoModulesSamples {
     import com.radiance.jvm.Context
     import com.radiance.jvm.crypto._
 
@@ -179,11 +25,9 @@ In subpackages of __com.radiance.jvm__ you can find modules that encapsulate def
 
     // Generate random key pair
     val result: Either[Throwable, KeyPair] = cryptoModule.generateRandomSignKeys
-```
+  }
 
-### Example of usage UtilsModule
-
-```scala
+  object UtilsModuleSamples {
     import com.radiance.jvm.Context
     import com.radiance.jvm.utils._
 
@@ -192,15 +36,12 @@ In subpackages of __com.radiance.jvm__ you can find modules that encapsulate def
 
     // Convert address to hex format
     val result: Either[Throwable, ResultOfConvertAddress] = utilsModule.convertAddress(
-      "ee65d170830136253ad8bd2116a28fcbd4ac462c6f222f49a1505d2fa7f7f528", 
+      "ee65d170830136253ad8bd2116a28fcbd4ac462c6f222f49a1505d2fa7f7f528",
       AddressStringFormat.Hex
     )
-```
+  }
 
-### Example of usage NetModule
-You can use circe library for building graphql queries:
-
-```scala
+  object NetModuleSample1 {
     import com.radiance.jvm.Context
     import com.radiance.jvm.net._
     import io.circe._
@@ -227,20 +68,18 @@ You can use circe library for building graphql queries:
       "id,last_paid",
       60000L.some
     )
-```
+  }
 
-Or:
-
-```scala
+  object NetModuleSample2 {
     import com.radiance.jvm.Context
     import com.radiance.jvm.net._
     import io.circe._
     import io.circe.parser._
     import cats.implicits._
-    
+
     val ctx: Context = ???
     val netModule = new NetModule(ctx)
-    
+
     val query: Json = parse("""{
                               |  "last_paid": {
                               |    "in": [
@@ -259,21 +98,19 @@ Or:
       List(OrderBy("last_paid", SortDirection.ASC)).some,
       2L.some
     )
-```
+  }
 
-Also you can observe collection, returned by query:
-
-```scala
+  object NetModuleSample3 {
     import com.radiance.jvm.Context
     import com.radiance.jvm.net._
     import io.circe._
     import io.circe.parser._
     import cats.implicits._
-    
+
     val ctx: Context = ???
     val netModule = new NetModule(ctx)
     val callback: Json => Unit = ???
-    
+
     val query: Json = parse("""{
                               |  "balance_delta": {
                               |    "gt": "0x5f5e100"
@@ -287,12 +124,9 @@ Also you can observe collection, returned by query:
       "id,block_id,balance_delta",
       callback
     )
-```
+  }
 
-To extract required fields from response you can use circe [hcursor](https://circe.github.io/circe/cursors.html).
-
-### Example of usage BocModule
-```scala
+  object BocModulesSamples {
     import com.radiance.jvm.Context
     import com.radiance.jvm.boc._
 
@@ -328,24 +162,5 @@ To extract required fields from response you can use circe [hcursor](https://cir
       "zerostate:-1",
       -1
     )
-```
-
-To extract required fields from response you can use circe [hcursor](https://circe.github.io/circe/cursors.html).
-
-## Testing
-
-To run junit tests run
-
-```sbt test```
-
-## FatJar
-
-This application use [assembly-plugin](https://github.com/sbt/sbt-assembly).
-To build fat jar use
-
-```sbt assembly```
-
-## License
-
-The Apache License Version 2.0. Please see [License File](LICENSE) for more information.
-    
+  }
+}

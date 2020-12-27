@@ -11,7 +11,7 @@ class ClientModuleTest  extends AnyFlatSpec with TestBase {
   behavior.of("ClientModule")
 
   it should "return correct version and buildInfo" in {
-    val client = new ClientModule(context)
+    val client = new ClientModule(ctx)
     val res = client.version.get
     println(s"Version: ${res.version}")
     val buildInfo = client.buildInfo.get

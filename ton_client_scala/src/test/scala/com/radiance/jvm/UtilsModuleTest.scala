@@ -11,7 +11,7 @@ class UtilsModuleTest extends AnyFlatSpec with TestBase {
   behavior.of("UtilsModule")
 
   it should "return correct value" in {
-    val utilsModule = new UtilsModule(context)
+    val utilsModule = new UtilsModule(ctx)
 
     val result = utilsModule.convertAddress("ee65d170830136253ad8bd2116a28fcbd4ac462c6f222f49a1505d2fa7f7f528", AddressStringFormat.Hex).get
     val result1 = utilsModule.convertAddress("ee65d170830136253ad8bd2116a28fcbd4ac462c6f222f49a1505d2fa7f7f528", AddressStringFormat.AccountId).get

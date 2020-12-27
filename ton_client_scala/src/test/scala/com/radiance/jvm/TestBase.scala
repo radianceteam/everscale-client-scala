@@ -12,7 +12,7 @@ import com.radiance.jvm.crypto.{CryptoModule, KeyPair}
 import com.radiance.jvm.net.NetModule
 import com.radiance.jvm.processing.{ProcessingModule, ResultOfProcessMessage}
 import com.radiance.jvm.tvm.TvmModule
-import io.circe.Decoder
+import io.circe.{Decoder, Json}
 import io.circe.derivation.deriveDecoder
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -28,7 +28,7 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
 
   implicit val ec: ExecutionContext
 
-  implicit val abiContractdecoder: Decoder[AbiContract] = deriveDecoder[AbiContract]
+  implicit val abiContractDecoder: Decoder[AbiContract] = deriveDecoder[AbiContract]
 
   protected def encode(arr: Array[Byte]): String = Base64.getEncoder.encodeToString(arr)
 
@@ -41,29 +41,27 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
     Files.readAllBytes(Paths.get(getClass.getResource(s"/${version.name}/$path").toURI))
   )
 
-  protected val eventsAbi: Abi = extractAbi(V2, "Events.abi.json")
-  protected val walletAbi: Abi  = extractAbi(V2, "Wallet.abi.json")
-  protected val giverAbi: Abi  = extractAbi(V1, "Giver.abi.json")
-  protected val giverWalletAbi: Abi  = extractAbi(V2, "GiverWallet.abi.json")
-  protected val subscriptionAbi: Abi  = extractAbi(V2, "Subscription.abi.json")
+  protected val eventsAbiV2: Abi = extractAbi(V2, "Events.abi.json")
+  protected val walletAbiV2: Abi  = extractAbi(V2, "Wallet.abi.json")
+  protected val giverAbiV1: Abi  = extractAbi(V1, "Giver.abi.json")
+  protected val giverWalletAbiV2: Abi  = extractAbi(V2, "GiverWallet.abi.json")
+  protected val subscriptionAbiV2: Abi  = extractAbi(V2, "Subscription.abi.json")
 
-  protected val eventsTvc: String = extractEncodedString(V2, "Events.tvc")
-  protected val subscriptionTvc: String = extractEncodedString(V2, "Subscription.tvc")
+  protected val eventsTvcV2: String = extractEncodedString(V2, "Events.tvc")
+  protected val subscriptionTvcV2: String = extractEncodedString(V2, "Subscription.tvc")
 
   private val config = ClientConfig(
-    NetworkConfig(/*"http://192.168.99.100:8888"*/"net.ton.dev".some, None, None, None, None, None, None, None, None).some,
-    None,
-    None
+    NetworkConfig(/*"http://192.168.99.100:8888"*/"net.ton.dev".some).some
   )
 
-  protected var context: Context = _
-  protected var crypto: CryptoModule = _
-  protected var abi: AbiModule = _
-  protected var processing: ProcessingModule = _
-  protected var net: NetModule = _
-  protected var boc: BocModule = _
-  protected var tvm: TvmModule = _
-  protected var client: ClientModule = _
+  protected var ctx: Context = _
+  protected var cryptoModule: CryptoModule = _
+  protected var abiModule: AbiModule = _
+  protected var processingModule: ProcessingModule = _
+  protected var netModule: NetModule = _
+  protected var bocModule: BocModule = _
+  protected var tvmModule: TvmModule = _
+  protected var clientModule: ClientModule = _
 
   implicit class FutureEitherWrapper[A](f: Future[Either[Throwable, A]]) {
     def get: A = Await.result(f, 10.minutes).fold(t => throw t, r => r)
@@ -74,20 +72,26 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
   }
 
   protected def signDetached(data: String , keys: KeyPair): String = (for {
-    signKeys <- crypto.naclSignKeypairFromSecretKey(keys.secret)
-    r <- crypto.naclSignDetached(data, signKeys.secret)
+    signKeys <- cryptoModule.naclSignKeypairFromSecretKey(keys.secret)
+    r <- cryptoModule.naclSignDetached(data, signKeys.secret)
   } yield r).get.signature
 
-  protected def getGramsFromGiver(address: String): Future[Either[Throwable, ResultOfProcessMessage]] =
-    processing.processMessage(
+  protected def getGramsFromGiver(address: String): Future[Either[Throwable, ResultOfProcessMessage]] = {
+    val inputMsg: Json = parse(s"""{
+                                  |  "dest": "$address",
+                                  |  "amount": 500000000
+                                  |}""".stripMargin
+    ).getOrElse(throw new IllegalArgumentException("Not a Json"))
+
+    processingModule.processMessage(
       ParamsOfEncodeMessage(
-        giverAbi,
+        giverAbiV1,
         "0:841288ed3b55d9cdafa806807f02a0ae0c169aa5edfe88a789a6482429756a94".some,
         None,
         CallSet(
           "sendGrams",
           None,
-          parse(s"""{"dest":"$address","amount":500000000}""").getOrElse(throw new IllegalArgumentException("Not a Json")).some
+          inputMsg.some
         ).some,
         Signer.None,
         None
@@ -95,31 +99,33 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
       false,
       e => println("Grams from Giver: \n" + e)
     )
+  }
 
   protected def deployWithGiver(a: Abi, deploySet: DeploySet, callSet: CallSet, signer: Signer): Future[Either[Throwable, String]] = {
     println("Run deployWithGiver")
     (for {
-      encoded <- EitherT(abi.encodeMessage(a, None, deploySet.some, callSet.some, signer, None))
+      encoded <- EitherT(abiModule.encodeMessage(a, None, deploySet.some, callSet.some, signer, None))
+      _ <- EitherT(Future.successful(println(encoded).asRight))
       _ <- EitherT(getGramsFromGiver(encoded.address))
-      _ <- EitherT(processing.processMessage(
-        ParamsOfEncodeMessage(a, None, deploySet.some, callSet.some, signer, None), false, _ => ()
+      _ <- EitherT(processingModule.processMessage(
+        ParamsOfEncodeMessage(a, None, deploySet.some, callSet.some, signer, None), false, e => println(e)
       ))
     } yield encoded.address).value
   }
 
   before {
-    context = Context(config)
-    crypto = new CryptoModule(context)
-    abi = new AbiModule(context)
-    processing = new ProcessingModule(context)
-    net = new NetModule(context)
-    boc = new BocModule(context)
-    tvm = new TvmModule(context)
-    client = new ClientModule(context)
+    ctx = Context(config)
+    cryptoModule = new CryptoModule(ctx)
+    abiModule = new AbiModule(ctx)
+    processingModule = new ProcessingModule(ctx)
+    netModule = new NetModule(ctx)
+    bocModule = new BocModule(ctx)
+    tvmModule = new TvmModule(ctx)
+    clientModule = new ClientModule(ctx)
   }
 
   after {
-    context.destroy()
+    ctx.destroy()
   }
 
 }

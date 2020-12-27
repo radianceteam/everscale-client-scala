@@ -153,8 +153,8 @@ object AbiParam {
 
 case class CallSet(
     function_name: String,
-    header: Option[FunctionHeader],
-    input: Option[Value]
+    header: Option[FunctionHeader] = None,
+    input: Option[Value] = None
 )
 
 object CallSet {
@@ -175,8 +175,8 @@ object DecodedMessageBody {
 
 case class DeploySet(
     tvc: String,
-    workchain_id: Option[Int],
-    initial_data: Option[Value]
+    workchain_id: Option[Int] = None,
+    initial_data: Option[Value] = None
 )
 
 object DeploySet {
