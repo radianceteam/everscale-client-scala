@@ -50,6 +50,8 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
   protected val eventsTvcV2: String = extractEncodedString(V2, "Events.tvc")
   protected val subscriptionTvcV2: String = extractEncodedString(V2, "Subscription.tvc")
 
+  protected val giverAddress: String = "0:841288ed3b55d9cdafa806807f02a0ae0c169aa5edfe88a789a6482429756a94"
+
   protected val config = ClientConfig(
     NetworkConfig("http://localhost:6453"/*"net.ton.dev"*/.some).some
   )
@@ -85,6 +87,47 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
     bocModule = new BocModule(ctx)
     tvmModule = new TvmModule(ctx)
     clientModule = new ClientModule(ctx)
+  }
+
+  protected def deployWithGiver(
+                               a: Abi,
+                               deploySet: DeploySet,
+                               callSet: CallSet,
+                               signer: Signer
+                             ): Future[Either[Throwable, String]] = {
+    (for {
+      encoded <- EitherT(abiModule.encodeMessage(a, None, deploySet.some, callSet.some, signer, None))
+      _ <- EitherT(Future.successful(println("Address: " + encoded.address).asRight))
+      _ <- EitherT(getGramsFromGiver(encoded.address))
+      _ <- EitherT(processingModule.processMessage(
+        ParamsOfEncodeMessage(a, None, deploySet.some, callSet.some, signer, None), false, e => println(e)
+      ))
+    } yield encoded.address).value
+  }
+
+  protected def getGramsFromGiver(address: String): Future[Either[Throwable, ResultOfProcessMessage]] = {
+    val inputMsg: Json = parse(s"""{
+                                  |  "dest": "$address",
+                                  |  "amount": 500000000
+                                  |}""".stripMargin
+    ).getOrElse(throw new IllegalArgumentException("Not a Json"))
+
+    processingModule.processMessage(
+      ParamsOfEncodeMessage(
+        giverAbiV1,
+        giverAddress.some,
+        None,
+        CallSet(
+          "sendGrams",
+          None,
+          inputMsg.some
+        ).some,
+        Signer.None,
+        None
+      ),
+      false,
+      e => println("Grams from Giver: \n" + e)
+    )
   }
 
   before {

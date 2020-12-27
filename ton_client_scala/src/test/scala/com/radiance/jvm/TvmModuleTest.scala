@@ -173,45 +173,4 @@ class TvmModuleTest extends AnyFlatSpec with TestBase {
     println(out.decoded.get.output.get)
     accountRes
   }
-
-  private def deployWithGiver(
-                               a: Abi,
-                               deploySet: DeploySet,
-                               callSet: CallSet,
-                               signer: Signer
-                             ): Future[Either[Throwable, String]] = {
-    (for {
-      encoded <- EitherT(abiModule.encodeMessage(a, None, deploySet.some, callSet.some, signer, None))
-      _ <- EitherT(Future.successful(println("Address: " + encoded.address).asRight))
-      _ <- EitherT(getGramsFromGiver(encoded.address))
-      _ <- EitherT(processingModule.processMessage(
-        ParamsOfEncodeMessage(a, None, deploySet.some, callSet.some, signer, None), false, e => println(e)
-      ))
-    } yield encoded.address).value
-  }
-
-  private def getGramsFromGiver(address: String): Future[Either[Throwable, ResultOfProcessMessage]] = {
-    val inputMsg: Json = parse(s"""{
-                                  |  "dest": "$address",
-                                  |  "amount": 500000000
-                                  |}""".stripMargin
-    ).getOrElse(throw new IllegalArgumentException("Not a Json"))
-
-    processingModule.processMessage(
-      ParamsOfEncodeMessage(
-        giverAbiV1,
-        "0:841288ed3b55d9cdafa806807f02a0ae0c169aa5edfe88a789a6482429756a94".some,
-        None,
-        CallSet(
-          "sendGrams",
-          None,
-          inputMsg.some
-        ).some,
-        Signer.None,
-        None
-      ),
-      false,
-      e => println("Grams from Giver: \n" + e)
-    )
-  }
 }
