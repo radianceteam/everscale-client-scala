@@ -7,9 +7,19 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.concurrent.ExecutionContext
 import cats.implicits._
+import com.radiance.jvm.client._
 
 class NetModuleTest  extends AnyFlatSpec with TestBase {
   implicit val ec: ExecutionContext = ExecutionContext.global
+
+  override protected val config = ClientConfig(
+    NetworkConfig("net.ton.dev".some).some
+  )
+
+  override protected def init() = {
+    ctx = Context(config)
+    netModule = new NetModule(ctx)
+  }
 
   behavior.of("NetModule")
 

@@ -148,7 +148,7 @@ class AbiModule(ctx: Context) {
    *
    *                             Default value is 0.
    */
-  def encodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long]): Future[Either[Throwable, ResultOfEncodeMessageBody]] = {
+  def encodeMessageBody(abi: Abi, call_set:  CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long]): Future[Either[Throwable, ResultOfEncodeMessageBody]] = {
     val arg = ParamsOfEncodeMessageBody(abi, call_set, is_internal, signer, processing_try_index)
     ctx.execAsync("abi.encode_message_body", arg)
   }

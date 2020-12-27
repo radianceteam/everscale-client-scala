@@ -13,6 +13,7 @@ Features:
 - Scala 2.13
 - cpp compiler
 - cmake
+- Docker
 - __JAVA_HOME__ environment variable need to be defined
 - on Windows environment variable __PATH__ need contains absolute path to folder __TON-SDK/ton_client/build__. 
 
@@ -73,11 +74,19 @@ Project contains several subprojects:
     
     * Set in build.sbt branch value you want to build
     
-    * Select sbt project __TON-SDK__ and run sbt command 
+    * Select sbt project __TON-SDK__ with command 
+    
+    ```project TON-SDK```
+    
+    and then run command 
     
     ```buildDependentLib```
     
-    * Select sbt project __native__ and run sbt command
+    * Select sbt project __native__ with command
+    
+    ```project native```
+    
+    and then run command
     
     ```buildBridge```
     
@@ -86,7 +95,9 @@ Project contains several subprojects:
     ```compile```
 
 ## How to use
-Simple TonContextScala instantiation:
+
+Simple Context instantiation:
+
 ```scala
     import com.radiance.jvm.Context
     import com.radiance.jvm.client._
@@ -261,7 +272,7 @@ Or:
     )
 ```
 
-Also you can observe collection, returned by query:
+You can also observe collection, returned by a query:
 
 ```scala
     import com.radiance.jvm.Context
@@ -292,6 +303,7 @@ Also you can observe collection, returned by query:
 To extract required fields from response you can use circe [hcursor](https://circe.github.io/circe/cursors.html).
 
 ### Example of usage BocModule
+
 ```scala
     import com.radiance.jvm.Context
     import com.radiance.jvm.boc._
@@ -334,16 +346,24 @@ To extract required fields from response you can use circe [hcursor](https://cir
 
 ## Testing
 
-To run junit tests run
+Before running tests you need to run local TONOS Startup Edition (SE) with command:
 
-```sbt test```
+```sudo docker run -t -d -p 6453:80 -e USER_AGREEMENT=yes tonlabs/local-node``` 
+
+To run all junit tests execute in sbt console under the project __ton_client_scala__:
+
+```test```
+
+To run concrete test use the next command:
+
+```testOnly <full qualified name of test class>```
 
 ## FatJar
 
 This application use [assembly-plugin](https://github.com/sbt/sbt-assembly).
-To build fat jar use
+To build fat jar use command:
 
-```sbt assembly```
+```assembly```
 
 ## License
 

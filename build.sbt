@@ -76,7 +76,7 @@ lazy val buildDllImpl = Def.task {
 
 }
 
-  // TODO copy tonclient.h
+// TODO copy tonclient.h
 lazy val buildBridgeImpl = Def.task {
   val pathToParent = baseDirectory.value.getAbsoluteFile
   val pathToBuildDir = baseDirectory.value.getAbsoluteFile / "build"
