@@ -70,7 +70,6 @@ object CodeGenerator extends App {
         )
       )
 
-
       val tree1 = (DEF(decl.camelName, returnType)
         .withParams(
           extendedParams.map(p => PARAM(p.name.get, toType(p.typ, usedModules)): ValDef))
@@ -190,15 +189,15 @@ object CodeGenerator extends App {
 
       case ScalaStringType => StringClass
 
-      case ScalaBigIntType =>BigIntClass
+      case ScalaBigIntType => BigIntClass
 
       case ScalaOptionType(t: ScalaType) => OptionClass TYPE_OF toType(t, importSet)
 
       case ListScalaType(t: ScalaType) => ListClass TYPE_OF toType(t, importSet)
 
-      case GenericScalaType(name: String, arg :: Nil) => toType(arg, importSet)
+      case GenericScalaType(_, arg :: Nil) => toType(arg, importSet)
 
-      case GenericScalaType(name: String, arg1 :: arg2 :: Nil) => {
+      case GenericScalaType(_, arg1 :: arg2 :: Nil) => {
         toType(arg1, arg2, importSet)
       }
 

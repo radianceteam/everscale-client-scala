@@ -1,13 +1,16 @@
 package com.radiance.jvm
 
-import com.radiance.jvm.crypto.KeyPair
+import com.radiance.jvm.crypto.{CryptoModule, KeyPair}
 import org.scalatest.flatspec.AnyFlatSpec
 
-import scala.concurrent.ExecutionContext
 import cats.implicits._
 
 class CryptoModuleTest extends AnyFlatSpec with TestBase {
-  implicit val ec: ExecutionContext = ExecutionContext.global
+
+  override def init(): Unit = {
+    super.init()
+    cryptoModule = new CryptoModule(ctx)
+  }
 
   behavior.of("CryptoModule")
 

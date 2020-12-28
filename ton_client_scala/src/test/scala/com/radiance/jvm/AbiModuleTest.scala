@@ -1,16 +1,19 @@
 package com.radiance.jvm
 
 import com.radiance.jvm.abi._
-import com.radiance.jvm.crypto.KeyPair
+import com.radiance.jvm.crypto.{CryptoModule, KeyPair}
 import io.circe.{Json, JsonObject}
 import org.scalatest.flatspec.AnyFlatSpec
 
-import scala.concurrent.ExecutionContext
 import cats.implicits._
 
 class AbiModuleTest extends AnyFlatSpec with TestBase {
 
-  override implicit val ec: ExecutionContext = ExecutionContext.global
+  override def init(): Unit = {
+    super.init()
+    abiModule = new AbiModule(ctx)
+    cryptoModule = new CryptoModule(ctx)
+  }
 
   private val keys = KeyPair(
     "4c7c408ff1ddebb8d6405ee979c716a14fdd6cc08124107a61d3c25597099499",

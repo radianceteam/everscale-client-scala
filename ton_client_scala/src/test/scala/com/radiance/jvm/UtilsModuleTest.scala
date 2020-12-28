@@ -6,8 +6,10 @@ import org.scalatest.flatspec.AnyFlatSpec
 import scala.concurrent.ExecutionContext
 
 class UtilsModuleTest extends AnyFlatSpec with TestBase {
-  implicit val ec: ExecutionContext = ExecutionContext.global
-
+  override def init(): Unit = {
+    super.init()
+    utilsModule = new UtilsModule(ctx)
+  }
   behavior.of("UtilsModule")
 
   it should "return correct value" in {

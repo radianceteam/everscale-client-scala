@@ -5,18 +5,16 @@ import io.circe._
 import io.circe.parser._
 import org.scalatest.flatspec.AnyFlatSpec
 
-import scala.concurrent.ExecutionContext
 import cats.implicits._
 import com.radiance.jvm.client._
 
-class NetModuleTest  extends AnyFlatSpec with TestBase {
-  implicit val ec: ExecutionContext = ExecutionContext.global
+class NetModuleTest extends AnyFlatSpec with TestBase {
 
   override protected val config = ClientConfig(
     NetworkConfig("net.ton.dev".some).some
   )
 
-  override protected def init() = {
+  override def init(): Unit = {
     ctx = Context(config)
     netModule = new NetModule(ctx)
   }
@@ -79,7 +77,9 @@ class NetModuleTest  extends AnyFlatSpec with TestBase {
       e => eventsAcc = e :: eventsAcc
     ).get
     println("Handle: " + res.handle)
+    netModule.suspend()
     Thread.sleep(5000)
+    netModule.resume()
     println(eventsAcc.map(_.dropNullValues.spaces2).mkString("\n"))
     netModule.unsubscribe(res.handle).get
     println("Unsubscribe successfully")

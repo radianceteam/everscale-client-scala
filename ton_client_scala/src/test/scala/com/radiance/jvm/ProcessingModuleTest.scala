@@ -1,17 +1,25 @@
 package com.radiance.jvm
 
-import com.radiance.jvm.abi.{CallSet, DeploySet, FunctionHeader, ParamsOfEncodeMessage, Signer}
+import com.radiance.jvm.abi._
 import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.concurrent.{Await, ExecutionContext}
 import cats.implicits._
+import com.radiance.jvm.crypto.CryptoModule
+import com.radiance.jvm.processing.ProcessingModule
 import io.circe.Json
 import io.circe.parser.parse
 
 import scala.concurrent.duration._
 
 class ProcessingModuleTest extends AnyFlatSpec with TestBase {
-  implicit val ec: ExecutionContext = ExecutionContext.global
+
+  override def init(): Unit = {
+    super.init()
+    cryptoModule = new CryptoModule(ctx)
+    abiModule = new AbiModule(ctx)
+    processingModule = new ProcessingModule(ctx)
+  }
 
   behavior.of("ProcessingModule")
 

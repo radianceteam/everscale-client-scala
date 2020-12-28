@@ -1,20 +1,28 @@
 package com.radiance.jvm
 
-import io.circe._
 import io.circe.parser._
 import io.circe.Json._
 import cats.data.EitherT
 import cats.implicits._
 import org.scalatest.flatspec.AnyFlatSpec
-
 import com.radiance.jvm.abi._
+import com.radiance.jvm.boc.BocModule
+import com.radiance.jvm.crypto.CryptoModule
 import com.radiance.jvm.tvm._
 import com.radiance.jvm.processing._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class TvmModuleTest extends AnyFlatSpec with TestBase {
-  implicit val ec: ExecutionContext = ExecutionContext.global
+
+  override def init(): Unit = {
+    super.init()
+    cryptoModule = new CryptoModule(ctx)
+    abiModule = new AbiModule(ctx)
+    processingModule = new ProcessingModule(ctx)
+    bocModule = new BocModule(ctx)
+    tvmModule = new TvmModule(ctx)
+  }
 
   behavior.of("TvmModule")
 

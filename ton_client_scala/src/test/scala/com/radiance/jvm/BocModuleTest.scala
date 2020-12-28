@@ -1,11 +1,16 @@
 package com.radiance.jvm
 
+import com.radiance.jvm.boc.BocModule
 import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.concurrent.ExecutionContext
 
 class BocModuleTest extends AnyFlatSpec with TestBase {
-  implicit val ec: ExecutionContext = ExecutionContext.global
+
+  override def init(): Unit = {
+    super.init()
+    bocModule = new BocModule(ctx)
+  }
 
   behavior.of("BocModule")
 

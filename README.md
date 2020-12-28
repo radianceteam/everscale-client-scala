@@ -26,8 +26,10 @@ Features:
     3. [Cygwin](https://cygwin.com/install.html)
     4. [msys2](https://www.msys2.org/)
     5. [Mingw-builds](http://mingw-w64.org/doku.php/download/mingw-builds)
+    
     [Read more about installation](https://stackoverflow.com/questions/30069830/how-to-install-mingw-w64-and-msys2)
- Important: Be sure you use the same toolchain for building TON-SDK client and bridge library 
+ 
+ __Important__: Be sure you use the same toolchain for building TON-SDK client and bridge library 
  from __native__ subproject, in other case you can get __UnsatisfiedLinkError__ with message:  Can't find dependent libraries.
  
  If you use Linux install cmake:
@@ -37,6 +39,9 @@ Features:
 2. Install on your computer latest [nodejs](https://nodejs.org/en/download/)
 
 3. Install on your computer latest [Rust](https://www.rust-lang.org/tools/install)
+
+4. Install on your computer [Docker](https://docs.docker.com/get-docker/)
+Required Docker image - [TON OS Startup Edition](https://hub.docker.com/r/tonlabs/local-node)
    
 ## Project structure
 
@@ -348,7 +353,11 @@ To extract required fields from response you can use circe [hcursor](https://cir
 
 Before running tests you need to run local TONOS Startup Edition (SE) with command:
 
-```sudo docker run -t -d -p 6453:80 -e USER_AGREEMENT=yes tonlabs/local-node``` 
+```sudo docker run -t -d -p 6453:80 -e USER_AGREEMENT=yes tonlabs/local-node```
+
+If you want to change port mapping you need to change content of file TestBase.scala:
+
+```protected val host = "http://localhost:6453"``` 
 
 To run all junit tests execute in sbt console under the project __ton_client_scala__:
 

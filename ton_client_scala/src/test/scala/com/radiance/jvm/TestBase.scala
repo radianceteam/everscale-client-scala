@@ -3,17 +3,16 @@ package com.radiance.jvm
 import java.nio.file.{Files, Paths}
 import java.util.Base64
 
-import cats.data.EitherT
-import com.radiance.jvm.Context
 import com.radiance.jvm.abi._
-import com.radiance.jvm.boc.BocModule
-import com.radiance.jvm.client.{ClientConfig, ClientModule, NetworkConfig}
-import com.radiance.jvm.crypto.{CryptoModule, KeyPair}
-import com.radiance.jvm.net.NetModule
-import com.radiance.jvm.processing.{ProcessingModule, ResultOfProcessMessage}
-import com.radiance.jvm.tvm.TvmModule
-import io.circe.{Decoder, Json}
-import io.circe.derivation.deriveDecoder
+import com.radiance.jvm.boc._
+import com.radiance.jvm.client._
+import com.radiance.jvm.crypto._
+import com.radiance.jvm.debot._
+import com.radiance.jvm.net._
+import com.radiance.jvm.processing._
+import com.radiance.jvm.tvm._
+import io.circe._
+import io.circe.derivation._
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 
@@ -23,10 +22,14 @@ import io.circe.parser._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import cats.implicits._
+import cats.data.EitherT
+import com.radiance.jvm.utils.UtilsModule
 
 trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
 
-  implicit val ec: ExecutionContext
+  protected val host = "http://localhost:6453"
+
+  protected implicit val ec: ExecutionContext = ExecutionContext.global
 
   implicit val abiContractDecoder: Decoder[AbiContract] = deriveDecoder[AbiContract]
 
@@ -53,7 +56,7 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
   protected val giverAddress: String = "0:841288ed3b55d9cdafa806807f02a0ae0c169aa5edfe88a789a6482429756a94"
 
   protected val config = ClientConfig(
-    NetworkConfig("http://localhost:6453"/*"net.ton.dev"*/.some).some
+    NetworkConfig(host.some).some
   )
 
   protected var ctx: Context = _
@@ -64,6 +67,8 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
   protected var bocModule: BocModule = _
   protected var tvmModule: TvmModule = _
   protected var clientModule: ClientModule = _
+  protected var utilsModule: UtilsModule = _
+  protected var debotModule: DebotModule = _
 
   implicit class FutureEitherWrapper[A](f: Future[Either[Throwable, A]]) {
     def get: A = Await.result(f, 10.minutes).fold(t => throw t, r => r)
@@ -80,13 +85,14 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
 
   protected def init(): Unit = {
     ctx = Context(config)
-    cryptoModule = new CryptoModule(ctx)
-    abiModule = new AbiModule(ctx)
-    processingModule = new ProcessingModule(ctx)
-    netModule = new NetModule(ctx)
-    bocModule = new BocModule(ctx)
-    tvmModule = new TvmModule(ctx)
-    clientModule = new ClientModule(ctx)
+//    cryptoModule = new CryptoModule(ctx)
+//    abiModule = new AbiModule(ctx)
+//    processingModule = new ProcessingModule(ctx)
+//    netModule = new NetModule(ctx)
+//    bocModule = new BocModule(ctx)
+//    tvmModule = new TvmModule(ctx)
+//    clientModule = new ClientModule(ctx)
+//    debotModule = new DebotModule(ctx)
   }
 
   protected def deployWithGiver(
