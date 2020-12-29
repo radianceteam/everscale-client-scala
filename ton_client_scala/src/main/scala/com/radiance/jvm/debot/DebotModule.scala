@@ -16,7 +16,7 @@ class DebotModule(private val ctx: Context) {
     */
   def execute(debot_handle: DebotHandle, action: DebotAction): Future[Either[Throwable, Unit]] = {
     val arg = ResultOfAppDebotBrowser.ParamsOfExecute(debot_handle, action)
-    ctx.execAsync("debot.execute", arg)
+    ??? // ctx.execAsync("debot.execute", arg)
   }
 
   /**
@@ -30,11 +30,10 @@ class DebotModule(private val ctx: Context) {
     */
   def fetch(
       address: String,
-      // TODO implement callback
       app_object: ParamsOfAppDebotBrowser => ResultOfAppDebotBrowser
   ): Future[Either[Throwable, RegisteredDebot]] = {
     val arg = ResultOfAppDebotBrowser.ParamsOfFetch(address)
-    ctx.execAsync("debot.fetch", arg)
+    ??? // ctx.execAsync("debot.fetch", arg)
   }
 
   /**
@@ -43,7 +42,7 @@ class DebotModule(private val ctx: Context) {
     */
   def remove(debot_handle: DebotHandle): Future[Either[Throwable, Unit]] = {
     val arg = RegisteredDebot(debot_handle)
-    ctx.execAsyncVoid[RegisteredDebot]("debot.remove", arg)
+    ??? // ctx.execAsyncVoid[RegisteredDebot]("debot.remove", arg)
   }
 
   /**
@@ -61,10 +60,9 @@ class DebotModule(private val ctx: Context) {
     */
   def start(
       address: String,
-      // TODO implement callback
       app_object: ParamsOfAppDebotBrowser => ResultOfAppDebotBrowser
   ): Future[Either[Throwable, RegisteredDebot]] = {
     val arg = ParamsOfStart(address)
-    ctx.execAsync("debot.start", arg)
+    ??? // ctx.execAsync("debot.start", arg)
   }
 }

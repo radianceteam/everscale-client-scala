@@ -1,8 +1,5 @@
 package com.radiance.jvm
 
-import java.nio.file.{Files, Paths}
-import java.util.Base64
-
 import com.radiance.jvm.abi._
 import com.radiance.jvm.boc._
 import com.radiance.jvm.client._
@@ -12,52 +9,30 @@ import com.radiance.jvm.net._
 import com.radiance.jvm.processing._
 import com.radiance.jvm.tvm._
 import io.circe._
-import io.circe.derivation._
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 
-import scala.io.Source
 import io.circe.parser._
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import cats.implicits._
 import cats.data.EitherT
 import com.radiance.jvm.utils.UtilsModule
 
-trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
+trait TestBase extends BeforeAndAfter with TestUtils { this: AnyFlatSpec =>
 
   protected val host = "http://localhost:6453"
 
   protected implicit val ec: ExecutionContext = ExecutionContext.global
 
-  implicit val abiContractDecoder: Decoder[AbiContract] = deriveDecoder[AbiContract]
-
-  protected def encode(arr: Array[Byte]): String = Base64.getEncoder.encodeToString(arr)
-
-  protected def decode(str: String) = new String(Base64.getDecoder.decode(str))
-
-  private def extractAbi(version: Version, path: String) = parse(Source.fromResource(s"${version.name}/$path").mkString)
-    .flatMap(_.as[AbiContract].map(u => Abi.Serialized(u))).fold(t => throw t, r => r)
-
-  private def extractEncodedString(version: Version, path: String): String = encode(
-    Files.readAllBytes(Paths.get(getClass.getResource(s"/${version.name}/$path").toURI))
-  )
-
   protected val eventsAbiV2: Abi = extractAbi(V2, "Events.abi.json")
-  protected val walletAbiV2: Abi  = extractAbi(V2, "Wallet.abi.json")
-  protected val giverAbiV1: Abi  = extractAbi(V1, "Giver.abi.json")
-  protected val giverWalletAbiV2: Abi  = extractAbi(V2, "GiverWallet.abi.json")
+  protected val eventsTvcV2: String = extractTvc(V2, "Events.tvc")
+
   protected val subscriptionAbiV2: Abi  = extractAbi(V2, "Subscription.abi.json")
+  protected val subscriptionTvcV2: String = extractTvc(V2, "Subscription.tvc")
 
-  protected val eventsTvcV2: String = extractEncodedString(V2, "Events.tvc")
-  protected val subscriptionTvcV2: String = extractEncodedString(V2, "Subscription.tvc")
-
+  protected val giverAbiV1: Abi  = extractAbi(V1, "Giver.abi.json")
   protected val giverAddress: String = "0:841288ed3b55d9cdafa806807f02a0ae0c169aa5edfe88a789a6482429756a94"
-
-  protected val config = ClientConfig(
-    NetworkConfig(host.some).some
-  )
 
   protected var ctx: Context = _
   protected var cryptoModule: CryptoModule = _
@@ -70,12 +45,20 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
   protected var utilsModule: UtilsModule = _
   protected var debotModule: DebotModule = _
 
-  implicit class FutureEitherWrapper[A](f: Future[Either[Throwable, A]]) {
-    def get: A = Await.result(f, 10.minutes).fold(t => throw t, r => r)
+  protected val config = ClientConfig(
+    NetworkConfig(host.some).some
+  )
+
+  protected def init(): Unit = {
+    ctx = Context(config)
   }
 
-  implicit class EitherWrapper[A](e: Either[Throwable, A]) {
-    def get: A = e.fold(t => throw t, r => r)
+  before {
+    init()
+  }
+
+  after {
+    ctx.destroy()
   }
 
   protected def signDetached(data: String , keys: KeyPair): String = (for {
@@ -83,35 +66,29 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
     r <- cryptoModule.naclSignDetached(data, signKeys.secret)
   } yield r).get.signature
 
-  protected def init(): Unit = {
-    ctx = Context(config)
-//    cryptoModule = new CryptoModule(ctx)
-//    abiModule = new AbiModule(ctx)
-//    processingModule = new ProcessingModule(ctx)
-//    netModule = new NetModule(ctx)
-//    bocModule = new BocModule(ctx)
-//    tvmModule = new TvmModule(ctx)
-//    clientModule = new ClientModule(ctx)
-//    debotModule = new DebotModule(ctx)
-  }
+
 
   protected def deployWithGiver(
                                a: Abi,
                                deploySet: DeploySet,
                                callSet: CallSet,
-                               signer: Signer
+                               signer: Signer,
+                               callback: Request = _ => ()
                              ): Future[Either[Throwable, String]] = {
     (for {
       encoded <- EitherT(abiModule.encodeMessage(a, None, deploySet.some, callSet.some, signer, None))
-      _ <- EitherT(Future.successful(println("Address: " + encoded.address).asRight))
       _ <- EitherT(getGramsFromGiver(encoded.address))
-      _ <- EitherT(processingModule.processMessage(
-        ParamsOfEncodeMessage(a, None, deploySet.some, callSet.some, signer, None), false, e => println(e)
-      ))
+      _ <- EitherT(
+        processingModule.processMessage(
+          ParamsOfEncodeMessage(a, None, deploySet.some, callSet.some, signer, None),
+          false,
+          callback
+        )
+      )
     } yield encoded.address).value
   }
 
-  protected def getGramsFromGiver(address: String): Future[Either[Throwable, ResultOfProcessMessage]] = {
+  protected def getGramsFromGiver(address: String, callback: Request = _ => ()): Future[Either[Throwable, ResultOfProcessMessage]] = {
     val inputMsg: Json = parse(s"""{
                                   |  "dest": "$address",
                                   |  "amount": 500000000
@@ -132,16 +109,7 @@ trait TestBase extends BeforeAndAfter { this: AnyFlatSpec =>
         None
       ),
       false,
-      e => println("Grams from Giver: \n" + e)
+      callback
     )
   }
-
-  before {
-    init()
-  }
-
-  after {
-    ctx.destroy()
-  }
-
 }

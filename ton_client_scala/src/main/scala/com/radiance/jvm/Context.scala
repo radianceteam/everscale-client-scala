@@ -93,7 +93,6 @@ class Context private(var contextId: Int)(implicit val ec: ExecutionContext) {
   private[jvm] def asyncHandler(code: Int, params: String, promise: Promise[String], finished: Boolean): Unit = {
     OperationCode.fromInt(code) match {
       case SuccessCode =>
-        println(SuccessCode)
         promise.tryComplete(Success(Option(params).getOrElse("")))
       case ErrorCode =>
         callbacksMap.remove(promise)
@@ -102,10 +101,13 @@ class Context private(var contextId: Int)(implicit val ec: ExecutionContext) {
         val message = cursor.downField("message").as[String].getOrElse("")
         promise.tryFailure(new IllegalStateException(s"Code: $code; Message: $message"))
       case NopCode =>
-
       case CustomCode =>
         Option(callbacksMap.get(promise))
           .foreach(callback => callback(parse(params).getOrElse(Json.fromString(s"Can't parse params in callback:\n$params"))))
+      case AppNotifyCode =>
+        // println(AppNotifyCode)
+      case AppRequestCode =>
+        // println(AppRequestCode)
     }
     if (finished) {
       callbacksMap.remove(promise)
@@ -138,28 +140,26 @@ class Context private(var contextId: Int)(implicit val ec: ExecutionContext) {
   }
 
   private[jvm] def execAsync[In <: Bind : Encoder](functionName: String, arg: In): Future[Either[Throwable, arg.Out]] =
-    callNativeAsync(functionName, arg.asJson.deepDropNullValues.noSpaces).map(r => parse(r).fold(
-      t => Left(t),
-      a => a.as[arg.Out](arg.decoder)
-    ))
+    callNativeAsync(functionName, arg.asJson.deepDropNullValues.noSpaces)
+      .map(r => parse(r).flatMap(_.as[arg.Out](arg.decoder)))
 
   private[jvm] def execAsyncVoid[In : Encoder](functionName: String, arg: In): Future[Either[Throwable, Unit]] =
-    callNativeAsync(functionName, arg.asJson.deepDropNullValues.noSpaces).map(_ => Right(()))
+    callNativeAsync(functionName, arg.asJson.deepDropNullValues.noSpaces)
+      .map(_ => Right(()))
       .recover(Left(_))
 
-
   private[jvm] def execAsyncParameterless[Out : Decoder](functionName: String): Future[Either[Throwable, Out]] =
-    callNativeAsync(functionName, "").map(r => parse(r).fold(t => Left(t), a => a.as[Out]))
+    callNativeAsync(functionName, "").map(r => parse(r).flatMap(_.as[Out]))
 
   private[jvm] def execAsyncWithCallback[In <: Bind : Encoder](functionName: String, arg: In, callback: Request): Future[Either[Throwable, arg.Out]] =
     callNativeAsyncWithCallback(functionName, arg.asJson.deepDropNullValues.noSpaces, callback)
-      .map(r => parse(r).fold(t => Left(t), a => a.as[arg.Out](arg.decoder)))
+      .map(r => parse(r).flatMap(_.as[arg.Out](arg.decoder)))
 
   private[jvm] def execSync[In <: Bind : Encoder](functionName: String, arg: In): Either[Throwable, arg.Out] = {
     implicit val d: Decoder[arg.Out] = arg.decoder
     Try { syncRequest(contextId, functionName, arg.asJson.deepDropNullValues.noSpaces) }.toEither
-      .flatMap(r => parse(r))
-      .flatMap(a => a.as[OperationResponse[arg.Out]])
+      .flatMap(parse)
+      .flatMap(_.as[OperationResponse[arg.Out]])
       .flatMap {
         case OperationResponse(Right(r)) => Right(r)
         case OperationResponse(Left(t)) => Left(new Exception(t.asJson.spaces2))
@@ -168,8 +168,8 @@ class Context private(var contextId: Int)(implicit val ec: ExecutionContext) {
 
   private[jvm] def execSyncParameterless[Out: Decoder](functionName: String): Either[Throwable, Out] =
     Try { syncRequest(contextId, functionName, "") }.toEither
-      .flatMap(r => parse(r))
-      .flatMap(a => a.as[OperationResponse[Out]])
+      .flatMap(parse)
+      .flatMap(_.as[OperationResponse[Out]])
       .flatMap {
         case OperationResponse(Right(r)) => Right(r)
         case OperationResponse(Left(t)) => Left(new Exception(t.asJson.spaces2))

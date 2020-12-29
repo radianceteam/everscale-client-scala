@@ -8,6 +8,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import com.radiance.jvm.abi._
 import com.radiance.jvm.boc.BocModule
 import com.radiance.jvm.crypto.CryptoModule
+import com.radiance.jvm.net.NetModule
 import com.radiance.jvm.tvm._
 import com.radiance.jvm.processing._
 
@@ -22,6 +23,7 @@ class TvmModuleTest extends AnyFlatSpec with TestBase {
     processingModule = new ProcessingModule(ctx)
     bocModule = new BocModule(ctx)
     tvmModule = new TvmModule(ctx)
+    netModule = new NetModule(ctx)
   }
 
   behavior.of("TvmModule")

@@ -4,6 +4,7 @@ import com.radiance.jvm.crypto.{CryptoModule, KeyPair}
 import org.scalatest.flatspec.AnyFlatSpec
 
 import cats.implicits._
+import Utils._
 
 class CryptoModuleTest extends AnyFlatSpec with TestBase {
 

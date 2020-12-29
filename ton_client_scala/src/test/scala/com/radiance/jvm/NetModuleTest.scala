@@ -11,7 +11,7 @@ import com.radiance.jvm.client._
 class NetModuleTest extends AnyFlatSpec with TestBase {
 
   override protected val config = ClientConfig(
-    NetworkConfig("net.ton.dev".some).some
+    NetworkConfig("https://net.ton.dev".some).some
   )
 
   override def init(): Unit = {
