@@ -2,7 +2,7 @@ package com.radiance.jvm
 
 import io.circe
 import io.circe.Encoder
-import io.circe.Json.{fromFields, fromString}
+import io.circe.Json._
 
 import java.util.Base64
 

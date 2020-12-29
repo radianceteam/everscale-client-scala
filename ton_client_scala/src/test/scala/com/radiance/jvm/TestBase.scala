@@ -12,7 +12,7 @@ import io.circe._
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 
-import io.circe.parser._
+import io.circe.Json._
 
 import scala.concurrent.{ExecutionContext, Future}
 import cats.implicits._
@@ -66,8 +66,6 @@ trait TestBase extends BeforeAndAfter with TestUtils { this: AnyFlatSpec =>
     r <- cryptoModule.naclSignDetached(data, signKeys.secret)
   } yield r).get.signature
 
-
-
   protected def deployWithGiver(
                                a: Abi,
                                deploySet: DeploySet,
@@ -89,12 +87,7 @@ trait TestBase extends BeforeAndAfter with TestUtils { this: AnyFlatSpec =>
   }
 
   protected def getGramsFromGiver(address: String, callback: Request = _ => ()): Future[Either[Throwable, ResultOfProcessMessage]] = {
-    val inputMsg: Json = parse(s"""{
-                                  |  "dest": "$address",
-                                  |  "amount": 500000000
-                                  |}""".stripMargin
-    ).getOrElse(throw new IllegalArgumentException("Not a Json"))
-
+    val inputMsg: Json = fromFields(Seq("dest" -> fromString(address), "amount" -> fromInt(500000000)))
     processingModule.processMessage(
       ParamsOfEncodeMessage(
         giverAbiV1,

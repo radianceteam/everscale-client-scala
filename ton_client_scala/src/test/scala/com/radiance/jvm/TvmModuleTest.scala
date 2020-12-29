@@ -1,6 +1,5 @@
 package com.radiance.jvm
 
-import io.circe.parser._
 import io.circe.Json._
 import cats.data.EitherT
 import cats.implicits._
@@ -126,8 +125,7 @@ class TvmModuleTest extends AnyFlatSpec with TestBase {
           CallSet(
             "constructor",
             None,
-            parse(s"""{"wallet":"$walletAddress"}""")
-              .getOrElse(throw new IllegalArgumentException("Not a Json")).some
+            fromFields(Seq("wallet" -> fromString(walletAddress))).some
           ),
           signer
         )
@@ -135,8 +133,7 @@ class TvmModuleTest extends AnyFlatSpec with TestBase {
 
       result <- EitherT(netModule.waitForCollection(
         "accounts",
-        parse(s"""{"id": {"eq":"$address"}}""")
-          .getOrElse(throw new IllegalArgumentException("Not a Json")).some,
+        fromFields(Seq("id" -> fromFields(Seq("eq" -> fromString(address))))).some,
         "id boc",
         None
       ))
@@ -150,14 +147,13 @@ class TvmModuleTest extends AnyFlatSpec with TestBase {
         CallSet(
           "subscribe",
           None,
-          parse(s"""{
-                          |  "subscriptionId": "$subscriptionId",
-                          |  "pubkey": "0x2222222222222222222222222222222222222222222222222222222222222222",
-                          |  "to": "0:3333333333333333333333333333333333333333333333333333333333333333",
-                          |  "value": "0x123",
-                          |  "period": "0x456"
-                          |}""".stripMargin)
-            .getOrElse(throw new IllegalArgumentException("Not a Json")).some
+          fromFields(Seq(
+            "subscriptionId" -> fromString(subscriptionId),
+            "pubkey" -> fromString("0x2222222222222222222222222222222222222222222222222222222222222222"),
+            "to" -> fromString("0:3333333333333333333333333333333333333333333333333333333333333333"),
+            "value" -> fromString("0x123"),
+            "period" -> fromString("0x456")
+          )).some
         ).some,
         signer,
         None
@@ -171,8 +167,7 @@ class TvmModuleTest extends AnyFlatSpec with TestBase {
         CallSet(
           "getSubscription",
           None,
-          parse(s"""{"subscriptionId":"$subscriptionId"}""")
-            .getOrElse(throw new IllegalArgumentException("Not a Json")).some
+          fromFields(Seq("subscriptionId" -> fromString(subscriptionId))).some
         ).some,
         signer,
         None

@@ -1,8 +1,8 @@
 package com.radiance.jvm
 
 import com.radiance.jvm.abi._
-import com.radiance.jvm.crypto.{CryptoModule, KeyPair}
-import io.circe.{Json, JsonObject}
+import com.radiance.jvm.crypto._
+import io.circe.Json._
 import org.scalatest.flatspec.AnyFlatSpec
 
 import cats.implicits._
@@ -34,7 +34,7 @@ class AbiModuleTest extends AnyFlatSpec with TestBase {
   private val runCallSet = CallSet(
     "returnValue",
     FunctionHeader(expire.some, time.some, None).some,
-    Json.fromJsonObject(JsonObject(("id", Json.fromString("0")))).some
+    fromFields(Seq("id" -> fromString("0"))).some
   )
 
   private val address = "0:05beb555e942fa744fd96f45a9ea9d0a8248208ca12421947c06e59bc997d309"

@@ -11,7 +11,7 @@ import com.radiance.jvm.client._
 class NetModuleTest extends AnyFlatSpec with TestBase {
 
   override protected val config = ClientConfig(
-    NetworkConfig("https://net.ton.dev".some).some
+    NetworkConfig("net.ton.dev".some).some
   )
 
   override def init(): Unit = {
@@ -21,7 +21,7 @@ class NetModuleTest extends AnyFlatSpec with TestBase {
 
   behavior.of("NetModule")
 
-  it should "execute simple query" in {
+  it should "execute simple query" ignore {
     val query = parse("""{"last_paid":{"in":[1601332024,1601331924]}}""").getOrElse(Json.Null)
     println(s"Query:\n${query.spaces2}")
     val res = netModule.waitForCollection(
@@ -34,7 +34,7 @@ class NetModuleTest extends AnyFlatSpec with TestBase {
     assert(res.result.hcursor.get[Long]("last_paid").get == 1601331924)
   }
 
-  it should "execute 2nd simple query" in {
+  it should "execute 2nd simple query" ignore {
     val query = parse("""{"last_paid":{"in":[1601332024,1601331924,1601332491,1601332679]}}""").getOrElse(Json.Null)
     println(s"Query:\n${query.spaces2}")
     val res = netModule.queryCollection(
