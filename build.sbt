@@ -10,7 +10,7 @@ lazy val pathToBridgeDll = SettingKey[File]("pathToBridgeDll")
 lazy val buildDependentLib = taskKey[Unit]("Build dependent libraries.")
 lazy val buildBridge = taskKey[Unit]("Build bridge library.")
 
-lazy val root = project in file(".")
+val root = project in file(".")
 
 lazy val ton_client_scala = project
   .settings(
@@ -35,7 +35,6 @@ lazy val ton_client_scala = project
     includeFilter in unmanagedResources in Compile := "*.dll" || "*.dll.a" || "*.dll.lib" || "*.so",
     includeFilter in unmanagedResources in Test := "*",
 
-    mainClass in assembly := Some("com.radiance.scala.tonclient.TonContextScala"),
     test in assembly := {}
   )
 
@@ -49,10 +48,22 @@ lazy val `TON-SDK` = project
     buildDependentLib := buildDllImpl.value
   )
 
+lazy val ton_generator = project
+  .settings(
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-core" % "0.14.0-M1",
+      "io.circe" %% "circe-derivation" % "0.13.0-M4",
+      "io.circe" %% "circe-parser" % "0.14.0-M1",
+      "org.typelevel" %% "cats-core" % "2.3.0-M2",
+      "com.github.javaparser" % "javaparser-core" % "3.18.0",
+      "com.eed3si9n" %% "treehugger" % "0.4.4",
+
+      "org.scalatest" %% "scalatest-flatspec" % "3.2.3" % Test,
+    )
+  )
 
 lazy val buildDllImpl = Def.task {
-
-  OperationSystem.operationSystem match {
+  OperationSystem.define match {
     case Windows =>
       Process("cmd /C chcp 65001")!
     case _ => ()
@@ -61,15 +72,16 @@ lazy val buildDllImpl = Def.task {
   Process(s"git submodule init", new File("TON-SDK")).!
   Process(s"git checkout $currentBranch", new File("TON-SDK")).!
   Process(s"git pull", new File("TON-SDK")).!
-  Process("node build", new File("TON-SDK/ton_client/client/")).!
+  Process("node build", new File("TON-SDK/ton_client")).!
 
 }
 
+// TODO copy tonclient.h
 lazy val buildBridgeImpl = Def.task {
   val pathToParent = baseDirectory.value.getAbsoluteFile
   val pathToBuildDir = baseDirectory.value.getAbsoluteFile / "build"
 
-  OperationSystem.operationSystem match {
+  OperationSystem.define match {
     case Windows =>
       Process("cmd /C chcp 65001").!
       val createDir = "cmd /C if not exist build mkdir build"
@@ -88,3 +100,6 @@ lazy val buildBridgeImpl = Def.task {
     case _ => ???
   }
 }
+
+
+
