@@ -51,11 +51,13 @@ object ParamsOfGetBocHash {
 
 case class ParamsOfGetCodeFromTvc(tvc: String) extends Bind {
   override type Out = ResultOfGetCodeFromTvc
-  override val decoder: Decoder[ResultOfGetCodeFromTvc] = implicitly[Decoder[ResultOfGetCodeFromTvc]]
+  override val decoder: Decoder[ResultOfGetCodeFromTvc] =
+    implicitly[Decoder[ResultOfGetCodeFromTvc]]
 }
 
 object ParamsOfGetCodeFromTvc {
-  implicit val encoder: Encoder[ParamsOfGetCodeFromTvc] = deriveEncoder[ParamsOfGetCodeFromTvc]
+  implicit val encoder: Encoder[ParamsOfGetCodeFromTvc] =
+    deriveEncoder[ParamsOfGetCodeFromTvc]
 }
 
 case class ParamsOfParse(boc: String) extends Bind {

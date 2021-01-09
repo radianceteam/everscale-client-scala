@@ -29,7 +29,6 @@ lazy val ton_client_scala = project
     pathToBridgeDll := baseDirectory.in(native).value.getAbsoluteFile / "build",
 
     Compile / unmanagedResourceDirectories ++= Seq(pathToBridgeDll.value, pathToExternalDll.value),
-    Runtime / unmanagedResourceDirectories += pathToBridgeDll.value,
     Test / unmanagedResourceDirectories += pathToBridgeDll.value,
 
     includeFilter in unmanagedResources in Compile := "*.dll" || "*.dll.a" || "*.dll.lib" || "*.so",
@@ -76,7 +75,7 @@ lazy val buildDllImpl = Def.task {
 
 }
 
-// TODO copy tonclient.h
+// TODO copy tonclient.h, add Cmake generator configuration
 lazy val buildBridgeImpl = Def.task {
   val pathToParent = baseDirectory.value.getAbsoluteFile
   val pathToBuildDir = baseDirectory.value.getAbsoluteFile / "build"
@@ -86,10 +85,12 @@ lazy val buildBridgeImpl = Def.task {
       Process("cmd /C chcp 65001").!
       val createDir = "cmd /C if not exist build mkdir build"
       Process(createDir, new File("native")).!
-      val cmakeLoadCommand = s""""$pathToCmakeWin" -DCMAKE_BUILD_TYPE=Release -G "CodeBlocks - MinGW Makefiles" $pathToParent"""
+      val cmakeLoadCommand = s""""$pathToCmakeWin" -DCMAKE_BUILD_TYPE=Release -G "CodeBlocks - NMake Makefiles" $pathToParent"""
       Process(cmakeLoadCommand, new File("native/build")).!
-      val cmakeCommand = s""""$pathToCmakeWin" --build $pathToBuildDir --target all -- -j 6"""
-      Process(cmakeCommand, new File("native")).!
+      val cmakeCleanCommand = s""""$pathToCmakeWin" --build $pathToBuildDir --target clean"""
+      Process(cmakeCleanCommand, new File("native")).!
+      val cmakeBuildCommand = s""""$pathToCmakeWin" --build $pathToBuildDir --target all"""
+      Process(cmakeBuildCommand, new File("native")).!
     case Linux =>
       Process("mkdir -p build", pathToParent)!
       val cmakeLoadCommand = s"""$pathToCmakeLinux -DCMAKE_BUILD_TYPE=Release $pathToParent -B$pathToBuildDir"""

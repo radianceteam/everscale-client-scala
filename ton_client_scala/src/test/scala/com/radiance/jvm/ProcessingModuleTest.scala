@@ -21,21 +21,26 @@ class ProcessingModuleTest extends AnyFlatSpec with TestBase {
   it should "wait for message" in {
     val keys = cryptoModule.generateRandomSignKeys.get
 
-    val encoded = abiModule.encodeMessage(
-      eventsAbiV2,
-      None,
-      DeploySet(eventsTvcV2).some,
-      CallSet(
-        "constructor",
-        FunctionHeader(None, None, keys.public.some).some
-      ).some,
-      Signer.Keys(keys),
-      None
-    ).get
+    val encoded = abiModule
+      .encodeMessage(
+        eventsAbiV2,
+        None,
+        DeploySet(eventsTvcV2).some,
+        CallSet(
+          "constructor",
+          FunctionHeader(None, None, keys.public.some).some
+        ).some,
+        Signer.Keys(keys),
+        None
+      )
+      .get
 
     println(s"Address: ${encoded.address}")
 
-    val f = getGramsFromGiver(encoded.address, e => println("Get grams from Giver: \n" + e)).get
+    val f = getGramsFromGiver(
+      encoded.address,
+      e => println("Get grams from Giver: \n" + e)
+    ).get
     println(f)
     assert(true)
   }

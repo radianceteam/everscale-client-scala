@@ -94,11 +94,11 @@ object ParamsOfRunTvm {
 }
 
 case class ResultOfRunExecutor(
-                                transaction: Value,
-                                out_messages: List[String],
-                                decoded: Option[com.radiance.jvm.processing.DecodedOutput],
-                                account: String,
-                                fees: TransactionFees
+    transaction: Value,
+    out_messages: List[String],
+    decoded: Option[com.radiance.jvm.processing.DecodedOutput],
+    account: String,
+    fees: TransactionFees
 )
 
 object ResultOfRunExecutor {

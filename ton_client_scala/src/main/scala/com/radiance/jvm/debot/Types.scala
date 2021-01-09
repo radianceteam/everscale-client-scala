@@ -94,9 +94,9 @@ object ParamsOfAppDebotBrowser {
       extends ParamsOfAppDebotBrowser
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
-   * Called by debot engine to communicate with debot browser.
-   */
+    * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
+    * Called by debot engine to communicate with debot browser.
+    */
   case object SwitchCompleted extends ParamsOfAppDebotBrowser
 
   // TODO add encoder
@@ -104,7 +104,8 @@ object ParamsOfAppDebotBrowser {
 
 case class ParamsOfStart(address: String) extends Bind {
   override type Out = RegisteredDebot
-  override val decoder: Decoder[RegisteredDebot] = implicitly[Decoder[RegisteredDebot]]
+  override val decoder: Decoder[RegisteredDebot] =
+    implicitly[Decoder[RegisteredDebot]]
 }
 
 object ParamsOfStart {
@@ -127,20 +128,23 @@ object ResultOfAppDebotBrowser {
 
   case class ParamsOfFetch(address: String) extends Bind {
     override type Out = RegisteredDebot
-    override val decoder: Decoder[RegisteredDebot] = implicitly[Decoder[RegisteredDebot]]
+    override val decoder: Decoder[RegisteredDebot] =
+      implicitly[Decoder[RegisteredDebot]]
   }
 
   object ParamsOfFetch {
     implicit val encoder: Encoder[ParamsOfFetch] = deriveEncoder[ParamsOfFetch]
   }
 
-  case class ParamsOfExecute(debot_handle: DebotHandle, action: DebotAction) extends Bind {
+  case class ParamsOfExecute(debot_handle: DebotHandle, action: DebotAction)
+      extends Bind {
     override type Out = Unit
     override val decoder: Decoder[Unit] = implicitly[Decoder[Unit]]
   }
 
   object ParamsOfExecute {
-    implicit val encoder: Encoder[ParamsOfExecute] = deriveEncoder[ParamsOfExecute]
+    implicit val encoder: Encoder[ParamsOfExecute] =
+      deriveEncoder[ParamsOfExecute]
   }
 
   // TODO add decoder

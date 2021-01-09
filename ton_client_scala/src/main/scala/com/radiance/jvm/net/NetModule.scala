@@ -9,7 +9,10 @@ class NetModule(private val ctx: Context) {
     * @param query
     * @param variables Must be a map with named values thatcan be used in query.
     */
-  def query(query: String, variables: Option[Value]): Future[Either[Throwable, ResultOfQuery]] = {
+  def query(
+      query: String,
+      variables: Option[Value]
+  ): Future[Either[Throwable, ResultOfQuery]] = {
     val arg = ParamsOfQuery(query, variables)
     ctx.execAsync("net.query", arg)
   }
@@ -100,8 +103,8 @@ class NetModule(private val ctx: Context) {
   }
 
   /** Sets the list of endpoints to use on reinit
-   * @param endpoints
-   * */
+    * @param endpoints
+    * */
   def setEndpoints(endpoints: List[String]): Future[Either[Throwable, Unit]] = {
     val arg = EndpointsSet(endpoints)
     ctx.execAsyncVoid("net.set_endpoints", arg)
@@ -113,9 +116,11 @@ class NetModule(private val ctx: Context) {
   }
 
   /** Returns ID of the last block in a specified account shard
-   * @param address
-   * */
-  def findLastShardBlock(address: String): Future[Either[Throwable, ResultOfFindLastShardBlock]] = {
+    * @param address
+    * */
+  def findLastShardBlock(
+      address: String
+  ): Future[Either[Throwable, ResultOfFindLastShardBlock]] = {
     val arg = ParamsOfFindLastShardBlock(address)
     ctx.execAsync("net.find_last_shard_block", arg)
   }

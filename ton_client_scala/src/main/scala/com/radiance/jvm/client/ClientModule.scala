@@ -10,7 +10,9 @@ class ClientModule(private val ctx: Context) {
 
   /**  Returns Core Library API reference */
   def getApiReference: Either[Throwable, ResultOfGetApiReference] =
-    ctx.execSyncParameterless[ResultOfGetApiReference]("client.get_api_reference")
+    ctx.execSyncParameterless[ResultOfGetApiReference](
+      "client.get_api_reference"
+    )
 
   /**
     * @param app_request_id

@@ -28,11 +28,12 @@ trait TestBase extends BeforeAndAfter with TestUtils { this: AnyFlatSpec =>
   protected val eventsAbiV2: Abi = extractAbi(V2, "Events.abi.json")
   protected val eventsTvcV2: String = extractTvc(V2, "Events.tvc")
 
-  protected val subscriptionAbiV2: Abi  = extractAbi(V2, "Subscription.abi.json")
+  protected val subscriptionAbiV2: Abi = extractAbi(V2, "Subscription.abi.json")
   protected val subscriptionTvcV2: String = extractTvc(V2, "Subscription.tvc")
 
-  protected val giverAbiV1: Abi  = extractAbi(V1, "Giver.abi.json")
-  protected val giverAddress: String = "0:841288ed3b55d9cdafa806807f02a0ae0c169aa5edfe88a789a6482429756a94"
+  protected val giverAbiV1: Abi = extractAbi(V1, "Giver.abi.json")
+  protected val giverAddress: String =
+    "0:841288ed3b55d9cdafa806807f02a0ae0c169aa5edfe88a789a6482429756a94"
 
   protected var ctx: Context = _
   protected var cryptoModule: CryptoModule = _
@@ -61,24 +62,35 @@ trait TestBase extends BeforeAndAfter with TestUtils { this: AnyFlatSpec =>
     ctx.destroy()
   }
 
-  protected def signDetached(data: String , keys: KeyPair): String = (for {
-    signKeys <- cryptoModule.naclSignKeypairFromSecretKey(keys.secret)
-    r <- cryptoModule.naclSignDetached(data, signKeys.secret)
-  } yield r).get.signature
+  protected def signDetached(data: String, keys: KeyPair): String =
+    (for {
+      signKeys <- cryptoModule.naclSignKeypairFromSecretKey(keys.secret)
+      r <- cryptoModule.naclSignDetached(data, signKeys.secret)
+    } yield r).get.signature
 
   protected def deployWithGiver(
-                               a: Abi,
-                               deploySet: DeploySet,
-                               callSet: CallSet,
-                               signer: Signer,
-                               callback: Request = _ => ()
-                             ): Future[Either[Throwable, String]] = {
+      a: Abi,
+      deploySet: DeploySet,
+      callSet: CallSet,
+      signer: Signer,
+      callback: Request = _ => ()
+  ): Future[Either[Throwable, String]] = {
     (for {
-      encoded <- EitherT(abiModule.encodeMessage(a, None, deploySet.some, callSet.some, signer, None))
+      encoded <- EitherT(
+        abiModule
+          .encodeMessage(a, None, deploySet.some, callSet.some, signer, None)
+      )
       _ <- EitherT(getGramsFromGiver(encoded.address))
       _ <- EitherT(
         processingModule.processMessage(
-          ParamsOfEncodeMessage(a, None, deploySet.some, callSet.some, signer, None),
+          ParamsOfEncodeMessage(
+            a,
+            None,
+            deploySet.some,
+            callSet.some,
+            signer,
+            None
+          ),
           false,
           callback
         )
@@ -86,8 +98,13 @@ trait TestBase extends BeforeAndAfter with TestUtils { this: AnyFlatSpec =>
     } yield encoded.address).value
   }
 
-  protected def getGramsFromGiver(address: String, callback: Request = _ => ()): Future[Either[Throwable, ResultOfProcessMessage]] = {
-    val inputMsg: Json = fromFields(Seq("dest" -> fromString(address), "amount" -> fromInt(500000000)))
+  protected def getGramsFromGiver(
+      address: String,
+      callback: Request = _ => ()
+  ): Future[Either[Throwable, ResultOfProcessMessage]] = {
+    val inputMsg: Json = fromFields(
+      Seq("dest" -> fromString(address), "amount" -> fromInt(500000000))
+    )
     processingModule.processMessage(
       ParamsOfEncodeMessage(
         giverAbiV1,

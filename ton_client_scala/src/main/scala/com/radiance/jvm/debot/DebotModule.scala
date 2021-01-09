@@ -14,7 +14,10 @@ class DebotModule(private val ctx: Context) {
     * Chain of actions can be executed if input action generates a list of subactions.@param debot_handle
     * @param action
     */
-  def execute(debot_handle: DebotHandle, action: DebotAction): Future[Either[Throwable, Unit]] = {
+  def execute(
+      debot_handle: DebotHandle,
+      action: DebotAction
+  ): Future[Either[Throwable, Unit]] = {
     val arg = ResultOfAppDebotBrowser.ParamsOfExecute(debot_handle, action)
     ??? // ctx.execAsync("debot.execute", arg)
   }

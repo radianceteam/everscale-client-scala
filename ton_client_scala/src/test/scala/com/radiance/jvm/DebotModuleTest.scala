@@ -41,11 +41,17 @@ class DebotModuleTest extends AnyFlatSpec with TestBase {
       CallSet(
         "constructor",
         None,
-        parse(s"""{
-          |"debotAbi": "${hexEncode(debotAbi.asJson.noSpaces.getBytes(Charset.forName("UTF-8")))}",
-          |"targetAbi": "${hexEncode(targetAbi.asJson.noSpaces.getBytes(Charset.forName("UTF-8")))}",
+        parse(
+          s"""{
+          |"debotAbi": "${hexEncode(
+            debotAbi.asJson.noSpaces.getBytes(Charset.forName("UTF-8"))
+          )}",
+          |"targetAbi": "${hexEncode(
+            targetAbi.asJson.noSpaces.getBytes(Charset.forName("UTF-8"))
+          )}",
           |"targetAddr": "$targetAddr"
-        }""".stripMargin).getOrElse(throw new IllegalArgumentException("Not a json")).some
+        }""".stripMargin
+        ).getOrElse(throw new IllegalArgumentException("Not a json")).some
       ),
       Signer.Keys(keys)
     ).get
@@ -57,7 +63,7 @@ class DebotModuleTest extends AnyFlatSpec with TestBase {
 
   it should "be executed correctly" ignore {
     val (debotAddr, targetAddr, keys) = initDebot
-    val res = debotModule.start(debotAddr, null).get
+    val res = debotModule.start(targetAddr, null).get
     println(res)
 
     assert(true)

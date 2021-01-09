@@ -1,6 +1,5 @@
 package com.radiance.jvm.boc
 
-
 import com.radiance.jvm.Context
 
 import scala.concurrent.Future
@@ -27,7 +26,9 @@ class BocModule(private val ctx: Context) {
   }
 
   /** Extracts code from TVC contract image@param tvc  */
-  def getCodeFromTvc(tvc: String): Future[Either[Throwable, ResultOfGetCodeFromTvc]] = {
+  def getCodeFromTvc(
+      tvc: String
+  ): Future[Either[Throwable, ResultOfGetCodeFromTvc]] = {
     val arg = ParamsOfGetCodeFromTvc(tvc)
     ctx.execAsync("boc.get_code_from_tvc", arg)
   }

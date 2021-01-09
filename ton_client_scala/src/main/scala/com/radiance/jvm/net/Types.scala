@@ -74,7 +74,8 @@ object OrderBy {
 
 case class ParamsOfFindLastShardBlock(address: String) extends Bind {
   override type Out = ResultOfFindLastShardBlock
-  override val decoder: Decoder[ResultOfFindLastShardBlock] = implicitly[Decoder[ResultOfFindLastShardBlock]]
+  override val decoder: Decoder[ResultOfFindLastShardBlock] =
+    implicitly[Decoder[ResultOfFindLastShardBlock]]
 }
 
 object ParamsOfFindLastShardBlock {
@@ -84,7 +85,8 @@ object ParamsOfFindLastShardBlock {
 
 case class ParamsOfQuery(query: String, variables: Option[Value]) extends Bind {
   override type Out = ResultOfQuery
-  override val decoder: Decoder[ResultOfQuery] = implicitly[Decoder[ResultOfQuery]]
+  override val decoder: Decoder[ResultOfQuery] =
+    implicitly[Decoder[ResultOfQuery]]
 }
 
 object ParamsOfQuery {
@@ -196,7 +198,3 @@ object SortDirection {
     case DESC => fromString("DESC")
   }
 }
-
-
-
-

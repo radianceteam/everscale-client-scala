@@ -91,7 +91,8 @@ object CryptoErrorCode {
 
 case class KeyPair(public: String, secret: String) extends Bind {
   override type Out = RegisteredSigningBox
-  override val decoder: Decoder[RegisteredSigningBox] = implicitly[Decoder[RegisteredSigningBox]]
+  override val decoder: Decoder[RegisteredSigningBox] =
+    implicitly[Decoder[RegisteredSigningBox]]
 }
 
 object KeyPair {
@@ -118,7 +119,7 @@ object ParamsOfAppSigningBox {
 
   implicit val encoder: Encoder[ParamsOfAppSigningBox] = {
     case GetPublicKey => fromFields(Seq("type" -> fromString("GetPublicKey")))
-    case a: Sign => a.asJson.deepMerge(generateType(a))
+    case a: Sign      => a.asJson.deepMerge(generateType(a))
   }
 }
 
@@ -529,7 +530,8 @@ case class RegisteredSigningBox(handle: SigningBoxHandle) extends Bind {
 }
 
 object RegisteredSigningBox {
-  implicit val codec: Codec[RegisteredSigningBox] = deriveCodec[RegisteredSigningBox]
+  implicit val codec: Codec[RegisteredSigningBox] =
+    deriveCodec[RegisteredSigningBox]
 }
 
 // TODO were added
@@ -540,7 +542,8 @@ case class RegisteredSigningBox1(handle: SigningBoxHandle) extends Bind {
 }
 
 object RegisteredSigningBox1 {
-  implicit val encoder: Encoder[RegisteredSigningBox1] = deriveEncoder[RegisteredSigningBox1]
+  implicit val encoder: Encoder[RegisteredSigningBox1] =
+    deriveEncoder[RegisteredSigningBox1]
 }
 
 // TODO Not used

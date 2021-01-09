@@ -55,7 +55,10 @@ class CryptoModule(private val ctx: Context) {
     * @param public
     * @param secret
     */
-  def getSigningBox(public: String, secret: String): Either[Throwable, RegisteredSigningBox] = {
+  def getSigningBox(
+      public: String,
+      secret: String
+  ): Either[Throwable, RegisteredSigningBox] = {
     val arg = KeyPair(public, secret)
     ctx.execSync("crypto.get_signing_box", arg)
   }

@@ -14,14 +14,20 @@ import scala.concurrent.duration._
 
 trait TestUtils {
 
-  implicit val abiContractDecoder: Decoder[AbiContract] = deriveDecoder[AbiContract]
+  implicit val abiContractDecoder: Decoder[AbiContract] =
+    deriveDecoder[AbiContract]
 
-  protected def extractAbi(version: Version, path: String) = parse(Source.fromResource(s"${version.name}/$path").mkString)
-    .flatMap(_.as[AbiContract].map(u => Abi.Serialized(u))).fold(t => throw t, r => r)
+  protected def extractAbi(version: Version, path: String) =
+    parse(Source.fromResource(s"${version.name}/$path").mkString)
+      .flatMap(_.as[AbiContract].map(u => Abi.Serialized(u)))
+      .fold(t => throw t, r => r)
 
-  protected def extractTvc(version: Version, path: String): String = encode(
-    Files.readAllBytes(Paths.get(getClass.getResource(s"/${version.name}/$path").toURI))
-  )
+  protected def extractTvc(version: Version, path: String): String =
+    encode(
+      Files.readAllBytes(
+        Paths.get(getClass.getResource(s"/${version.name}/$path").toURI)
+      )
+    )
 
   implicit class FutureEitherWrapper[A](f: Future[Either[Throwable, A]]) {
     def get: A = Await.result(f, 10.minutes).fold(t => throw t, r => r)

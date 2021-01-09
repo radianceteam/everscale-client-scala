@@ -35,10 +35,11 @@ object Modules {
     val utilsModule = new UtilsModule(ctx)
 
     // Convert address to hex format
-    val result: Either[Throwable, ResultOfConvertAddress] = utilsModule.convertAddress(
-      "ee65d170830136253ad8bd2116a28fcbd4ac462c6f222f49a1505d2fa7f7f528",
-      AddressStringFormat.Hex
-    )
+    val result: Either[Throwable, ResultOfConvertAddress] =
+      utilsModule.convertAddress(
+        "ee65d170830136253ad8bd2116a28fcbd4ac462c6f222f49a1505d2fa7f7f528",
+        AddressStringFormat.Hex
+      )
   }
 
   object NetModuleSample1 {
@@ -60,14 +61,14 @@ object Modules {
                         |      1601331924
                         |    ]
                         |  }
-                        |}""".stripMargin
-    ).getOrElse(Json.Null)
-    val res: Future[Either[Throwable, ResultOfWaitForCollection]] = netModule.waitForCollection(
-      "accounts",
-      query.some,
-      "id,last_paid",
-      60000L.some
-    )
+                        |}""".stripMargin).getOrElse(Json.Null)
+    val res: Future[Either[Throwable, ResultOfWaitForCollection]] =
+      netModule.waitForCollection(
+        "accounts",
+        query.some,
+        "id,last_paid",
+        60000L.some
+      )
   }
 
   object NetModuleSample2 {
@@ -89,15 +90,15 @@ object Modules {
                               |      1601332679
                               |    ]
                               |  }
-                              |}""".stripMargin
-    ).getOrElse(Json.Null)
-    val res: Future[Either[Throwable, ResultOfQueryCollection]] = netModule.queryCollection(
-      "accounts",
-      query.some,
-      "acc_type,acc_type_name,balance,boc,id,last_paid,workchain_id",
-      List(OrderBy("last_paid", SortDirection.ASC)).some,
-      2L.some
-    )
+                              |}""".stripMargin).getOrElse(Json.Null)
+    val res: Future[Either[Throwable, ResultOfQueryCollection]] =
+      netModule.queryCollection(
+        "accounts",
+        query.some,
+        "acc_type,acc_type_name,balance,boc,id,last_paid,workchain_id",
+        List(OrderBy("last_paid", SortDirection.ASC)).some,
+        2L.some
+      )
   }
 
   object NetModuleSample3 {
@@ -115,15 +116,15 @@ object Modules {
                               |  "balance_delta": {
                               |    "gt": "0x5f5e100"
                               |  }
-                              |}""".stripMargin
-    ).getOrElse(Json.Null)
+                              |}""".stripMargin).getOrElse(Json.Null)
 
-    val res: Future[Either[Throwable, ResultOfSubscribeCollection]] = netModule.subscribeCollection(
-      "transactions",
-      query.some,
-      "id,block_id,balance_delta",
-      callback
-    )
+    val res: Future[Either[Throwable, ResultOfSubscribeCollection]] =
+      netModule.subscribeCollection(
+        "transactions",
+        query.some,
+        "id,block_id,balance_delta",
+        callback
+      )
   }
 
   object BocModulesSamples {
