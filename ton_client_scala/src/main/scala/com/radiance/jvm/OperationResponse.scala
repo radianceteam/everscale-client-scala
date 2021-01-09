@@ -6,8 +6,7 @@ import io.circe.{Decoder, DecodingFailure, HCursor}
 case class OperationResponse[T: Decoder](value: Either[ClientError, T])
 
 object OperationResponse {
-  implicit def OperationResponseDecoder[T: Decoder]
-      : Decoder[OperationResponse[T]] =
+  implicit def OperationResponseDecoder[T: Decoder]: Decoder[OperationResponse[T]] =
     (c: HCursor) => {
       c.downField("result")
         .success

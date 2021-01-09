@@ -38,8 +38,8 @@ object ContractDeploy {
 
   // Get grams for deploy
   def getGrams(
-      address: String,
-      callback: Request = _ => ()
+    address: String,
+    callback: Request = _ => ()
   ): Future[Either[Throwable, ResultOfProcessMessage]] = {
     val inputMsg: Json = fromFields(
       Seq("dest" -> fromString(address), "amount" -> fromInt(500000000))
@@ -59,32 +59,32 @@ object ContractDeploy {
   }
 
   def deployContract(
-      a: Abi,
-      deploySet: DeploySet,
-      callSet: CallSet,
-      signer: Signer,
-      callback: Request = _ => ()
+    a: Abi,
+    deploySet: DeploySet,
+    callSet: CallSet,
+    signer: Signer,
+    callback: Request = _ => ()
   ): Future[Either[Throwable, String]] = {
     (for {
       encoded <- EitherT(
-        abiModule
-          .encodeMessage(a, None, deploySet.some, callSet.some, signer, None)
-      )
+                   abiModule
+                     .encodeMessage(a, None, deploySet.some, callSet.some, signer, None)
+                 )
       _ <- EitherT(getGrams(encoded.address))
       _ <- EitherT(
-        processingModule.processMessage(
-          ParamsOfEncodeMessage(
-            a,
-            None,
-            deploySet.some,
-            callSet.some,
-            signer,
-            None
-          ),
-          send_events = true,
-          callback
-        )
-      )
+             processingModule.processMessage(
+               ParamsOfEncodeMessage(
+                 a,
+                 None,
+                 deploySet.some,
+                 callSet.some,
+                 signer,
+                 None
+               ),
+               send_events = true,
+               callback
+             )
+           )
     } yield encoded.address).value
   }
 

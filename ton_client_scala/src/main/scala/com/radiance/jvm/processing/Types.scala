@@ -6,8 +6,8 @@ import io.circe._
 import io.circe.derivation._
 
 case class DecodedOutput(
-    out_messages: List[Option[DecodedMessageBody]],
-    output: Option[Value]
+  out_messages: List[Option[DecodedMessageBody]],
+  output: Option[Value]
 )
 
 object DecodedOutput {
@@ -15,8 +15,8 @@ object DecodedOutput {
 }
 
 case class ParamsOfProcessMessage(
-    message_encode_params: ParamsOfEncodeMessage,
-    send_events: Boolean
+  message_encode_params: ParamsOfEncodeMessage,
+  send_events: Boolean
 ) extends Bind {
   override type Out = ResultOfProcessMessage
   override val decoder: Decoder[ResultOfProcessMessage] =
@@ -29,9 +29,9 @@ object ParamsOfProcessMessage {
 }
 
 case class ParamsOfSendMessage(
-    message: String,
-    abi: Option[Abi],
-    send_events: Boolean
+  message: String,
+  abi: Option[Abi],
+  send_events: Boolean
 ) extends Bind {
   override type Out = ResultOfSendMessage
   override val decoder: Decoder[ResultOfSendMessage] =
@@ -44,10 +44,10 @@ object ParamsOfSendMessage {
 }
 
 case class ParamsOfWaitForTransaction(
-    abi: Option[Abi],
-    message: String,
-    shard_block_id: String,
-    send_events: Boolean
+  abi: Option[Abi],
+  message: String,
+  shard_block_id: String,
+  send_events: Boolean
 ) extends Bind {
   override type Out = ResultOfProcessMessage
   override val decoder: Decoder[ResultOfProcessMessage] =
@@ -119,10 +119,10 @@ object ProcessingErrorCode {
 }
 
 case class ResultOfProcessMessage(
-    transaction: Value,
-    out_messages: List[String],
-    decoded: Option[DecodedOutput],
-    fees: com.radiance.jvm.tvm.TransactionFees
+  transaction: Value,
+  out_messages: List[String],
+  decoded: Option[DecodedOutput],
+  fees: com.radiance.jvm.tvm.TransactionFees
 )
 
 object ResultOfProcessMessage {

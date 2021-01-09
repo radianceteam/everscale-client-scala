@@ -21,30 +21,30 @@ object Context {
 
   def define: OperationSystem =
     System.getProperty("os.name").toLowerCase match {
-      case x if x.contains("win") => Windows
-      case x if x.contains("nix") || x.contains("nux") || x.contains("aix") =>
-        Linux
-      case x if x.contains("mac") => MacOs
+      case x if x.contains("win")                                           => Windows
+      case x if x.contains("nix") || x.contains("nux") || x.contains("aix") => Linux
+      case x if x.contains("mac")                                           => MacOs
     }
 
   private def trimExtension(name: String): String = name.split("\\.").head
 
   private def init(): Unit = {
     val libName: String = (define match {
-      case Windows =>
+      case Windows     =>
         List(
           "libton_client_scala_bridge.dll", //mingw64
           "cygton_client_scala_bridge.dll", //cygwin
           "ton_client_scala_bridge.dll" // win
         )
-      case Linux =>
+      case Linux       =>
         List(
           "libton_client_scala_bridge.so" // linux
         )
-      case MacOs => List()
+      case MacOs       => List()
       case UndefinedOs =>
         throw new IllegalStateException("Can't define current operation system")
-    }).find(n => getClass.getResource(s"/$n") != null)
+    })
+      .find(n => getClass.getResource(s"/$n") != null)
       .getOrElse(
         throw new IllegalStateException("Can't find compiled bridge library")
       )
@@ -69,7 +69,9 @@ object Context {
     Files.write(tempDir.resolve(fileName), byteArr)
   }
 
-  def apply(config: ClientConfig)(implicit ec: ExecutionContext): Context = {
+  def apply(config: ClientConfig)(implicit
+    ec: ExecutionContext
+  ): Context = {
     val ctx = new Context(-1)
     val create = ctx.createContext(config.asJson.deepDropNullValues.noSpaces)
     parse(create).toTry.fold(
@@ -90,7 +92,9 @@ object Context {
   init()
 }
 
-class Context private (var contextId: Int)(implicit val ec: ExecutionContext) {
+class Context private (var contextId: Int)(implicit
+  val ec: ExecutionContext
+) {
 
   private val callbacksMap: ConcurrentHashMap[Promise[String], Request] =
     new ConcurrentHashMap[Promise[String], Request]()
@@ -100,28 +104,28 @@ class Context private (var contextId: Int)(implicit val ec: ExecutionContext) {
   @native private[jvm] def destroyContext(context: Int): Unit
 
   @native private[jvm] def asyncRequest(
-      context: Int,
-      functionName: String,
-      params: String,
-      promise: Promise[String]
+    context: Int,
+    functionName: String,
+    params: String,
+    promise: Promise[String]
   ): Unit
 
   @native private[jvm] def syncRequest(
-      context: Int,
-      functionName: String,
-      params: String
+    context: Int,
+    functionName: String,
+    params: String
   ): String
 
   private[jvm] def asyncHandler(
-      code: Int,
-      params: String,
-      promise: Promise[String],
-      finished: Boolean
+    code: Int,
+    params: String,
+    promise: Promise[String],
+    finished: Boolean
   ): Unit = {
     OperationCode.fromInt(code) match {
-      case SuccessCode =>
+      case SuccessCode   =>
         promise.tryComplete(Success(Option(params).getOrElse("")))
-      case ErrorCode =>
+      case ErrorCode     =>
         callbacksMap.remove(promise)
         val cursor = parse(params).getOrElse(Json.Null).hcursor
         val code: Int = cursor.downField("code").as[Int].getOrElse(-1)
@@ -129,20 +133,20 @@ class Context private (var contextId: Int)(implicit val ec: ExecutionContext) {
         promise.tryFailure(
           new IllegalStateException(s"Code: $code; Message: $message")
         )
-      case NopCode =>
-      case CustomCode =>
+      case NopCode       =>
+      case CustomCode    =>
         Option(callbacksMap.get(promise))
-          .foreach(callback =>
-            callback(
-              parse(params).getOrElse(
-                Json.fromString(s"Can't parse params in callback:\n$params")
+          .foreach(
+            callback =>
+              callback(
+                parse(params).getOrElse(
+                  Json.fromString(s"Can't parse params in callback:\n$params")
+                )
               )
-            )
           )
-      case AppNotifyCode =>
-      // println(AppNotifyCode)
-      case AppRequestCode =>
-      // println(AppRequestCode)
+      case AppNotifyCode => ???
+
+      case AppRequestCode => ???
     }
     if (finished) {
       callbacksMap.remove(promise)
@@ -162,8 +166,8 @@ class Context private (var contextId: Int)(implicit val ec: ExecutionContext) {
   }
 
   private def callNativeAsync(
-      functionName: String,
-      params: String
+    functionName: String,
+    params: String
   ): Future[String] = {
     val promise: Promise[String] = Promise[String]()
     asyncRequest(contextId, functionName, params, promise)
@@ -171,9 +175,9 @@ class Context private (var contextId: Int)(implicit val ec: ExecutionContext) {
   }
 
   private def callNativeAsyncWithCallback(
-      functionName: String,
-      params: String,
-      callback: Request
+    functionName: String,
+    params: String,
+    callback: Request
   ): Future[String] = {
     val promise: Promise[String] = Promise[String]()
     callbacksMap.put(promise, callback)
@@ -182,29 +186,29 @@ class Context private (var contextId: Int)(implicit val ec: ExecutionContext) {
   }
 
   private[jvm] def execAsync[In <: Bind: Encoder](
-      functionName: String,
-      arg: In
+    functionName: String,
+    arg: In
   ): Future[Either[Throwable, arg.Out]] =
     callNativeAsync(functionName, arg.asJson.deepDropNullValues.noSpaces)
       .map(r => parse(r).flatMap(_.as[arg.Out](arg.decoder)))
 
   private[jvm] def execAsyncVoid[In: Encoder](
-      functionName: String,
-      arg: In
+    functionName: String,
+    arg: In
   ): Future[Either[Throwable, Unit]] =
     callNativeAsync(functionName, arg.asJson.deepDropNullValues.noSpaces)
       .map(_ => Right(()))
       .recover(Left(_))
 
   private[jvm] def execAsyncParameterless[Out: Decoder](
-      functionName: String
+    functionName: String
   ): Future[Either[Throwable, Out]] =
     callNativeAsync(functionName, "").map(r => parse(r).flatMap(_.as[Out]))
 
   private[jvm] def execAsyncWithCallback[In <: Bind: Encoder](
-      functionName: String,
-      arg: In,
-      callback: Request
+    functionName: String,
+    arg: In,
+    callback: Request
   ): Future[Either[Throwable, arg.Out]] =
     callNativeAsyncWithCallback(
       functionName,
@@ -213,8 +217,8 @@ class Context private (var contextId: Int)(implicit val ec: ExecutionContext) {
     ).map(r => parse(r).flatMap(_.as[arg.Out](arg.decoder)))
 
   private[jvm] def execSync[In <: Bind: Encoder](
-      functionName: String,
-      arg: In
+    functionName: String,
+    arg: In
   ): Either[Throwable, arg.Out] = {
     implicit val d: Decoder[arg.Out] = arg.decoder
     Try {
@@ -233,7 +237,7 @@ class Context private (var contextId: Int)(implicit val ec: ExecutionContext) {
   }
 
   private[jvm] def execSyncParameterless[Out: Decoder](
-      functionName: String
+    functionName: String
   ): Either[Throwable, Out] =
     Try { syncRequest(contextId, functionName, "") }.toEither
       .flatMap(parse)

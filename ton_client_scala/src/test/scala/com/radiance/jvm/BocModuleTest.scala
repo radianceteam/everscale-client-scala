@@ -50,8 +50,8 @@ class BocModuleTest extends AnyFlatSpec with TestBase {
       cursor
         .get[String]("id")
         .get == "048f59d5d652459939ea5c5e7b291155205696b71e0c556f641df69e70e1e725" &&
-        cursor.get[Int]("seq_no").get == 4296363 &&
-        cursor.get[Int]("gen_utime").get == 1600234696
+      cursor.get[Int]("seq_no").get == 4296363 &&
+      cursor.get[Int]("gen_utime").get == 1600234696
     )
   }
 
@@ -67,8 +67,8 @@ class BocModuleTest extends AnyFlatSpec with TestBase {
       cursor
         .get[String]("id")
         .get == "0:2bb4a0e8391e7ea8877f4825064924bd41ce110fce97e939d3323999e1efbb13" &&
-        cursor.get[String]("last_trans_lt").get == "0x20eadff7e03" &&
-        cursor.get[String]("balance").get == "0x958a26eb8e7a18d"
+      cursor.get[String]("last_trans_lt").get == "0x20eadff7e03" &&
+      cursor.get[String]("balance").get == "0x958a26eb8e7a18d"
     )
   }
 
@@ -83,8 +83,8 @@ class BocModuleTest extends AnyFlatSpec with TestBase {
       cursor
         .get[String]("id")
         .get == "d6315dbb2a741a2765da250bea4a186adf942469369c703c57c2050e2d6e9fe3" &&
-        cursor.get[String]("lt").get == "0x20eb89b8e81" &&
-        cursor.get[Int]("now").get == 1600186476
+      cursor.get[String]("lt").get == "0x20eb89b8e81" &&
+      cursor.get[Int]("now").get == 1600186476
     )
   }
 
@@ -101,12 +101,12 @@ class BocModuleTest extends AnyFlatSpec with TestBase {
       cursor
         .get[String]("id")
         .get == "dfd47194f3058ee058bfbfad3ea40cbbd9ad17ca77cd0904d4d9f18a48c2fbca" &&
-        cursor
-          .get[String]("src")
-          .get == "-1:0000000000000000000000000000000000000000000000000000000000000000" &&
-        cursor
-          .get[String]("dst")
-          .get == "-1:3333333333333333333333333333333333333333333333333333333333333333"
+      cursor
+        .get[String]("src")
+        .get == "-1:0000000000000000000000000000000000000000000000000000000000000000" &&
+      cursor
+        .get[String]("dst")
+        .get == "-1:3333333333333333333333333333333333333333333333333333333333333333"
     )
   }
 
@@ -121,8 +121,8 @@ class BocModuleTest extends AnyFlatSpec with TestBase {
     val cursor = res.parsed.hcursor
     assert(
       cursor.get[String]("id").get == "zerostate:-1" &&
-        cursor.get[Int]("workchain_id").get == -1 &&
-        cursor.get[Int]("seq_no").get == 0
+      cursor.get[Int]("workchain_id").get == -1 &&
+      cursor.get[Int]("seq_no").get == 0
     )
   }
 

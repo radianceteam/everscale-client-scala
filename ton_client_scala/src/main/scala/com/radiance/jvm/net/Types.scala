@@ -94,11 +94,11 @@ object ParamsOfQuery {
 }
 
 case class ParamsOfQueryCollection(
-    collection: String,
-    filter: Option[Value],
-    result: String,
-    order: Option[List[OrderBy]],
-    limit: Option[Long]
+  collection: String,
+  filter: Option[Value],
+  result: String,
+  order: Option[List[OrderBy]],
+  limit: Option[Long]
 ) extends Bind {
   override type Out = ResultOfQueryCollection
   override val decoder: Decoder[ResultOfQueryCollection] =
@@ -111,9 +111,9 @@ object ParamsOfQueryCollection {
 }
 
 case class ParamsOfSubscribeCollection(
-    collection: String,
-    filter: Option[Value],
-    result: String
+  collection: String,
+  filter: Option[Value],
+  result: String
 ) extends Bind {
   override type Out = ResultOfSubscribeCollection
   override val decoder: Decoder[ResultOfSubscribeCollection] =
@@ -137,10 +137,10 @@ object ParamsOfUnsubscribeCollection {
 }
 
 case class ParamsOfWaitForCollection(
-    collection: String,
-    filter: Option[Value],
-    result: String,
-    timeout: Option[Long]
+  collection: String,
+  filter: Option[Value],
+  result: String,
+  timeout: Option[Long]
 ) extends Bind {
   override type Out = ResultOfWaitForCollection
   override val decoder: Decoder[ResultOfWaitForCollection] =

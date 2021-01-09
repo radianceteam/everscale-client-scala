@@ -70,8 +70,7 @@ object ParamsOfParse {
   implicit val encoder: Encoder[ParamsOfParse] = deriveEncoder[ParamsOfParse]
 }
 
-case class ParamsOfParseShardstate(boc: String, id: String, workchain_id: Int)
-    extends Bind {
+case class ParamsOfParseShardstate(boc: String, id: String, workchain_id: Int) extends Bind {
   override type Out = ResultOfParse
   override val decoder: Decoder[ResultOfParse] =
     implicitly[Decoder[ResultOfParse]]

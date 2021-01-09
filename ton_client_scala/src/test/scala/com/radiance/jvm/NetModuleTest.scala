@@ -3,6 +3,7 @@ package com.radiance.jvm
 import com.radiance.jvm.net._
 import io.circe._
 import io.circe.parser._
+import io.circe.Json._
 import org.scalatest.flatspec.AnyFlatSpec
 
 import cats.implicits._
@@ -11,7 +12,7 @@ import com.radiance.jvm.client._
 class NetModuleTest extends AnyFlatSpec with TestBase {
 
   override protected val config = ClientConfig(
-    NetworkConfig("net.ton.dev".some).some
+    NetworkConfig("http://net.ton.dev".some).some
   )
 
   override def init(): Unit = {
@@ -21,9 +22,10 @@ class NetModuleTest extends AnyFlatSpec with TestBase {
 
   behavior.of("NetModule")
 
+  // TODO fix it
   it should "execute simple query" ignore {
-    val query = parse("""{"last_paid":{"in":[1601332024,1601331924]}}""")
-      .getOrElse(Json.Null)
+    val query =
+      fromFields(Seq("last_paid" -> fromFields(Seq("in" -> fromValues(List(1601332024, 1601331924).map(fromLong(_)))))))
     println(s"Query:\n${query.spaces2}")
     val res = netModule
       .waitForCollection(
@@ -37,10 +39,15 @@ class NetModuleTest extends AnyFlatSpec with TestBase {
     assert(res.result.hcursor.get[Long]("last_paid").get == 1601331924)
   }
 
+  // TODO fix it
   it should "execute 2nd simple query" ignore {
-    val query = parse(
-      """{"last_paid":{"in":[1601332024,1601331924,1601332491,1601332679]}}"""
-    ).getOrElse(Json.Null)
+    val query = fromFields(
+      Seq(
+        "last_paid" -> fromFields(
+          Seq("in" -> fromValues(List(1601332024, 1601331924, 1601332491, 1601332679).map(fromLong(_))))
+        )
+      )
+    )
     println(s"Query:\n${query.spaces2}")
     val res = netModule
       .queryCollection(

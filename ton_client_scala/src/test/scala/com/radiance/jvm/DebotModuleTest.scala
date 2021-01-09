@@ -43,13 +43,13 @@ class DebotModuleTest extends AnyFlatSpec with TestBase {
         None,
         parse(
           s"""{
-          |"debotAbi": "${hexEncode(
+             |"debotAbi": "${hexEncode(
             debotAbi.asJson.noSpaces.getBytes(Charset.forName("UTF-8"))
           )}",
-          |"targetAbi": "${hexEncode(
+             |"targetAbi": "${hexEncode(
             targetAbi.asJson.noSpaces.getBytes(Charset.forName("UTF-8"))
           )}",
-          |"targetAddr": "$targetAddr"
+             |"targetAddr": "$targetAddr"
         }""".stripMargin
         ).getOrElse(throw new IllegalArgumentException("Not a json")).some
       ),

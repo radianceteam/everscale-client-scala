@@ -63,7 +63,7 @@ class CryptoModuleTest extends AnyFlatSpec with TestBase {
     } yield (sha512, sha256)).get
     assert(
       sha512.hash == "2616a44e0da827f0244e93c2b0b914223737a6129bc938b8edf2780ac9482960baa9b7c7cdb11457c1cebd5ae77e295ed94577f32d4c963dc35482991442daa5"
-        && sha256.hash == "16fd057308dd358d5a9b3ba2de766b2dfd5e308478fc1f7ba5988db2493852f5"
+      && sha256.hash == "16fd057308dd358d5a9b3ba2de766b2dfd5e308478fc1f7ba5988db2493852f5"
     )
   }
 
@@ -168,7 +168,7 @@ class CryptoModuleTest extends AnyFlatSpec with TestBase {
           )
           .get
           .signed ==
-          "+wz+QO6l1slgZS5s65BNqKcu4vz24FCJz4NSAxef9lu0jFfs8x3PzSZRC+pn5k8+aJi3xYMA3BQzglQmjK3hA1Rlc3QgTWVzc2FnZQ==" &&
+        "+wz+QO6l1slgZS5s65BNqKcu4vz24FCJz4NSAxef9lu0jFfs8x3PzSZRC+pn5k8+aJi3xYMA3BQzglQmjK3hA1Rlc3QgTWVzc2FnZQ==" &&
         decode(
           cryptoModule
             .naclSignOpen(
@@ -178,7 +178,7 @@ class CryptoModuleTest extends AnyFlatSpec with TestBase {
             .get
             .unsigned
         ) ==
-          "Test Message"
+        "Test Message"
     )
   }
 
@@ -186,15 +186,15 @@ class CryptoModuleTest extends AnyFlatSpec with TestBase {
     val keys: KeyPair = cryptoModule.naclBoxKeypair.get
     assert(
       keys.public.length == 64 &&
-        keys.secret.length == 64 &&
-        keys.public != keys.secret &&
-        cryptoModule
-          .naclBoxKeypairFromSecretKey(
-            "e207b5966fb2c5be1b71ed94ea813202706ab84253bdf4dc55232f82a1caf0d4"
-          )
-          .get
-          .public ==
-          "a53b003d3ffc1e159355cb37332d67fc235a7feb6381e36c803274074dc3933a" &&
+      keys.secret.length == 64 &&
+      keys.public != keys.secret &&
+      cryptoModule
+        .naclBoxKeypairFromSecretKey(
+          "e207b5966fb2c5be1b71ed94ea813202706ab84253bdf4dc55232f82a1caf0d4"
+        )
+        .get
+        .public ==
+        "a53b003d3ffc1e159355cb37332d67fc235a7feb6381e36c803274074dc3933a" &&
         cryptoModule
           .naclBox(
             encode("Test Message".getBytes),
