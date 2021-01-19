@@ -1,10 +1,10 @@
 package com.radiance.jvm
 
-import com.radiance.jvm.crypto.{CryptoModule, KeyPair}
+import com.radiance.jvm.crypto.{CryptoModule, KeyPair, ParamsOfAppSigningBox, ResultOfAppSigningBox}
 import org.scalatest.flatspec.AnyFlatSpec
-
 import cats.implicits._
 import Utils._
+import com.radiance.jvm.app.AppObject
 
 class CryptoModuleTest extends AnyFlatSpec with TestBase {
 
@@ -216,5 +216,25 @@ class CryptoModuleTest extends AnyFlatSpec with TestBase {
             .decrypted
         ) == "Test Message"
     )
+  }
+
+  it should "correctly work with app object" in {
+    val publicKey: String = "02a8eb63085f73c33fa31b4d1134259406347284f8dab6fc68f4bf8c96f6c39b75"
+
+    val app_object: AppObject[ParamsOfAppSigningBox, ResultOfAppSigningBox] =
+      new AppObject[ParamsOfAppSigningBox, ResultOfAppSigningBox]({
+        case ParamsOfAppSigningBox.GetPublicKey   => ResultOfAppSigningBox.GetPublicKey(publicKey)
+        case ParamsOfAppSigningBox.Sign(unsigned) => ResultOfAppSigningBox.Sign(unsigned)
+      })
+    val registeredBox = cryptoModule.registerSigningBox(app_object).get
+
+    val publicKeyRes = cryptoModule.signingBoxGetPublicKey(registeredBox.handle).get
+
+    println(publicKeyRes.pubkey)
+
+    cryptoModule.removeSigningBox(registeredBox.handle).get
+    println("Remove registered signing box succesfully")
+
+    assert(publicKeyRes.pubkey == publicKey)
   }
 }

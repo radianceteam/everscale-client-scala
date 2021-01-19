@@ -1,6 +1,5 @@
 package com.radiance.jvm.client
 
-import com.radiance.jvm.Utils._
 import com.radiance.jvm._
 import io.circe._
 import io.circe.derivation._
@@ -13,27 +12,6 @@ case class AbiConfig(
 
 object AbiConfig {
   implicit val encoder: Encoder[AbiConfig] = deriveEncoder[AbiConfig]
-}
-
-sealed trait AppRequestResult
-
-object AppRequestResult {
-  import io.circe.syntax._
-  case class Error(text: String) extends AppRequestResult
-  case class Ok(result: Value) extends AppRequestResult
-
-  implicit val encoder: Encoder[AppRequestResult] = {
-    case a: Error => a.asJson.deepMerge(generateType(a))
-    case a: Ok    => a.asJson.deepMerge(generateType(a))
-  }
-
-  object Error {
-    implicit val encoder: Encoder[Error] = deriveEncoder[Error]
-  }
-
-  object Ok {
-    implicit val encoder: Encoder[Ok] = deriveEncoder[Ok]
-  }
 }
 
 case class BuildInfoDependency(name: String, git_commit: String)
@@ -224,22 +202,6 @@ case class NetworkConfig(
 
 object NetworkConfig {
   implicit val encoder: Encoder[NetworkConfig] = deriveEncoder[NetworkConfig]
-}
-
-// TODO Not used
-case class ParamsOfAppRequest(app_request_id: Long, request_data: Value)
-
-case class ParamsOfResolveAppRequest(
-  app_request_id: Long,
-  result: AppRequestResult
-) extends Bind {
-  override type Out = Unit
-  override val decoder: Decoder[Unit] = implicitly[Decoder[Unit]]
-}
-
-object ParamsOfResolveAppRequest {
-  implicit val encoder: Encoder[ParamsOfResolveAppRequest] =
-    deriveEncoder[ParamsOfResolveAppRequest]
 }
 
 case class ResultOfBuildInfo(

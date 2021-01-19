@@ -1,6 +1,9 @@
 package com.radiance.jvm.crypto
 
 import com.radiance.jvm.Context
+import com.radiance.jvm.app.AppObject
+
+import scala.concurrent.Future
 
 class CryptoModule(private val ctx: Context) {
 
@@ -424,18 +427,21 @@ class CryptoModule(private val ctx: Context) {
    * @param app_object
    */
   def registerSigningBox(
-    app_object: ParamsOfAppSigningBox
-  ): Either[Throwable, RegisteredSigningBox] = {
+    app_object: AppObject[ParamsOfAppSigningBox, ResultOfAppSigningBox]
+  ): Future[Either[Throwable, RegisteredSigningBox]] = {
     ctx
-      .execSync("crypto.register_signing_box", app_object)
+      .registerAppObject[RegisteredSigningBox, ParamsOfAppSigningBox, ResultOfAppSigningBox](
+        "crypto.register_signing_box",
+        "",
+        app_object
+      )
   }
 
   /**
    * @param handle
    */
-  def removeSigningBox(handle: SigningBoxHandle): Unit = {
-    val arg = RegisteredSigningBox(handle)
-    ctx.execSync("crypto.remove_signing_box", arg)
+  def removeSigningBox(handle: SigningBoxHandle): Future[Either[Throwable, Unit]] = {
+    ctx.unregisterAppObject(handle.value.toInt, "crypto.remove_signing_box")
   }
 
   /**

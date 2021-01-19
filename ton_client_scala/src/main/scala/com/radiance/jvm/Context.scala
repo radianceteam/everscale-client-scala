@@ -1,13 +1,15 @@
 package com.radiance.jvm
 
-import java.nio.file.{Files, Path, Paths}
-import java.util.concurrent.ConcurrentHashMap
-
+import cats.implicits._
+import com.radiance.jvm.app.AppObject
 import com.radiance.jvm.client.ClientConfig
 import io.circe._
 import io.circe.parser._
 import io.circe.syntax._
 
+import java.nio.file.{Files, Path, Paths}
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Success, Try}
 
@@ -96,8 +98,16 @@ class Context private (var contextId: Int)(implicit
   val ec: ExecutionContext
 ) {
 
-  private val callbacksMap: ConcurrentHashMap[Promise[String], Request] =
+  private val maxId = new AtomicInteger(0)
+
+  private val callbackMap: ConcurrentHashMap[Promise[String], Request] =
     new ConcurrentHashMap[Promise[String], Request]()
+
+  private val appPromiseMap: ConcurrentHashMap[Int, Promise[String]] =
+    new ConcurrentHashMap[Int, Promise[String]]()
+
+  private val appCallbackMap: ConcurrentHashMap[Int, AppObject[Any, Any]] =
+    new ConcurrentHashMap[Int, AppObject[Any, Any]]()
 
   @native private[jvm] def createContext(config: String): String
 
@@ -108,6 +118,20 @@ class Context private (var contextId: Int)(implicit
     functionName: String,
     params: String,
     promise: Promise[String]
+  ): Unit
+
+  @native private[jvm] def asyncRequestWithAppId(
+    context: Int,
+    functionName: String,
+    params: String,
+    appId: Int
+  ): Unit
+
+  @native private[jvm] def unregisterAppId(
+    context: Int,
+    functionName: String,
+    params: String,
+    appId: Int
   ): Unit
 
   @native private[jvm] def syncRequest(
@@ -123,19 +147,23 @@ class Context private (var contextId: Int)(implicit
     finished: Boolean
   ): Unit = {
     OperationCode.fromInt(code) match {
-      case SuccessCode   =>
+      case SuccessCode =>
         promise.tryComplete(Success(Option(params).getOrElse("")))
-      case ErrorCode     =>
-        callbacksMap.remove(promise)
+
+      case ErrorCode =>
+        callbackMap.remove(promise)
         val cursor = parse(params).getOrElse(Json.Null).hcursor
-        val code: Int = cursor.downField("code").as[Int].getOrElse(-1)
-        val message = cursor.downField("message").as[String].getOrElse("")
-        promise.tryFailure(
-          new IllegalStateException(s"Code: $code; Message: $message")
-        )
-      case NopCode       =>
+        val exception = (for {
+          code <- cursor.get[Int]("code")
+          message <- cursor.get[String]("message")
+        } yield new IllegalStateException(s"Code: $code; Message: $message"))
+          .getOrElse(throw new RuntimeException(s"Unexpected message format: $params"))
+        promise.tryFailure(exception)
+
+      case NopCode => // nop
+
       case CustomCode    =>
-        Option(callbacksMap.get(promise))
+        Option(callbackMap.get(promise))
           .foreach(
             callback =>
               callback(
@@ -144,12 +172,41 @@ class Context private (var contextId: Int)(implicit
                 )
               )
           )
-      case AppNotifyCode => ???
+      case AppNotifyCode =>
+        throw new IllegalStateException("Unexpected response AppNotifyCode")
 
-      case AppRequestCode => ???
+      case AppRequestCode =>
+        throw new IllegalStateException("Unexpected response AppRequestCode")
     }
     if (finished) {
-      callbacksMap.remove(promise)
+      callbackMap.remove(promise)
+    }
+  }
+
+  private[jvm] def asyncHandlerWithAppId(
+    code: Int,
+    params: String,
+    appId: Int,
+    finished: Boolean
+  ): Unit = {
+    OperationCode.fromInt(code) match {
+      case SuccessCode =>
+        Option(appPromiseMap.remove(appId)).foreach(p => p.success(params))
+
+      case ErrorCode =>
+        Option(appPromiseMap.remove(appId)).foreach(p => p.failure(new IllegalStateException(params)))
+
+      case NopCode => // nop
+
+      case CustomCode => // nop
+
+      case AppNotifyCode => // TODO nop
+
+      case AppRequestCode =>
+        val app = appCallbackMap.get(appId)
+        val str = app.resolveRequest(params)
+        asyncRequestWithAppId(contextId, app.functionName, str, appId)
+
     }
   }
 
@@ -180,7 +237,7 @@ class Context private (var contextId: Int)(implicit
     callback: Request
   ): Future[String] = {
     val promise: Promise[String] = Promise[String]()
-    callbacksMap.put(promise, callback)
+    callbackMap.put(promise, callback)
     asyncRequest(contextId, functionName, params, promise)
     promise.future
   }
@@ -191,6 +248,44 @@ class Context private (var contextId: Int)(implicit
   ): Future[Either[Throwable, arg.Out]] =
     callNativeAsync(functionName, arg.asJson.deepDropNullValues.noSpaces)
       .map(r => parse(r).flatMap(_.as[arg.Out](arg.decoder)))
+
+  private[jvm] def registerAppObject[Out: Decoder, T, V](
+    functionName: String,
+    params: String,
+    app_object: AppObject[T, V]
+  ): Future[Either[Throwable, Out]] = {
+    val promise: Promise[String] = Promise[String]()
+    val appId = maxId.incrementAndGet()
+    appPromiseMap.put(appId, promise)
+    appCallbackMap.put(appId, app_object.asInstanceOf[AppObject[Any, Any]])
+    asyncRequestWithAppId(contextId, functionName, params, appId)
+    promise.future
+      .map(r => parse(r).flatMap(_.as[Out]))
+  }
+
+  private[jvm] def executeWithAppObject[T: Encoder](
+    functionName: String,
+    arg: T,
+    appId: Int
+  ): Future[Either[Throwable, Unit]] = {
+    val promise: Promise[String] = Promise[String]()
+    appPromiseMap.put(appId, promise)
+    asyncRequestWithAppId(contextId, functionName, arg.asJson.noSpaces, appId)
+    promise.future
+      .map(_ => ().asRight)
+  }
+
+  private[jvm] def unregisterAppObject(
+    handleValue: Int,
+    functionName: String
+  ): Future[Either[Throwable, Unit]] = {
+    val promise: Promise[String] = Promise[String]()
+    val appId = handleValue
+    appPromiseMap.put(appId, promise)
+    appCallbackMap.remove(appId)
+    unregisterAppId(contextId, functionName, "", appId)
+    promise.future.map(_ => Right(()))
+  }
 
   private[jvm] def execAsyncVoid[In: Encoder](
     functionName: String,

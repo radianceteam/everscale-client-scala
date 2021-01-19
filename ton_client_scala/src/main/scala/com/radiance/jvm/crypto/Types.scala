@@ -1,9 +1,12 @@
 package com.radiance.jvm.crypto
 
-import com.radiance.jvm.Utils._
 import com.radiance.jvm._
 import io.circe._
 import io.circe.derivation._
+import io.circe.Json._
+import io.circe.syntax._
+import cats.implicits._
+import com.radiance.jvm.Utils._
 
 sealed trait CryptoErrorCode {
   val code: String
@@ -99,28 +102,23 @@ object KeyPair {
   implicit val codec: Codec[KeyPair] = deriveCodec[KeyPair]
 }
 
-sealed trait ParamsOfAppSigningBox extends Bind {
-  override type Out = RegisteredSigningBox
-  override val decoder: Decoder[RegisteredSigningBox] =
-    implicitly[Decoder[RegisteredSigningBox]]
-}
+sealed trait ParamsOfAppSigningBox
 
 object ParamsOfAppSigningBox {
-  import io.circe.Json._
-  import io.circe.syntax._
 
   case object GetPublicKey extends ParamsOfAppSigningBox
 
   case class Sign(unsigned: String) extends ParamsOfAppSigningBox
 
   object Sign {
-    implicit val encoder: Encoder[Sign] = deriveEncoder[Sign]
+    implicit val decoder: Decoder[Sign] = deriveDecoder[Sign]
   }
 
-  implicit val encoder: Encoder[ParamsOfAppSigningBox] = {
-    case GetPublicKey => fromFields(Seq("type" -> fromString("GetPublicKey")))
-    case a: Sign      => a.asJson.deepMerge(generateType(a))
-  }
+  implicit val decoder: Decoder[ParamsOfAppSigningBox] = (c: HCursor) =>
+    c.get[String]("type").flatMap {
+      case "GetPublicKey" => GetPublicKey.asRight
+      case "Sign"         => c.as[Sign]
+    }
 }
 
 case class ParamsOfChaCha20(data: String, key: String, nonce: String) extends Bind {
@@ -541,12 +539,25 @@ object RegisteredSigningBox1 {
     deriveEncoder[RegisteredSigningBox1]
 }
 
-// TODO Not used
 sealed trait ResultOfAppSigningBox
 
 object ResultOfAppSigningBox {
   case class GetPublicKey(public_key: String) extends ResultOfAppSigningBox
   case class Sign(signature: String) extends ResultOfAppSigningBox
+
+  object GetPublicKey {
+    implicit val encoder: Encoder[GetPublicKey] = deriveEncoder[GetPublicKey]
+  }
+
+  object Sign {
+    implicit val encoder: Encoder[Sign] = deriveEncoder[Sign]
+  }
+
+  implicit val encoder: Encoder[ResultOfAppSigningBox] = {
+    case a: GetPublicKey => a.asJson.deepMerge(generateType(a))
+    case a: Sign         => a.asJson.deepMerge(generateType(a))
+  }
+
 }
 
 case class ResultOfChaCha20(data: String)
@@ -731,6 +742,10 @@ object ResultOfVerifySignature {
 case class SigningBoxHandle(value: BigInt)
 
 object SigningBoxHandle {
-  implicit val codec: Codec[SigningBoxHandle] =
-    deriveCodec[SigningBoxHandle]
+  // TODO unusual behavior
+  implicit val decoder: Decoder[SigningBoxHandle] =
+    (c: HCursor) => c.value.as[BigInt].map(SigningBoxHandle(_))
+
+  implicit val encoder: Encoder[SigningBoxHandle] = (a: SigningBoxHandle) => fromBigInt(a.value)
+
 }

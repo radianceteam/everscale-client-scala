@@ -19,18 +19,6 @@ class ClientModule(private val ctx: Context) {
     )
 
   /**
-   * @param app_request_id
-   *   @param result
-   */
-  def resolveAppRequest(
-    app_request_id: Long,
-    result: AppRequestResult
-  ): Unit = {
-    val arg = ParamsOfResolveAppRequest(app_request_id, result)
-    ctx.execSync[ParamsOfResolveAppRequest]("client.resolve_app_request", arg)
-  }
-
-  /**
    * Returns Core Library version
    */
   def version: Either[Throwable, ResultOfVersion] =

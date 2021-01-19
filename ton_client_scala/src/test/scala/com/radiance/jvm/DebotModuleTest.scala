@@ -63,7 +63,7 @@ class DebotModuleTest extends AnyFlatSpec with TestBase {
 
   it should "be executed correctly" ignore {
     val (debotAddr, targetAddr, keys) = initDebot
-    val res = debotModule.start(targetAddr, null).get
+    val res = debotModule.start(debotAddr, null).get
     println(res)
 
     assert(true)
