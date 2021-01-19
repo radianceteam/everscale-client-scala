@@ -1,6 +1,6 @@
 import scala.sys.process.Process
 
-val currentBranch = "master"
+val currentBranch = "1.6.0-rc"
 val pathToCmakeWin = """C:\Program Files\JetBrains\CLion 2020.2.4\bin\cmake\win\bin\cmake.exe"""
 val pathToCmakeLinux = """/usr/bin/cmake"""
 
