@@ -1,9 +1,12 @@
 package com.radiance.jvm.crypto
 
-import com.radiance.jvm.Utils._
 import com.radiance.jvm._
 import io.circe._
 import io.circe.derivation._
+import io.circe.Json._
+import io.circe.syntax._
+import cats.implicits._
+import com.radiance.jvm.Utils._
 
 sealed trait CryptoErrorCode {
   val code: String
@@ -91,39 +94,34 @@ object CryptoErrorCode {
 
 case class KeyPair(public: String, secret: String) extends Bind {
   override type Out = RegisteredSigningBox
-  override val decoder: Decoder[RegisteredSigningBox] = implicitly[Decoder[RegisteredSigningBox]]
+  override val decoder: Decoder[RegisteredSigningBox] =
+    implicitly[Decoder[RegisteredSigningBox]]
 }
 
 object KeyPair {
   implicit val codec: Codec[KeyPair] = deriveCodec[KeyPair]
 }
 
-sealed trait ParamsOfAppSigningBox extends Bind {
-  override type Out = RegisteredSigningBox
-  override val decoder: Decoder[RegisteredSigningBox] =
-    implicitly[Decoder[RegisteredSigningBox]]
-}
+sealed trait ParamsOfAppSigningBox
 
 object ParamsOfAppSigningBox {
-  import io.circe.Json._
-  import io.circe.syntax._
 
   case object GetPublicKey extends ParamsOfAppSigningBox
 
   case class Sign(unsigned: String) extends ParamsOfAppSigningBox
 
   object Sign {
-    implicit val encoder: Encoder[Sign] = deriveEncoder[Sign]
+    implicit val decoder: Decoder[Sign] = deriveDecoder[Sign]
   }
 
-  implicit val encoder: Encoder[ParamsOfAppSigningBox] = {
-    case GetPublicKey => fromFields(Seq("type" -> fromString("GetPublicKey")))
-    case a: Sign => a.asJson.deepMerge(generateType(a))
-  }
+  implicit val decoder: Decoder[ParamsOfAppSigningBox] = (c: HCursor) =>
+    c.get[String]("type").flatMap {
+      case "GetPublicKey" => GetPublicKey.asRight
+      case "Sign"         => c.as[Sign]
+    }
 }
 
-case class ParamsOfChaCha20(data: String, key: String, nonce: String)
-    extends Bind {
+case class ParamsOfChaCha20(data: String, key: String, nonce: String) extends Bind {
   override type Out = ResultOfChaCha20
   override val decoder: Decoder[ResultOfChaCha20] =
     implicitly[Decoder[ResultOfChaCha20]]
@@ -134,8 +132,7 @@ object ParamsOfChaCha20 {
     deriveEncoder[ParamsOfChaCha20]
 }
 
-case class ParamsOfConvertPublicKeyToTonSafeFormat(public_key: String)
-    extends Bind {
+case class ParamsOfConvertPublicKeyToTonSafeFormat(public_key: String) extends Bind {
   override type Out = ResultOfConvertPublicKeyToTonSafeFormat
   override val decoder: Decoder[ResultOfConvertPublicKeyToTonSafeFormat] =
     implicitly[Decoder[ResultOfConvertPublicKeyToTonSafeFormat]]
@@ -193,9 +190,9 @@ object ParamsOfHash512 {
 }
 
 case class ParamsOfHDKeyDeriveFromXPrv(
-    xprv: String,
-    child_index: Long,
-    hardened: Boolean
+  xprv: String,
+  child_index: Long,
+  hardened: Boolean
 ) extends Bind {
   override type Out = ResultOfHDKeyDeriveFromXPrv
   override val decoder: Decoder[ResultOfHDKeyDeriveFromXPrv] =
@@ -207,8 +204,7 @@ object ParamsOfHDKeyDeriveFromXPrv {
     deriveEncoder[ParamsOfHDKeyDeriveFromXPrv]
 }
 
-case class ParamsOfHDKeyDeriveFromXPrvPath(xprv: String, path: String)
-    extends Bind {
+case class ParamsOfHDKeyDeriveFromXPrvPath(xprv: String, path: String) extends Bind {
   override type Out = ResultOfHDKeyDeriveFromXPrvPath
   override val decoder: Decoder[ResultOfHDKeyDeriveFromXPrvPath] =
     implicitly[Decoder[ResultOfHDKeyDeriveFromXPrvPath]]
@@ -242,9 +238,9 @@ object ParamsOfHDKeySecretFromXPrv {
 }
 
 case class ParamsOfHDKeyXPrvFromMnemonic(
-    phrase: String,
-    dictionary: Option[Long],
-    word_count: Option[Long]
+  phrase: String,
+  dictionary: Option[Long],
+  word_count: Option[Long]
 ) extends Bind {
   override type Out = ResultOfHDKeyXPrvFromMnemonic
   override val decoder: Decoder[ResultOfHDKeyXPrvFromMnemonic] =
@@ -257,10 +253,10 @@ object ParamsOfHDKeyXPrvFromMnemonic {
 }
 
 case class ParamsOfMnemonicDeriveSignKeys(
-    phrase: String,
-    path: Option[String],
-    dictionary: Option[Long],
-    word_count: Option[Long]
+  phrase: String,
+  path: Option[String],
+  dictionary: Option[Long],
+  word_count: Option[Long]
 ) extends Bind {
   override type Out = KeyPair
   override val decoder: Decoder[KeyPair] = implicitly[Decoder[KeyPair]]
@@ -272,9 +268,9 @@ object ParamsOfMnemonicDeriveSignKeys {
 }
 
 case class ParamsOfMnemonicFromEntropy(
-    entropy: String,
-    dictionary: Option[Long],
-    word_count: Option[Long]
+  entropy: String,
+  dictionary: Option[Long],
+  word_count: Option[Long]
 ) extends Bind {
   override type Out = ResultOfMnemonicFromEntropy
   override val decoder: Decoder[ResultOfMnemonicFromEntropy] =
@@ -287,8 +283,8 @@ object ParamsOfMnemonicFromEntropy {
 }
 
 case class ParamsOfMnemonicFromRandom(
-    dictionary: Option[Long],
-    word_count: Option[Long]
+  dictionary: Option[Long],
+  word_count: Option[Long]
 ) extends Bind {
   override type Out = ResultOfMnemonicFromRandom
   override val decoder: Decoder[ResultOfMnemonicFromRandom] =
@@ -301,9 +297,9 @@ object ParamsOfMnemonicFromRandom {
 }
 
 case class ParamsOfMnemonicVerify(
-    phrase: String,
-    dictionary: Option[Long],
-    word_count: Option[Long]
+  phrase: String,
+  dictionary: Option[Long],
+  word_count: Option[Long]
 ) extends Bind {
   override type Out = ResultOfMnemonicVerify
   override val decoder: Decoder[ResultOfMnemonicVerify] =
@@ -327,9 +323,9 @@ object ParamsOfMnemonicWords {
 }
 
 case class ParamsOfModularPower(
-    base: String,
-    exponent: String,
-    modulus: String
+  base: String,
+  exponent: String,
+  modulus: String
 ) extends Bind {
   override type Out = ResultOfModularPower
   override val decoder: Decoder[ResultOfModularPower] =
@@ -342,10 +338,10 @@ object ParamsOfModularPower {
 }
 
 case class ParamsOfNaclBox(
-    decrypted: String,
-    nonce: String,
-    their_public: String,
-    secret: String
+  decrypted: String,
+  nonce: String,
+  their_public: String,
+  secret: String
 ) extends Bind {
   override type Out = ResultOfNaclBox
   override val decoder: Decoder[ResultOfNaclBox] =
@@ -368,10 +364,10 @@ object ParamsOfNaclBoxKeyPairFromSecret {
 }
 
 case class ParamsOfNaclBoxOpen(
-    encrypted: String,
-    nonce: String,
-    their_public: String,
-    secret: String
+  encrypted: String,
+  nonce: String,
+  their_public: String,
+  secret: String
 ) extends Bind {
   override type Out = ResultOfNaclBoxOpen
   override val decoder: Decoder[ResultOfNaclBoxOpen] =
@@ -384,9 +380,9 @@ object ParamsOfNaclBoxOpen {
 }
 
 case class ParamsOfNaclSecretBox(
-    decrypted: String,
-    nonce: String,
-    key: String
+  decrypted: String,
+  nonce: String,
+  key: String
 ) extends Bind {
   override type Out = ResultOfNaclBox
   override val decoder: Decoder[ResultOfNaclBox] =
@@ -399,9 +395,9 @@ object ParamsOfNaclSecretBox {
 }
 
 case class ParamsOfNaclSecretBoxOpen(
-    encrypted: String,
-    nonce: String,
-    key: String
+  encrypted: String,
+  nonce: String,
+  key: String
 ) extends Bind {
   override type Out = ResultOfNaclBoxOpen
   override val decoder: Decoder[ResultOfNaclBoxOpen] =
@@ -425,8 +421,7 @@ object ParamsOfNaclSign {
 }
 
 // TODO were added
-case class ParamsOfNaclSignDetached(unsigned: String, secret: String)
-    extends Bind {
+case class ParamsOfNaclSignDetached(unsigned: String, secret: String) extends Bind {
   override type Out = ResultOfNaclSignDetached
   override val decoder: Decoder[ResultOfNaclSignDetached] =
     implicitly[Decoder[ResultOfNaclSignDetached]]
@@ -459,12 +454,12 @@ object ParamsOfNaclSignOpen {
 }
 
 case class ParamsOfScrypt(
-    password: String,
-    salt: String,
-    log_n: Long,
-    r: Long,
-    p: Long,
-    dk_len: Long
+  password: String,
+  salt: String,
+  log_n: Long,
+  r: Long,
+  p: Long,
+  dk_len: Long
 ) extends Bind {
   override type Out = ResultOfScrypt
   override val decoder: Decoder[ResultOfScrypt] =
@@ -487,8 +482,8 @@ object ParamsOfSign {
 }
 
 case class ParamsOfSigningBoxSign(
-    signing_box: SigningBoxHandle,
-    unsigned: String
+  signing_box: SigningBoxHandle,
+  unsigned: String
 ) extends Bind {
   override type Out = ResultOfSigningBoxSign
   override val decoder: Decoder[ResultOfSigningBoxSign] =
@@ -511,8 +506,7 @@ object ParamsOfTonCrc16 {
     deriveEncoder[ParamsOfTonCrc16]
 }
 
-case class ParamsOfVerifySignature(signed: String, public: String)
-    extends Bind {
+case class ParamsOfVerifySignature(signed: String, public: String) extends Bind {
   override type Out = ResultOfVerifySignature
   override val decoder: Decoder[ResultOfVerifySignature] =
     implicitly[Decoder[ResultOfVerifySignature]]
@@ -529,7 +523,8 @@ case class RegisteredSigningBox(handle: SigningBoxHandle) extends Bind {
 }
 
 object RegisteredSigningBox {
-  implicit val codec: Codec[RegisteredSigningBox] = deriveCodec[RegisteredSigningBox]
+  implicit val codec: Codec[RegisteredSigningBox] =
+    deriveCodec[RegisteredSigningBox]
 }
 
 // TODO were added
@@ -540,15 +535,29 @@ case class RegisteredSigningBox1(handle: SigningBoxHandle) extends Bind {
 }
 
 object RegisteredSigningBox1 {
-  implicit val encoder: Encoder[RegisteredSigningBox1] = deriveEncoder[RegisteredSigningBox1]
+  implicit val encoder: Encoder[RegisteredSigningBox1] =
+    deriveEncoder[RegisteredSigningBox1]
 }
 
-// TODO Not used
 sealed trait ResultOfAppSigningBox
 
 object ResultOfAppSigningBox {
   case class GetPublicKey(public_key: String) extends ResultOfAppSigningBox
   case class Sign(signature: String) extends ResultOfAppSigningBox
+
+  object GetPublicKey {
+    implicit val encoder: Encoder[GetPublicKey] = deriveEncoder[GetPublicKey]
+  }
+
+  object Sign {
+    implicit val encoder: Encoder[Sign] = deriveEncoder[Sign]
+  }
+
+  implicit val encoder: Encoder[ResultOfAppSigningBox] = {
+    case a: GetPublicKey => a.asJson.deepMerge(generateType(a))
+    case a: Sign         => a.asJson.deepMerge(generateType(a))
+  }
+
 }
 
 case class ResultOfChaCha20(data: String)
@@ -733,6 +742,10 @@ object ResultOfVerifySignature {
 case class SigningBoxHandle(value: BigInt)
 
 object SigningBoxHandle {
-  implicit val codec: Codec[SigningBoxHandle] =
-    deriveCodec[SigningBoxHandle]
+  // TODO unusual behavior
+  implicit val decoder: Decoder[SigningBoxHandle] =
+    (c: HCursor) => c.value.as[BigInt].map(SigningBoxHandle(_))
+
+  implicit val encoder: Encoder[SigningBoxHandle] = (a: SigningBoxHandle) => fromBigInt(a.value)
+
 }

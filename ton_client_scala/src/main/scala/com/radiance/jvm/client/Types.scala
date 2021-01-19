@@ -1,39 +1,17 @@
 package com.radiance.jvm.client
 
-import com.radiance.jvm.Utils._
 import com.radiance.jvm._
 import io.circe._
 import io.circe.derivation._
 
 case class AbiConfig(
-    workchain: Option[Int],
-    message_expiration_timeout: Option[Long],
-    message_expiration_timeout_grow_factor: Option[Float]
+  workchain: Option[Int],
+  message_expiration_timeout: Option[Long],
+  message_expiration_timeout_grow_factor: Option[Float]
 )
 
 object AbiConfig {
   implicit val encoder: Encoder[AbiConfig] = deriveEncoder[AbiConfig]
-}
-
-sealed trait AppRequestResult
-
-object AppRequestResult {
-  import io.circe.syntax._
-  case class Error(text: String) extends AppRequestResult
-  case class Ok(result: Value) extends AppRequestResult
-
-  implicit val encoder: Encoder[AppRequestResult] = {
-    case a: Error => a.asJson.deepMerge(generateType(a))
-    case a: Ok    => a.asJson.deepMerge(generateType(a))
-  }
-
-  object Error {
-    implicit val encoder: Encoder[Error] = deriveEncoder[Error]
-  }
-
-  object Ok {
-    implicit val encoder: Encoder[Ok] = deriveEncoder[Ok]
-  }
 }
 
 case class BuildInfoDependency(name: String, git_commit: String)
@@ -44,9 +22,9 @@ object BuildInfoDependency {
 }
 
 case class ClientConfig(
-    network: Option[NetworkConfig],
-    crypto: Option[CryptoConfig] = None,
-    abi: Option[AbiConfig] = None
+  network: Option[NetworkConfig],
+  crypto: Option[CryptoConfig] = None,
+  abi: Option[AbiConfig] = None
 )
 
 object ClientConfig {
@@ -200,10 +178,10 @@ object ClientErrorCode {
 }
 
 case class CryptoConfig(
-    mnemonic_dictionary: Option[Long],
-    mnemonic_word_count: Option[Long],
-    hdkey_derivation_path: Option[String],
-    hdkey_compliant: Option[Boolean]
+  mnemonic_dictionary: Option[Long],
+  mnemonic_word_count: Option[Long],
+  hdkey_derivation_path: Option[String],
+  hdkey_compliant: Option[Boolean]
 )
 
 object CryptoConfig {
@@ -211,40 +189,24 @@ object CryptoConfig {
 }
 
 case class NetworkConfig(
-    server_address: Option[String],
-    endpoints: Option[List[String]] = None,
-    network_retries_count: Option[Int] = None,
-    message_retries_count: Option[Int] = None,
-    message_processing_timeout: Option[Long] = None,
-    wait_for_timeout: Option[Long] = None,
-    out_of_sync_threshold: Option[Long] = None,
-    reconnect_timeout: Option[Long] = None,
-    access_key: Option[String] = None
+  server_address: Option[String],
+  endpoints: Option[List[String]] = None,
+  network_retries_count: Option[Int] = None,
+  message_retries_count: Option[Int] = None,
+  message_processing_timeout: Option[Long] = None,
+  wait_for_timeout: Option[Long] = None,
+  out_of_sync_threshold: Option[Long] = None,
+  reconnect_timeout: Option[Long] = None,
+  access_key: Option[String] = None
 )
 
 object NetworkConfig {
   implicit val encoder: Encoder[NetworkConfig] = deriveEncoder[NetworkConfig]
 }
 
-// TODO Not used
-case class ParamsOfAppRequest(app_request_id: Long, request_data: Value)
-
-case class ParamsOfResolveAppRequest(
-    app_request_id: Long,
-    result: AppRequestResult
-) extends Bind {
-  override type Out = Unit
-  override val decoder: Decoder[Unit] = implicitly[Decoder[Unit]]
-}
-
-object ParamsOfResolveAppRequest {
-  implicit val encoder: Encoder[ParamsOfResolveAppRequest] =
-    deriveEncoder[ParamsOfResolveAppRequest]
-}
-
 case class ResultOfBuildInfo(
-    build_number: Long,
-    dependencies: List[BuildInfoDependency]
+  build_number: Long,
+  dependencies: List[BuildInfoDependency]
 )
 
 object ResultOfBuildInfo {

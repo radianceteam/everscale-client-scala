@@ -12,12 +12,12 @@ object ApiDescription {
   }
 
   case class ModuleDecl(
-                         name: String,
-                         summary: Option[String],
-                         description: Option[String],
-                         types: List[TypeDecl],
-                         functions: List[FunctionDecl]
-                       )
+    name: String,
+    summary: Option[String],
+    description: Option[String],
+    types: List[TypeDecl],
+    functions: List[FunctionDecl]
+  )
 
   object ModuleDecl {
     implicit val moduleDescriptionDecoder: Decoder[ModuleDecl] = deriveDecoder[ModuleDecl]
@@ -42,13 +42,13 @@ object ApiDescription {
   object TypeDeclEnum {
 
     implicit val typeEnumDecoder: Decoder[TypeDeclEnum] = Decoder[String].emap {
-      case "Struct" => Right(StructTypeDecl)
-      case "EnumOfTypes" => Right(EnumOfTypesDecl)
+      case "Struct"       => Right(StructTypeDecl)
+      case "EnumOfTypes"  => Right(EnumOfTypesDecl)
       case "EnumOfConsts" => Right(EnumOfConstsDecl)
-      case "None" => Right(NoneDecl)
-      case "Ref" => Right(ValueClassDeclForRef)
-      case "Number" => Right(ValueClassDeclForNumber)
-      case x => Right(ErrorDecl(x))
+      case "None"         => Right(NoneDecl)
+      case "Ref"          => Right(ValueClassDeclForRef)
+      case "Number"       => Right(ValueClassDeclForNumber)
+      case x              => Right(ErrorDecl(x))
     }
   }
 
@@ -75,51 +75,51 @@ object ApiDescription {
   object TypeEnum {
 
     implicit val typeEnumDecoder: Decoder[TypeEnum] = Decoder[String].emap {
-      case "Ref" => Right(RefType)
-      case "Number" => Right(NumberType)
+      case "Ref"      => Right(RefType)
+      case "Number"   => Right(NumberType)
       case "Optional" => Right(OptionalType)
-      case "String" => Right(StringType)
-      case "Boolean" => Right(BooleanType)
-      case "Array" => Right(ArrayType)
-      case "Generic" => Right(GenericType)
-      case "BigInt" => Right(BigIntType)
-      case "None" => Right(NoneType)
+      case "String"   => Right(StringType)
+      case "Boolean"  => Right(BooleanType)
+      case "Array"    => Right(ArrayType)
+      case "Generic"  => Right(GenericType)
+      case "BigInt"   => Right(BigIntType)
+      case "None"     => Right(NoneType)
 
       case x => Left(s"Can't read TypeEnum from $x")
     }
   }
 
   case class TypeDecl(
-                       name: String,
-                       summary: Option[String],
-                       description: Option[String],
-                       `type`: TypeDeclEnum,
-                       struct_fields: Option[List[TypeData]],
-                       enum_types: Option[List[TypeDecl]],
-                       enum_consts: Option[List[TypeDecl]],
-                       ref_name: Option[String],
-                       number_type: Option[SubtypeOfNumber],
-                       number_size: Option[Int],
-                       value: Option[String]
-                     )
+    name: String,
+    summary: Option[String],
+    description: Option[String],
+    `type`: TypeDeclEnum,
+    struct_fields: Option[List[TypeData]],
+    enum_types: Option[List[TypeDecl]],
+    enum_consts: Option[List[TypeDecl]],
+    ref_name: Option[String],
+    number_type: Option[SubtypeOfNumber],
+    number_size: Option[Int],
+    value: Option[String]
+  )
 
   object TypeDecl {
     implicit val typeDeclarationDecoder: Decoder[TypeDecl] = deriveDecoder[TypeDecl]
   }
 
   case class TypeData(
-                       name: Option[String],
-                       summary: Option[String],
-                       description: Option[String],
-                       `type`: TypeEnum,
-                       number_type: Option[SubtypeOfNumber],
-                       number_size: Option[Int],
-                       optional_inner: Option[TypeData],
-                       array_item: Option[TypeData],
-                       ref_name: Option[String],
-                       generic_name: Option[String],
-                       generic_args: Option[List[TypeData]]
-                     )
+    name: Option[String],
+    summary: Option[String],
+    description: Option[String],
+    `type`: TypeEnum,
+    number_type: Option[SubtypeOfNumber],
+    number_size: Option[Int],
+    optional_inner: Option[TypeData],
+    array_item: Option[TypeData],
+    ref_name: Option[String],
+    generic_name: Option[String],
+    generic_args: Option[List[TypeData]]
+  )
 
   object TypeData {
     implicit val typeDescriptionDecoder: Decoder[TypeData] = deriveDecoder[TypeData]
@@ -136,25 +136,24 @@ object ApiDescription {
   object SubtypeOfNumber {
 
     implicit val subtypeOfNumberDecoder: Decoder[SubtypeOfNumber] = Decoder[String].emap {
-      case "UInt" => Right(UIntSubtype)
-      case "Int" => Right(IntSubtype)
+      case "UInt"  => Right(UIntSubtype)
+      case "Int"   => Right(IntSubtype)
       case "Float" => Right(FloatSubtype)
-      case x => Left(s"Can't read SubtypeOfNumber from $x")
+      case x       => Left(s"Can't read SubtypeOfNumber from $x")
     }
   }
 
   case class FunctionDecl(
-                           name: String,
-                           summary: Option[String],
-                           description: Option[String],
-                           params: List[TypeData],
-                           result: TypeData,
-                           errors: Option[String]
-                         )
+    name: String,
+    summary: Option[String],
+    description: Option[String],
+    params: List[TypeData],
+    result: TypeData,
+    errors: Option[String]
+  )
 
   object FunctionDecl {
     implicit val functionDescriptionDecoder: Decoder[FunctionDecl] = deriveDecoder[FunctionDecl]
   }
-
 
 }

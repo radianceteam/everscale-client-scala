@@ -33,6 +33,21 @@ JNIEXPORT void JNICALL Java_com_radiance_jvm_Context_asyncRequest
 
 /*
  * Class:      com_radiance_jvm_Context
+ * Method:     asyncRequestWithAppId
+ * Signature:  (ILjava/lang/String;Ljava/lang/String;I;)V
+ */
+JNIEXPORT void JNICALL Java_com_radiance_jvm_Context_asyncRequestWithAppId
+(JNIEnv*, jobject, jint, jstring, jstring, jint);
+
+/*
+ * Class:      com_radiance_jvm_Context
+ * Method:     asyncRequestWithAppId
+ * Signature:  (ILjava/lang/String;Ljava/lang/String;I;)V
+ */
+JNIEXPORT void JNICALL Java_com_radiance_jvm_Context_unregisterAppId
+        (JNIEnv*, jobject, jint, jstring, jstring, jint);
+/*
+ * Class:      com_radiance_jvm_Context
  * Method:     syncRequest
  * Signature:  (ILjava/lang/String;Ljava/lang/String;)Ljava/lang/String;
  */

@@ -39,12 +39,12 @@ object Abi {
 }
 
 case class AbiContract(
-    `ABI version`: Option[Long],
-    abi_version: Option[Long],
-    header: Option[List[String]],
-    functions: Option[List[AbiFunction]],
-    events: Option[List[AbiEvent]],
-    data: Option[List[AbiData]]
+  `ABI version`: Option[Long],
+  abi_version: Option[Long],
+  header: Option[List[String]],
+  functions: Option[List[AbiFunction]],
+  events: Option[List[AbiEvent]],
+  data: Option[List[AbiData]]
 )
 
 object AbiContract {
@@ -52,10 +52,10 @@ object AbiContract {
 }
 
 case class AbiData(
-    key: BigInt,
-    name: String,
-    `type`: String,
-    components: Option[List[AbiParam]]
+  key: BigInt,
+  name: String,
+  `type`: String,
+  components: Option[List[AbiParam]]
 )
 
 object AbiData {
@@ -115,9 +115,9 @@ object AbiErrorCode {
 }
 
 case class AbiEvent(
-    name: String,
-    inputs: List[AbiParam],
-    id: Option[Option[String]]
+  name: String,
+  inputs: List[AbiParam],
+  id: Option[Option[String]]
 )
 
 object AbiEvent {
@@ -125,10 +125,10 @@ object AbiEvent {
 }
 
 case class AbiFunction(
-    name: String,
-    inputs: List[AbiParam],
-    outputs: List[AbiParam],
-    id: Option[Option[String]]
+  name: String,
+  inputs: List[AbiParam],
+  outputs: List[AbiParam],
+  id: Option[Option[String]]
 )
 
 object AbiFunction {
@@ -142,9 +142,9 @@ object AbiHandle {
 }
 
 case class AbiParam(
-    name: String,
-    `type`: String,
-    components: Option[List[AbiParam]]
+  name: String,
+  `type`: String,
+  components: Option[List[AbiParam]]
 )
 
 object AbiParam {
@@ -152,9 +152,9 @@ object AbiParam {
 }
 
 case class CallSet(
-    function_name: String,
-    header: Option[FunctionHeader] = None,
-    input: Option[Value] = None
+  function_name: String,
+  header: Option[FunctionHeader] = None,
+  input: Option[Value] = None
 )
 
 object CallSet {
@@ -162,10 +162,10 @@ object CallSet {
 }
 
 case class DecodedMessageBody(
-    body_type: MessageBodyType,
-    name: String,
-    value: Option[Value],
-    header: Option[FunctionHeader]
+  body_type: MessageBodyType,
+  name: String,
+  value: Option[Value],
+  header: Option[FunctionHeader]
 )
 
 object DecodedMessageBody {
@@ -174,9 +174,9 @@ object DecodedMessageBody {
 }
 
 case class DeploySet(
-    tvc: String,
-    workchain_id: Option[Int] = None,
-    initial_data: Option[Value] = None
+  tvc: String,
+  workchain_id: Option[Int] = None,
+  initial_data: Option[Value] = None
 )
 
 object DeploySet {
@@ -184,18 +184,18 @@ object DeploySet {
 }
 
 /**
-  * The ABI function header.
-  *
-  * Includes several hidden function parameters that contract
-  * uses for security, message delivery monitoring and replay protection reasons.
-  *
-  * The actual set of header fields depends on the contract's ABI.
-  * If a contract's ABI does not include some headers, then they are not filled.
-  */
+ * The ABI function header.
+ *
+ * Includes several hidden function parameters that contract uses for security, message delivery monitoring and replay
+ * protection reasons.
+ *
+ * The actual set of header fields depends on the contract's ABI. If a contract's ABI does not include some headers,
+ * then they are not filled.
+ */
 case class FunctionHeader(
-    expire: Option[Long],
-    time: Option[BigInt],
-    pubkey: Option[String]
+  expire: Option[Long],
+  time: Option[BigInt],
+  pubkey: Option[String]
 )
 
 object FunctionHeader {
@@ -206,21 +206,26 @@ sealed trait MessageBodyType
 
 object MessageBodyType {
 
-  /** Message contains the input of the ABI function. */
+  /**
+   * Message contains the input of the ABI function.
+   */
   case object Input extends MessageBodyType
 
-  /** Message contains the output of the ABI function. */
+  /**
+   * Message contains the output of the ABI function.
+   */
   case object Output extends MessageBodyType
 
   /**
-    * Message contains the input of the imported ABI function.
-    *
-    * Occurs when contract sends an internal message to other
-    * contract.
-    */
+   * Message contains the input of the imported ABI function.
+   *
+   * Occurs when contract sends an internal message to other contract.
+   */
   case object InternalOutput extends MessageBodyType
 
-  /** Message contains the input of the ABI event. */
+  /**
+   * Message contains the input of the ABI event.
+   */
   case object Event extends MessageBodyType
 
   implicit val decoder: Decoder[MessageBodyType] = Decoder[String].emap {
@@ -255,10 +260,10 @@ object MessageSource {
 }
 
 case class ParamsOfAttachSignature(
-    abi: Abi,
-    public_key: String,
-    message: String,
-    signature: String
+  abi: Abi,
+  public_key: String,
+  message: String,
+  signature: String
 ) extends Bind {
   override type Out = ResultOfAttachSignature
   override val decoder: Decoder[ResultOfAttachSignature] =
@@ -271,10 +276,10 @@ object ParamsOfAttachSignature {
 }
 
 case class ParamsOfAttachSignatureToMessageBody(
-    abi: Abi,
-    public_key: String,
-    message: String,
-    signature: String
+  abi: Abi,
+  public_key: String,
+  message: String,
+  signature: String
 ) extends Bind {
   override type Out = ResultOfAttachSignatureToMessageBody
   override val decoder: Decoder[ResultOfAttachSignatureToMessageBody] =
@@ -298,9 +303,9 @@ object ParamsOfDecodeMessage {
 }
 
 case class ParamsOfDecodeMessageBody(
-    abi: Abi,
-    body: String,
-    is_internal: Boolean
+  abi: Abi,
+  body: String,
+  is_internal: Boolean
 ) extends Bind {
   override type Out = DecodedMessageBody
   override val decoder: Decoder[DecodedMessageBody] =
@@ -313,10 +318,10 @@ object ParamsOfDecodeMessageBody {
 }
 
 case class ParamsOfEncodeAccount(
-    state_init: StateInitSource,
-    balance: Option[BigInt],
-    last_trans_lt: Option[BigInt],
-    last_paid: Option[Long]
+  state_init: StateInitSource,
+  balance: Option[BigInt],
+  last_trans_lt: Option[BigInt],
+  last_paid: Option[Long]
 ) extends Bind {
   override type Out = ResultOfEncodeAccount
   override val decoder: Decoder[ResultOfEncodeAccount] =
@@ -329,12 +334,12 @@ object ParamsOfEncodeAccount {
 }
 
 case class ParamsOfEncodeMessage(
-    abi: Abi,
-    address: Option[String],
-    deploy_set: Option[DeploySet],
-    call_set: Option[CallSet],
-    signer: Signer,
-    processing_try_index: Option[Long]
+  abi: Abi,
+  address: Option[String],
+  deploy_set: Option[DeploySet],
+  call_set: Option[CallSet],
+  signer: Signer,
+  processing_try_index: Option[Long]
 ) extends Bind {
   override type Out = ResultOfEncodeMessage
   override val decoder: Decoder[ResultOfEncodeMessage] =
@@ -347,11 +352,11 @@ object ParamsOfEncodeMessage {
 }
 
 case class ParamsOfEncodeMessageBody(
-    abi: Abi,
-    call_set: CallSet,
-    is_internal: Boolean,
-    signer: Signer,
-    processing_try_index: Option[Long]
+  abi: Abi,
+  call_set: CallSet,
+  is_internal: Boolean,
+  signer: Signer,
+  processing_try_index: Option[Long]
 ) extends Bind {
   override type Out = ResultOfEncodeMessageBody
   override val decoder: Decoder[ResultOfEncodeMessageBody] =
@@ -385,10 +390,10 @@ object ResultOfEncodeAccount {
 }
 
 case class ResultOfEncodeMessage(
-    message: String,
-    data_to_sign: Option[String],
-    address: String,
-    message_id: String
+  message: String,
+  data_to_sign: Option[String],
+  address: String,
+  message_id: String
 )
 
 object ResultOfEncodeMessage {
@@ -397,8 +402,8 @@ object ResultOfEncodeMessage {
 }
 
 case class ResultOfEncodeMessageBody(
-    body: String,
-    data_to_sign: Option[String]
+  body: String,
+  data_to_sign: Option[String]
 )
 
 object ResultOfEncodeMessageBody {
@@ -453,16 +458,15 @@ object StateInitSource {
     implicit val encoder: Encoder[Message] = deriveEncoder[Message]
   }
 
-  case class StateInit(code: String, data: String, library: Option[String])
-      extends StateInitSource
+  case class StateInit(code: String, data: String, library: Option[String]) extends StateInitSource
   object StateInit {
     implicit val encoder: Encoder[StateInit] = deriveEncoder[StateInit]
   }
 
   case class Tvc(
-      tvc: String,
-      public_key: Option[String],
-      init_params: Option[StateInitParams]
+    tvc: String,
+    public_key: Option[String],
+    init_params: Option[StateInitParams]
   ) extends StateInitSource
   object Tvc {
     implicit val encoder: Encoder[Tvc] = deriveEncoder[Tvc]

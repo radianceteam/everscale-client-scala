@@ -3,6 +3,7 @@ package com.radiance.jvm
 import com.radiance.jvm.net._
 import io.circe._
 import io.circe.parser._
+import io.circe.Json._
 import org.scalatest.flatspec.AnyFlatSpec
 
 import cats.implicits._
@@ -11,7 +12,7 @@ import com.radiance.jvm.client._
 class NetModuleTest extends AnyFlatSpec with TestBase {
 
   override protected val config = ClientConfig(
-    NetworkConfig("net.ton.dev".some).some
+    NetworkConfig("http://net.ton.dev".some).some
   )
 
   override def init(): Unit = {
@@ -21,41 +22,56 @@ class NetModuleTest extends AnyFlatSpec with TestBase {
 
   behavior.of("NetModule")
 
+  // TODO fix it
   it should "execute simple query" ignore {
-    val query = parse("""{"last_paid":{"in":[1601332024,1601331924]}}""").getOrElse(Json.Null)
+    val query =
+      fromFields(Seq("last_paid" -> fromFields(Seq("in" -> fromValues(List(1601332024, 1601331924).map(fromLong(_)))))))
     println(s"Query:\n${query.spaces2}")
-    val res = netModule.waitForCollection(
-      "accounts",
-      query.some,
-      "id,last_paid",
-      60000L.some
-    ).get
+    val res = netModule
+      .waitForCollection(
+        "accounts",
+        query.some,
+        "id,last_paid",
+        60000L.some
+      )
+      .get
     println(s"Result:\n$res")
     assert(res.result.hcursor.get[Long]("last_paid").get == 1601331924)
   }
 
+  // TODO fix it
   it should "execute 2nd simple query" ignore {
-    val query = parse("""{"last_paid":{"in":[1601332024,1601331924,1601332491,1601332679]}}""").getOrElse(Json.Null)
+    val query = fromFields(
+      Seq(
+        "last_paid" -> fromFields(
+          Seq("in" -> fromValues(List(1601332024, 1601331924, 1601332491, 1601332679).map(fromLong(_))))
+        )
+      )
+    )
     println(s"Query:\n${query.spaces2}")
-    val res = netModule.queryCollection(
-      "accounts",
-      query.some,
-      "acc_type,acc_type_name,balance,boc,id,last_paid,workchain_id",
-      List(OrderBy("last_paid", SortDirection.ASC)).some,
-      2L.some
-    ).get
+    val res = netModule
+      .queryCollection(
+        "accounts",
+        query.some,
+        "acc_type,acc_type_name,balance,boc,id,last_paid,workchain_id",
+        List(OrderBy("last_paid", SortDirection.ASC)).some,
+        2L.some
+      )
+      .get
     println(s"Result:\n$res")
     assert(res.result.size == 2)
   }
 
   it should "return the event" in {
     var eventsAcc: List[Json] = Nil
-    val res = netModule.subscribeCollection(
-      "transactions",
-      None,
-      "id account_addr",
-      e => eventsAcc = e :: eventsAcc
-    ).get
+    val res = netModule
+      .subscribeCollection(
+        "transactions",
+        None,
+        "id account_addr",
+        e => eventsAcc = e :: eventsAcc
+      )
+      .get
     println("Handle: " + res.handle)
     Thread.sleep(5000)
     println(eventsAcc.map(_.dropNullValues.spaces2).mkString("\n"))
@@ -67,15 +83,18 @@ class NetModuleTest extends AnyFlatSpec with TestBase {
 
   it should "observe the collection" in {
     var eventsAcc: List[Json] = Nil
-    val query = parse("""{"balance_delta":{"gt":"0x5f5e100"}}""").getOrElse(Json.Null)
+    val query =
+      parse("""{"balance_delta":{"gt":"0x5f5e100"}}""").getOrElse(Json.Null)
     println(s"Query:\n${query.spaces2}")
 
-    val res = netModule.subscribeCollection(
-      "transactions",
-      query.some,
-      "id,block_id,balance_delta",
-      e => eventsAcc = e :: eventsAcc
-    ).get
+    val res = netModule
+      .subscribeCollection(
+        "transactions",
+        query.some,
+        "id,block_id,balance_delta",
+        e => eventsAcc = e :: eventsAcc
+      )
+      .get
     println("Handle: " + res.handle)
     netModule.suspend()
     Thread.sleep(5000)

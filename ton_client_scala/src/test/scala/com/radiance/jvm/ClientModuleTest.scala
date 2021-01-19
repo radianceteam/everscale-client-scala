@@ -5,7 +5,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.concurrent.ExecutionContext
 
-class ClientModuleTest  extends AnyFlatSpec with TestBase {
+class ClientModuleTest extends AnyFlatSpec with TestBase {
 
   override def init(): Unit = {
     super.init()

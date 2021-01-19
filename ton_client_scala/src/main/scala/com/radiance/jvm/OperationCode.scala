@@ -10,13 +10,14 @@ case object AppRequestCode extends OperationCode
 case object AppNotifyCode extends OperationCode
 
 object OperationCode {
-  def fromInt(i: Int): OperationCode = i match {
-    case 0 => SuccessCode
-    case 1 => ErrorCode
-    case 2 => NopCode
-    case 3 => AppRequestCode
-    case 4 => AppNotifyCode
-    case 100 => CustomCode
-    case x => throw new IllegalArgumentException(s"Unexpected code: $x")
-  }
+  def fromInt(i: Int): OperationCode =
+    i match {
+      case 0   => SuccessCode
+      case 1   => ErrorCode
+      case 2   => NopCode
+      case 3   => AppRequestCode
+      case 4   => AppNotifyCode
+      case 100 => CustomCode
+      case x   => throw new IllegalArgumentException(s"Unexpected code: $x")
+    }
 }

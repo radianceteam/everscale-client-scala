@@ -13,8 +13,7 @@ object AccountForExecutor {
   import io.circe.Json._
   import io.circe.syntax._
 
-  case class Account(boc: String, unlimited_balance: Option[Boolean])
-      extends AccountForExecutor
+  case class Account(boc: String, unlimited_balance: Option[Boolean]) extends AccountForExecutor
 
   object Account {
     implicit val encoder: Encoder[Account] = deriveEncoder[Account]
@@ -33,10 +32,10 @@ object AccountForExecutor {
 }
 
 case class ExecutionOptions(
-    blockchain_config: Option[String],
-    block_time: Option[Long],
-    block_lt: Option[BigInt],
-    transaction_lt: Option[BigInt]
+  blockchain_config: Option[String],
+  block_time: Option[Long],
+  block_lt: Option[BigInt],
+  transaction_lt: Option[BigInt]
 )
 
 object ExecutionOptions {
@@ -45,11 +44,11 @@ object ExecutionOptions {
 }
 
 case class ParamsOfRunExecutor(
-    message: String,
-    account: AccountForExecutor,
-    execution_options: Option[ExecutionOptions],
-    abi: Option[Abi],
-    skip_transaction_check: Option[Boolean]
+  message: String,
+  account: AccountForExecutor,
+  execution_options: Option[ExecutionOptions],
+  abi: Option[Abi],
+  skip_transaction_check: Option[Boolean]
 ) extends Bind {
   override type Out = ResultOfRunExecutor
   override val decoder: Decoder[ResultOfRunExecutor] =
@@ -62,10 +61,10 @@ object ParamsOfRunExecutor {
 }
 
 case class ParamsOfRunGet(
-    account: String,
-    function_name: String,
-    input: Option[Value],
-    execution_options: Option[ExecutionOptions]
+  account: String,
+  function_name: String,
+  input: Option[Value],
+  execution_options: Option[ExecutionOptions]
 ) extends Bind {
   override type Out = ResultOfRunGet
   override val decoder: Decoder[ResultOfRunGet] =
@@ -78,10 +77,10 @@ object ParamsOfRunGet {
 }
 
 case class ParamsOfRunTvm(
-    message: String,
-    account: String,
-    execution_options: Option[ExecutionOptions],
-    abi: Option[Abi]
+  message: String,
+  account: String,
+  execution_options: Option[ExecutionOptions],
+  abi: Option[Abi]
 ) extends Bind {
   override type Out = ResultOfRunTvm
   override val decoder: Decoder[ResultOfRunTvm] =
@@ -94,11 +93,11 @@ object ParamsOfRunTvm {
 }
 
 case class ResultOfRunExecutor(
-                                transaction: Value,
-                                out_messages: List[String],
-                                decoded: Option[com.radiance.jvm.processing.DecodedOutput],
-                                account: String,
-                                fees: TransactionFees
+  transaction: Value,
+  out_messages: List[String],
+  decoded: Option[com.radiance.jvm.processing.DecodedOutput],
+  account: String,
+  fees: TransactionFees
 )
 
 object ResultOfRunExecutor {
@@ -114,9 +113,9 @@ object ResultOfRunGet {
 }
 
 case class ResultOfRunTvm(
-    out_messages: List[String],
-    decoded: Option[DecodedOutput],
-    account: String
+  out_messages: List[String],
+  decoded: Option[DecodedOutput],
+  account: String
 )
 
 object ResultOfRunTvm {
@@ -125,12 +124,12 @@ object ResultOfRunTvm {
 }
 
 case class TransactionFees(
-    in_msg_fwd_fee: BigInt,
-    storage_fee: BigInt,
-    gas_fee: BigInt,
-    out_msgs_fwd_fee: BigInt,
-    total_account_fees: BigInt,
-    total_output: BigInt
+  in_msg_fwd_fee: BigInt,
+  storage_fee: BigInt,
+  gas_fee: BigInt,
+  out_msgs_fwd_fee: BigInt,
+  total_account_fees: BigInt,
+  total_output: BigInt
 )
 
 object TransactionFees {

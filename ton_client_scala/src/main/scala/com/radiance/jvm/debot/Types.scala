@@ -6,12 +6,12 @@ import io.circe.derivation._
 import io.circe._
 
 case class DebotAction(
-    description: String,
-    name: String,
-    action_type: Long,
-    to: Long,
-    attributes: String,
-    misc: String
+  description: String,
+  name: String,
+  action_type: Long,
+  to: Long,
+  attributes: String,
+  misc: String
 )
 
 object DebotAction {
@@ -49,53 +49,44 @@ object DebotHandle {
 }
 
 /**
-  * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
-  * Called by debot engine to communicate with debot browser.
-  */
+ * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+ */
 sealed trait ParamsOfAppDebotBrowser
 
 object ParamsOfAppDebotBrowser {
 
   /**
-    * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
-    * Called by debot engine to communicate with debot browser.
-    */
+   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   */
   case class Log(msg: String) extends ParamsOfAppDebotBrowser
 
   /**
-    * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
-    * Called by debot engine to communicate with debot browser.
-    */
+   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   */
   case class Switch(context_id: Long) extends ParamsOfAppDebotBrowser
 
   /**
-    * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
-    * Called by debot engine to communicate with debot browser.
-    */
+   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   */
   case class ShowAction(action: DebotAction) extends ParamsOfAppDebotBrowser
 
   /**
-    * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
-    * Called by debot engine to communicate with debot browser.
-    */
+   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   */
   case class Input(prompt: String) extends ParamsOfAppDebotBrowser
 
   /**
-    * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
-    * Called by debot engine to communicate with debot browser.
-    */
+   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   */
   case object GetSigningBox extends ParamsOfAppDebotBrowser
 
   /**
-    * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
-    * Called by debot engine to communicate with debot browser.
-    */
-  case class InvokeDebot(debot_addr: String, action: DebotAction)
-      extends ParamsOfAppDebotBrowser
+   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   */
+  case class InvokeDebot(debot_addr: String, action: DebotAction) extends ParamsOfAppDebotBrowser
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
-   * Called by debot engine to communicate with debot browser.
+   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
    */
   case object SwitchCompleted extends ParamsOfAppDebotBrowser
 
@@ -104,7 +95,8 @@ object ParamsOfAppDebotBrowser {
 
 case class ParamsOfStart(address: String) extends Bind {
   override type Out = RegisteredDebot
-  override val decoder: Decoder[RegisteredDebot] = implicitly[Decoder[RegisteredDebot]]
+  override val decoder: Decoder[RegisteredDebot] =
+    implicitly[Decoder[RegisteredDebot]]
 }
 
 object ParamsOfStart {
@@ -121,13 +113,13 @@ sealed trait ResultOfAppDebotBrowser
 
 object ResultOfAppDebotBrowser {
   case class Input(value: String) extends ResultOfAppDebotBrowser
-  case class GetSigningBox(signing_box: SigningBoxHandle)
-      extends ResultOfAppDebotBrowser
+  case class GetSigningBox(signing_box: SigningBoxHandle) extends ResultOfAppDebotBrowser
   case object InvokeDebot extends ResultOfAppDebotBrowser
 
   case class ParamsOfFetch(address: String) extends Bind {
     override type Out = RegisteredDebot
-    override val decoder: Decoder[RegisteredDebot] = implicitly[Decoder[RegisteredDebot]]
+    override val decoder: Decoder[RegisteredDebot] =
+      implicitly[Decoder[RegisteredDebot]]
   }
 
   object ParamsOfFetch {
@@ -140,7 +132,8 @@ object ResultOfAppDebotBrowser {
   }
 
   object ParamsOfExecute {
-    implicit val encoder: Encoder[ParamsOfExecute] = deriveEncoder[ParamsOfExecute]
+    implicit val encoder: Encoder[ParamsOfExecute] =
+      deriveEncoder[ParamsOfExecute]
   }
 
   // TODO add decoder

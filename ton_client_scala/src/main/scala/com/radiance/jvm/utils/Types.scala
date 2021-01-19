@@ -17,8 +17,7 @@ object AddressStringFormat {
 
   case object Hex extends AddressStringFormat
 
-  case class Base64(url: Boolean, test: Boolean, bounce: Boolean)
-      extends AddressStringFormat
+  case class Base64(url: Boolean, test: Boolean, bounce: Boolean) extends AddressStringFormat
 
   object Base64 {
     implicit val encoder: Encoder[Base64] = deriveEncoder[Base64]
@@ -32,8 +31,8 @@ object AddressStringFormat {
 }
 
 case class ParamsOfConvertAddress(
-    address: String,
-    output_format: AddressStringFormat
+  address: String,
+  output_format: AddressStringFormat
 ) extends Bind {
   override type Out = ResultOfConvertAddress
   override val decoder: Decoder[ResultOfConvertAddress] =
