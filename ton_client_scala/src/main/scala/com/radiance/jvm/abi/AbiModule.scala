@@ -26,7 +26,7 @@ class AbiModule(ctx: Context) {
     signature: String
   ): Future[Either[Throwable, ResultOfAttachSignature]] = {
     val arg = ParamsOfAttachSignature(abi, public_key, message, signature)
-    ctx.execAsync("abi.attach_signature", arg)
+    ctx.execAsyncNew[ParamsOfAttachSignature, ResultOfAttachSignature]("abi.attach_signature", arg)
   }
 
   /**
@@ -112,9 +112,7 @@ class AbiModule(ctx: Context) {
   }
 
   /**
-   * Encodes an ABI-compatible message
-   *
-   * Allows to encode deploy and function call messages, both signed and unsigned.
+   * Encodes an ABI-compatible message. Allows to encode deploy and function call messages, both signed and unsigned.
    *
    * Use cases include messages of any possible type:
    *   - deploy with initial function call (i.e. `constructor` or any other function that is used for some kind of
@@ -132,32 +130,28 @@ class AbiModule(ctx: Context) {
    *
    * `Signer::Keys` creates a signed message with provided key pair.
    *
-   * [SOON] `Signer::SigningBox` Allows using a special interface to imlepement signing without private key disclosure
-   * to SDK. For instance, in case of using a cold wallet or HSM, when application calls some API to sign data.
+   * [SOON] `Signer::SigningBox` Allows using a special interface to implement signing without private key disclosure to
+   * SDK. For instance, in case of using a cold wallet or HSM, when application calls some API to sign data.
+   *
+   * There is an optional public key can be provided in deploy set in order to substitute one in TVM file.
+   *
+   * Public key resolving priority:
+   *   1. Public key from deploy set. 2. Public key, specified in TVM file. 3. Public key, provided by signer.
    * @param abi
-   *   Contract ABI.
-   *
+   *   Contract ABI
    * @param address
-   *   Target address the message will be sent to.
-   *
-   * Must be specified in case of non-deploy message.
+   *   Must be specified in case of non-deploy message.
    * @param deploy_set
-   *   Deploy parameters.
-   *
-   * Must be specified in case of deploy message.
+   *   Must be specified in case of deploy message.
    * @param call_set
-   *   Function call parameters.
-   *
-   * Must be specified in case of non-deploy message.
+   *   Must be specified in case of non-deploy message.
    *
    * In case of deploy message it is optional and contains parameters of the functions that will to be called upon
    * deploy transaction.
    * @param signer
-   *   Signing parameters.
+   *   Signer parameter
    * @param processing_try_index
-   *   Processing try index.
-   *
-   * Used in message processing with retries (if contract's ABI includes "expire" header).
+   *   .Used in message processing with retries (if contract's ABI includes "expire" header).
    *
    * Encoder uses the provided try index to calculate message expiration time. The 1st message expiration time is
    * specified in Client config.

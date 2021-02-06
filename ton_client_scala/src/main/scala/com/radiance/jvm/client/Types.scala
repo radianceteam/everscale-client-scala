@@ -192,11 +192,12 @@ case class NetworkConfig(
   server_address: Option[String],
   endpoints: Option[List[String]] = None,
   network_retries_count: Option[Int] = None,
+  max_reconnect_timeout: Option[Long] = None,
+  reconnect_timeout: Option[Long] = None,
   message_retries_count: Option[Int] = None,
   message_processing_timeout: Option[Long] = None,
   wait_for_timeout: Option[Long] = None,
   out_of_sync_threshold: Option[Long] = None,
-  reconnect_timeout: Option[Long] = None,
   access_key: Option[String] = None
 )
 

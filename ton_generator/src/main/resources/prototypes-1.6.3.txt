@@ -114,7 +114,7 @@ package client {
   }
   /** Crypto config. */
   case class CryptoConfig(mnemonic_dictionary: Option[Long], mnemonic_word_count: Option[Long], hdkey_derivation_path: Option[String])
-  case class NetworkConfig(server_address: Option[String], endpoints: Option[List[String]], network_retries_count: Option[Int], message_retries_count: Option[Int], message_processing_timeout: Option[Long], wait_for_timeout: Option[Long], out_of_sync_threshold: Option[Long], reconnect_timeout: Option[Long], access_key: Option[String])
+  case class NetworkConfig(server_address: Option[String], endpoints: Option[List[String]], network_retries_count: Option[Int], max_reconnect_timeout: Option[Long], reconnect_timeout: Option[Long], message_retries_count: Option[Int], message_processing_timeout: Option[Long], wait_for_timeout: Option[Long], out_of_sync_threshold: Option[Long], access_key: Option[String])
   case class ParamsOfAppRequest(app_request_id: Long, request_data: Value)
   case class ParamsOfResolveAppRequest(app_request_id: Long, result: AppRequestResult)
   case class ResultOfBuildInfo(build_number: Long, dependencies: List[BuildInfoDependency])
@@ -128,8 +128,8 @@ package client {
   def getApiReference(): Future[Either[Throwable, ResultOfGetApiReference]]
   /**
    * Resolves application request processing result
-   * @param app_request_id
-   * @param result
+   * @param app_request_id app_request_id
+   * @param result result
    */
   def resolveAppRequest(app_request_id: Long, result: AppRequestResult): Future[Either[Throwable, Unit]]
   /** Returns Core Library version */
@@ -175,6 +175,9 @@ package crypto {
     }
     case object InvalidSecretKey extends CryptoErrorCode {
       override val code: String = "101"
+    }
+    case object InvalidSignature extends CryptoErrorCode {
+      override val code: String = "122"
     }
     case object MnemonicFromEntropyFailed extends CryptoErrorCode {
       override val code: String = "120"
@@ -229,6 +232,7 @@ package crypto {
   case class ParamsOfNaclSecretBox(decrypted: String, nonce: String, key: String)
   case class ParamsOfNaclSecretBoxOpen(encrypted: String, nonce: String, key: String)
   case class ParamsOfNaclSign(unsigned: String, secret: String)
+  case class ParamsOfNaclSignDetachedVerify(unsigned: String, signature: String, public: String)
   case class ParamsOfNaclSignKeyPairFromSecret(secret: String)
   case class ParamsOfNaclSignOpen(signed: String, public: String)
   case class ParamsOfScrypt(password: String, salt: String, log_n: Long, r: Long, p: Long, dk_len: Long)
@@ -264,6 +268,7 @@ package crypto {
   case class ResultOfNaclBoxOpen(decrypted: String)
   case class ResultOfNaclSign(signed: String)
   case class ResultOfNaclSignDetached(signature: String)
+  case class ResultOfNaclSignDetachedVerify(succeeded: Boolean)
   case class ResultOfNaclSignOpen(unsigned: String)
   case class ResultOfScrypt(key: String)
   case class ResultOfSign(signed: String, signature: String)
@@ -283,153 +288,160 @@ package crypto {
   def chacha20(data: String, key: String, nonce: String): Future[Either[Throwable, ResultOfChaCha20]]
   /**
    * Converts public key to ton safe_format
-   * @param public_key
+   * @param public_key public_key
    */
   def convertPublicKeyToTonSafeFormat(public_key: String): Future[Either[Throwable, ResultOfConvertPublicKeyToTonSafeFormat]]
   /**
    * Performs prime factorization – decomposition of a composite number into a product of smaller prime integers (factors). See [https://en.wikipedia.org/wiki/Integer_factorization]
-   * @param composite
+   * @param composite composite
    */
   def factorize(composite: String): Future[Either[Throwable, ResultOfFactorize]]
   /**
    * Generates random byte array of the specified length and returns it in `base64` format
-   * @param length
+   * @param length length
    */
   def generateRandomBytes(length: Long): Future[Either[Throwable, ResultOfGenerateRandomBytes]]
   /** Generates random ed25519 key pair. */
   def generateRandomSignKeys(): Future[Either[Throwable, KeyPair]]
   /**
    * Creates a default signing box implementation.
-   * @param public
-   * @param secret
+   * @param public public
+   * @param secret secret
    */
   def getSigningBox(public: String, secret: String): Future[Either[Throwable, RegisteredSigningBox]]
   /**
    * Returns extended private key derived from the specified extended private key and child index
-   * @param xprv
-   * @param child_index
-   * @param hardened
+   * @param xprv xprv
+   * @param child_index child_index
+   * @param hardened hardened
    */
   def hdkeyDeriveFromXprv(xprv: String, child_index: Long, hardened: Boolean): Future[Either[Throwable, ResultOfHDKeyDeriveFromXPrv]]
   /**
    * Derives the extended private key from the specified key and path
-   * @param xprv
-   * @param path
+   * @param xprv xprv
+   * @param path path
    */
   def hdkeyDeriveFromXprvPath(xprv: String, path: String): Future[Either[Throwable, ResultOfHDKeyDeriveFromXPrvPath]]
   /**
    * Extracts the public key from the serialized extended private key
-   * @param xprv
+   * @param xprv xprv
    */
   def hdkeyPublicFromXprv(xprv: String): Future[Either[Throwable, ResultOfHDKeyPublicFromXPrv]]
   /**
    * Extracts the private key from the serialized extended private key
-   * @param xprv
+   * @param xprv xprv
    */
   def hdkeySecretFromXprv(xprv: String): Future[Either[Throwable, ResultOfHDKeySecretFromXPrv]]
   /**
    * Generates an extended master private key that will be the root for all the derived keys
-   * @param phrase
-   * @param dictionary
-   * @param word_count
+   * @param phrase phrase
+   * @param dictionary dictionary
+   * @param word_count word_count
    */
   def hdkeyXprvFromMnemonic(phrase: String, dictionary: Option[Long], word_count: Option[Long]): Future[Either[Throwable, ResultOfHDKeyXPrvFromMnemonic]]
   /**
    * Validates the seed phrase, generates master key and then derives the key pair from the master key and the specified path
-   * @param phrase
-   * @param path
-   * @param dictionary
-   * @param word_count
+   * @param phrase phrase
+   * @param path path
+   * @param dictionary dictionary
+   * @param word_count word_count
    */
   def mnemonicDeriveSignKeys(phrase: String, path: Option[String], dictionary: Option[Long], word_count: Option[Long]): Future[Either[Throwable, KeyPair]]
   /**
    * Generates mnemonic from pre-generated entropy
    * @param entropy Hex encoded.
-   * @param dictionary
-   * @param word_count
+   * @param dictionary dictionary
+   * @param word_count word_count
    */
   def mnemonicFromEntropy(entropy: String, dictionary: Option[Long], word_count: Option[Long]): Future[Either[Throwable, ResultOfMnemonicFromEntropy]]
   /**
    * Generates a random mnemonic from the specified dictionary and word count
-   * @param dictionary
-   * @param word_count
+   * @param dictionary dictionary
+   * @param word_count word_count
    */
   def mnemonicFromRandom(dictionary: Option[Long], word_count: Option[Long]): Future[Either[Throwable, ResultOfMnemonicFromRandom]]
   /**
    * The phrase supplied will be checked for word length and validated according to the checksum specified in BIP0039.
-   * @param phrase
-   * @param dictionary
-   * @param word_count
+   * @param phrase phrase
+   * @param dictionary dictionary
+   * @param word_count word_count
    */
   def mnemonicVerify(phrase: String, dictionary: Option[Long], word_count: Option[Long]): Future[Either[Throwable, ResultOfMnemonicVerify]]
   /**
    * Prints the list of words from the specified dictionary
-   * @param dictionary
+   * @param dictionary dictionary
    */
   def mnemonicWords(dictionary: Option[Long]): Future[Either[Throwable, ResultOfMnemonicWords]]
   /**
    * Performs modular exponentiation for big integers (`base`^`exponent` mod `modulus`). See [https://en.wikipedia.org/wiki/Modular_exponentiation]
-   * @param base
-   * @param exponent
-   * @param modulus
+   * @param base base
+   * @param exponent exponent
+   * @param modulus modulus
    */
   def modularPower(base: String, exponent: String, modulus: String): Future[Either[Throwable, ResultOfModularPower]]
   /**
    * Public key authenticated encryption
    * Encrypt and authenticate a message using the senders secret key, the recievers public
    * key, and a nonce.
-   * @param decrypted
-   * @param nonce
-   * @param their_public
-   * @param secret
+   * @param decrypted decrypted
+   * @param nonce nonce
+   * @param their_public their_public
+   * @param secret secret
    */
   def naclBox(decrypted: String, nonce: String, their_public: String, secret: String): Future[Either[Throwable, ResultOfNaclBox]]
   /** Generates a random NaCl key pair */
   def naclBoxKeypair(): Future[Either[Throwable, KeyPair]]
   /**
    * Generates key pair from a secret key
-   * @param secret
+   * @param secret secret
    */
   def naclBoxKeypairFromSecretKey(secret: String): Future[Either[Throwable, KeyPair]]
   /**
    * Decrypt and verify the cipher text using the recievers secret key, the senders public key, and the nonce.
    * @param encrypted Encoded with `base64`.
-   * @param nonce
-   * @param their_public
-   * @param secret
+   * @param nonce nonce
+   * @param their_public their_public
+   * @param secret secret
    */
   def naclBoxOpen(encrypted: String, nonce: String, their_public: String, secret: String): Future[Either[Throwable, ResultOfNaclBoxOpen]]
   /**
    * Encrypt and authenticate message using nonce and secret key.
    * @param decrypted Encoded with `base64`.
-   * @param nonce
-   * @param key
+   * @param nonce nonce
+   * @param key key
    */
   def naclSecretBox(decrypted: String, nonce: String, key: String): Future[Either[Throwable, ResultOfNaclBox]]
   /**
    * Decrypts and verifies cipher text using `nonce` and secret `key`.
    * @param encrypted Encoded with `base64`.
-   * @param nonce
-   * @param key
+   * @param nonce nonce
+   * @param key key
    */
   def naclSecretBoxOpen(encrypted: String, nonce: String, key: String): Future[Either[Throwable, ResultOfNaclBoxOpen]]
   /**
    * Signs data using the signer's secret key.
-   * @param unsigned
-   * @param secret
+   * @param unsigned unsigned
+   * @param secret secret
    */
   def naclSign(unsigned: String, secret: String): Future[Either[Throwable, ResultOfNaclSign]]
   /**
    * Signs the message using the secret key and returns a signature.
    * Signs the message `unsigned` using the secret key `secret`
    * and returns a signature `signature`.
-   * @param unsigned
-   * @param secret
+   * @param unsigned unsigned
+   * @param secret secret
    */
   def naclSignDetached(unsigned: String, secret: String): Future[Either[Throwable, ResultOfNaclSignDetached]]
   /**
+   * Verifies the signature with public key and `unsigned` data.
+   * @param unsigned Encoded with `base64`.
+   * @param signature Encoded with `hex`.
+   * @param public public
+   */
+  def naclSignDetachedVerify(unsigned: String, signature: String, public: String): Future[Either[Throwable, ResultOfNaclSignDetachedVerify]]
+  /**
    * Generates a key pair for signing from the secret key
-   * @param secret
+   * @param secret secret
    */
   def naclSignKeypairFromSecretKey(secret: String): Future[Either[Throwable, KeyPair]]
   /**
@@ -439,17 +451,17 @@ package crypto {
    *
    * If the signature fails verification, crypto_sign_open raises an exception.
    * @param signed Encoded with `base64`.
-   * @param public
+   * @param public public
    */
   def naclSignOpen(signed: String, public: String): Future[Either[Throwable, ResultOfNaclSignOpen]]
   /**
    * Register an application implemented signing box.
-   * @param app_object
+   * @param app_object app_object
    */
   def registerSigningBox(app_object: ParamsOfAppSigningBox => ResultOfAppSigningBox): Future[Either[Throwable, RegisteredSigningBox]]
   /**
    * Removes signing box from SDK.
-   * @param handle
+   * @param handle handle
    */
   def removeSigningBox(handle: SigningBoxHandle): Future[Either[Throwable, Unit]]
   /**
@@ -466,12 +478,12 @@ package crypto {
    * - `log_n = 15` (`n = 32768`)
    * - `r = 8`
    * - `p = 1`
-   * @param password
-   * @param salt
-   * @param log_n
-   * @param r
-   * @param p
-   * @param dk_len
+   * @param password password
+   * @param salt salt
+   * @param log_n log_n
+   * @param r r
+   * @param p p
+   * @param dk_len dk_len
    */
   def scrypt(password: String, salt: String, log_n: Long, r: Long, p: Long, dk_len: Long): Future[Either[Throwable, ResultOfScrypt]]
   /**
@@ -486,18 +498,18 @@ package crypto {
   def sha512(data: String): Future[Either[Throwable, ResultOfHash]]
   /**
    * Signs a data using the provided keys.
-   * @param unsigned
-   * @param keys
+   * @param unsigned unsigned
+   * @param keys keys
    */
   def sign(unsigned: String, keys: KeyPair): Future[Either[Throwable, ResultOfSign]]
   /**
    * Returns public key of signing key pair.
-   * @param handle
+   * @param handle handle
    */
   def signingBoxGetPublicKey(handle: SigningBoxHandle): Future[Either[Throwable, ResultOfSigningBoxGetPublicKey]]
   /**
    * Returns signed user data.
-   * @param signing_box
+   * @param signing_box signing_box
    * @param unsigned Must be encoded with `base64`.
    */
   def signingBoxSign(signing_box: SigningBoxHandle, unsigned: String): Future[Either[Throwable, ResultOfSigningBoxSign]]
@@ -508,8 +520,8 @@ package crypto {
   def tonCrc16(data: String): Future[Either[Throwable, ResultOfTonCrc16]]
   /**
    * Verifies signed data using the provided public key. Raises error if verification is failed.
-   * @param signed
-   * @param public
+   * @param signed signed
+   * @param public public
    */
   def verifySignature(signed: String, public: String): Future[Either[Throwable, ResultOfVerifySignature]]
 }
@@ -567,7 +579,7 @@ package abi {
   case class AbiParam(name: String, `type`: String, components: Option[List[AbiParam]])
   case class CallSet(function_name: String, header: Option[FunctionHeader], input: Option[Value])
   case class DecodedMessageBody(body_type: MessageBodyType, name: String, value: Option[Value], header: Option[FunctionHeader])
-  case class DeploySet(tvc: String, workchain_id: Option[Int], initial_data: Option[Value])
+  case class DeploySet(tvc: String, workchain_id: Option[Int], initial_data: Option[Value], initial_pubkey: Option[String])
   /**
    * The ABI function header.
    * Includes several hidden function parameters that contract
@@ -631,14 +643,14 @@ package abi {
 package abi {
   /**
    * Combines `hex`-encoded `signature` with `base64`-encoded `unsigned_message`. Returns signed message encoded in `base64`.
-   * @param abi
-   * @param public_key
-   * @param message
-   * @param signature
+   * @param abi abi
+   * @param public_key public_key
+   * @param message message
+   * @param signature signature
    */
   def attachSignature(abi: Abi, public_key: String, message: String, signature: String): Future[Either[Throwable, ResultOfAttachSignature]]
   /**
-   * @param abi
+   * @param abi abi
    * @param public_key Must be encoded with `hex`.
    * @param message Must be encoded with `base64`.
    * @param signature Must be encoded with `hex`.
@@ -646,15 +658,15 @@ package abi {
   def attachSignatureToMessageBody(abi: Abi, public_key: String, message: String, signature: String): Future[Either[Throwable, ResultOfAttachSignatureToMessageBody]]
   /**
    * Decodes message body using provided message BOC and ABI.
-   * @param abi
-   * @param message
+   * @param abi abi
+   * @param message message
    */
   def decodeMessage(abi: Abi, message: String): Future[Either[Throwable, DecodedMessageBody]]
   /**
    * Decodes message body using provided body BOC and ABI.
-   * @param abi
-   * @param body
-   * @param is_internal
+   * @param abi abi
+   * @param body body
+   * @param is_internal is_internal
    */
   def decodeMessageBody(abi: Abi, body: String, is_internal: Boolean): Future[Either[Throwable, DecodedMessageBody]]
   /**
@@ -662,10 +674,10 @@ package abi {
    * Creates account state provided with one of these sets of data :
    * 1. BOC of code, BOC of data, BOC of library
    * 2. TVC (string in `base64`), keys, init params
-   * @param state_init
-   * @param balance
-   * @param last_trans_lt
-   * @param last_paid
+   * @param state_init state_init
+   * @param balance balance
+   * @param last_trans_lt last_trans_lt
+   * @param last_paid last_paid
    */
   def encodeAccount(state_init: StateInitSource, balance: Option[BigInt], last_trans_lt: Option[BigInt], last_paid: Option[Long]): Future[Either[Throwable, ResultOfEncodeAccount]]
   /**
@@ -689,17 +701,25 @@ package abi {
    *
    * `Signer::Keys` creates a signed message with provided key pair.
    *
-   * [SOON] `Signer::SigningBox` Allows using a special interface to imlepement signing
+   * [SOON] `Signer::SigningBox` Allows using a special interface to implement signing
    * without private key disclosure to SDK. For instance, in case of using a cold wallet or HSM,
    * when application calls some API to sign data.
-   * @param abi
+   *
+   * There is an optional public key can be provided in deploy set in order to substitute one
+   * in TVM file.
+   *
+   * Public key resolving priority:
+   * 1. Public key from deploy set.
+   * 2. Public key, specified in TVM file.
+   * 3. Public key, provided by signer.
+   * @param abi abi
    * @param address Must be specified in case of non-deploy message.
    * @param deploy_set Must be specified in case of deploy message.
    * @param call_set Must be specified in case of non-deploy message.
    *
    * In case of deploy message it is optional and contains parameters
    * of the functions that will to be called upon deploy transaction.
-   * @param signer
+   * @param signer signer
    * @param processing_try_index Used in message processing with retries (if contract's ABI includes "expire" header).
    *
    * Encoder uses the provided try index to calculate message
@@ -715,12 +735,12 @@ package abi {
   def encodeMessage(abi: Abi, address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], signer: Signer, processing_try_index: Option[Long]): Future[Either[Throwable, ResultOfEncodeMessage]]
   /**
    * Encodes message body according to ABI function call.
-   * @param abi
+   * @param abi abi
    * @param call_set Must be specified in non deploy message.
    *
    * In case of deploy message contains parameters of constructor.
-   * @param is_internal
-   * @param signer
+   * @param is_internal is_internal
+   * @param signer signer
    * @param processing_try_index Used in message processing with retries.
    *
    * Encoder uses the provided try index to calculate message
@@ -761,48 +781,48 @@ package boc {
   case class ResultOfParse(parsed: Value)
 }
 package boc {
-  /** @param block_boc  */
+  /** @param block_boc block_boc */
   def getBlockchainConfig(block_boc: String): Future[Either[Throwable, ResultOfGetBlockchainConfig]]
   /**
    * Calculates BOC root hash
-   * @param boc
+   * @param boc boc
    */
   def getBocHash(boc: String): Future[Either[Throwable, ResultOfGetBocHash]]
   /**
    * Extracts code from TVC contract image
-   * @param tvc
+   * @param tvc tvc
    */
   def getCodeFromTvc(tvc: String): Future[Either[Throwable, ResultOfGetCodeFromTvc]]
   /**
    * Parses account boc into a JSON
    * JSON structure is compatible with GraphQL API account object
-   * @param boc
+   * @param boc boc
    */
   def parseAccount(boc: String): Future[Either[Throwable, ResultOfParse]]
   /**
    * Parses block boc into a JSON
    * JSON structure is compatible with GraphQL API block object
-   * @param boc
+   * @param boc boc
    */
   def parseBlock(boc: String): Future[Either[Throwable, ResultOfParse]]
   /**
    * Parses message boc into a JSON
    * JSON structure is compatible with GraphQL API message object
-   * @param boc
+   * @param boc boc
    */
   def parseMessage(boc: String): Future[Either[Throwable, ResultOfParse]]
   /**
    * Parses shardstate boc into a JSON
    * JSON structure is compatible with GraphQL API shardstate object
-   * @param boc
-   * @param id
-   * @param workchain_id
+   * @param boc boc
+   * @param id id
+   * @param workchain_id workchain_id
    */
   def parseShardstate(boc: String, id: String, workchain_id: Int): Future[Either[Throwable, ResultOfParse]]
   /**
    * Parses transaction boc into a JSON
    * JSON structure is compatible with GraphQL API transaction object
-   * @param boc
+   * @param boc boc
    */
   def parseTransaction(boc: String): Future[Either[Throwable, ResultOfParse]]
 }
@@ -892,15 +912,15 @@ package processing {
    *
    * If contract's ABI does not include "expire" header
    * then, if no transaction is found within the network timeout (see config parameter ), exits with error.
-   * @param message_encode_params
-   * @param send_events
-   * @param request
+   * @param message_encode_params message_encode_params
+   * @param send_events send_events
+   * @param request request
    */
   def processMessage(message_encode_params: ParamsOfEncodeMessage, send_events: Boolean, request: Request): Future[Either[Throwable, ResultOfProcessMessage]]
   /**
    * Sends message to the network and returns the last generated shard block of the destination account
    * before the message was sent. It will be required later for message processing.
-   * @param message
+   * @param message message
    * @param abi If this parameter is specified and the message has the
    * `expire` header then expiration time will be checked against
    * the current time to prevent unnecessary sending of already expired message.
@@ -911,8 +931,8 @@ package processing {
    * Note, that specifying `abi` for ABI compliant contracts is
    * strongly recommended, so that proper processing strategy can be
    * chosen.
-   * @param send_events
-   * @param callback
+   * @param send_events send_events
+   * @param callback callback
    */
   def sendMessage(message: String, abi: Option[Abi], send_events: Boolean, callback: Request): Future[Either[Throwable, ResultOfSendMessage]]
   /**
@@ -947,8 +967,8 @@ package processing {
    * The `abi_decoded` result field will be filled out.
    * @param message Encoded with `base64`.
    * @param shard_block_id You must provide the same value as the `send_message` has returned.
-   * @param send_events
-   * @param callback
+   * @param send_events send_events
+   * @param callback callback
    */
   def waitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Boolean, callback: Request): Future[Either[Throwable, ResultOfProcessMessage]]
 }
@@ -965,8 +985,8 @@ package utils {
 package utils {
   /**
    * Converts address from any TON format to any TON format
-   * @param address
-   * @param output_format
+   * @param address address
+   * @param output_format output_format
    */
   def convertAddress(address: String, output_format: AddressStringFormat): Future[Either[Throwable, ResultOfConvertAddress]]
 }
@@ -1058,19 +1078,19 @@ package tvm {
    * If you need this emulation to be as precise as possible then specify `ParamsOfRunExecutor` parameter.
    * If you need to see the aborted transaction as a result, not as an error, set `skip_transaction_check` to `true`.
    * @param message Must be encoded as base64.
-   * @param account
-   * @param execution_options
-   * @param abi
-   * @param skip_transaction_check
+   * @param account account
+   * @param execution_options execution_options
+   * @param abi abi
+   * @param skip_transaction_check skip_transaction_check
    */
   def runExecutor(message: String, account: AccountForExecutor, execution_options: Option[ExecutionOptions], abi: Option[Abi], skip_transaction_check: Option[Boolean]): Future[Either[Throwable, ResultOfRunExecutor]]
   /**
    * Executes a getmethod of FIFT contract that fulfills the smc-guidelines https://test.ton.org/smc-guidelines.txt
    * and returns the result data from TVM's stack
-   * @param account
-   * @param function_name
-   * @param input
-   * @param execution_options
+   * @param account account
+   * @param function_name function_name
+   * @param input input
+   * @param execution_options execution_options
    */
   def runGet(account: String, function_name: String, input: Option[Value], execution_options: Option[ExecutionOptions]): Future[Either[Throwable, ResultOfRunGet]]
   /**
@@ -1089,13 +1109,27 @@ package tvm {
    * `account_state.storage.state.data`  part of the boc is updated.
    * @param message Must be encoded as base64.
    * @param account Must be encoded as base64.
-   * @param execution_options
-   * @param abi
+   * @param execution_options execution_options
+   * @param abi abi
    */
   def runTvm(message: String, account: String, execution_options: Option[ExecutionOptions], abi: Option[Abi]): Future[Either[Throwable, ResultOfRunTvm]]
 }
 package net {
+  sealed trait AggregationFn
+  object AggregationFn {
+    /** Returns an average value for a field in filtered records */
+    case object AVERAGE extends AggregationFn
+    /** Returns count of filtered record */
+    case object COUNT extends AggregationFn
+    /** Returns the maximal value for a field in filtered records */
+    case object MAX extends AggregationFn
+    /** Returns the minimal value for a field in filtered records */
+    case object MIN extends AggregationFn
+    /** Returns a sum of values for a field in filtered records */
+    case object SUM extends AggregationFn
+  }
   case class EndpointsSet(endpoints: List[String])
+  case class FieldAggregation(field: String, fn: AggregationFn)
   sealed trait NetErrorCode {
     val code: String
   }
@@ -1109,8 +1143,14 @@ package net {
     case object GraphqlError extends NetErrorCode {
       override val code: String = "608"
     }
+    case object GraphqlWebsocketInitError extends NetErrorCode {
+      override val code: String = "613"
+    }
     case object InvalidServerResponse extends NetErrorCode {
       override val code: String = "605"
+    }
+    case object NetworkModuleResumed extends NetErrorCode {
+      override val code: String = "614"
     }
     case object NetworkModuleSuspended extends NetErrorCode {
       override val code: String = "609"
@@ -1138,11 +1178,21 @@ package net {
     }
   }
   case class OrderBy(path: String, direction: SortDirection)
+  case class ParamsOfAggregateCollection(collection: String, filter: Option[Value], fields: Option[List[FieldAggregation]])
+  case class ParamsOfBatchQuery(operations: List[ParamsOfQueryOperation])
   case class ParamsOfFindLastShardBlock(address: String)
   case class ParamsOfQuery(query: String, variables: Option[Value])
   case class ParamsOfQueryCollection(collection: String, filter: Option[Value], result: String, order: Option[List[OrderBy]], limit: Option[Long])
+  sealed trait ParamsOfQueryOperation
+  object ParamsOfQueryOperation {
+    case class AggregateCollection(value: ParamsOfAggregateCollection) extends ParamsOfQueryOperation
+    case class QueryCollection(value: ParamsOfQueryCollection) extends ParamsOfQueryOperation
+    case class WaitForCollection(value: ParamsOfWaitForCollection) extends ParamsOfQueryOperation
+  }
   case class ParamsOfSubscribeCollection(collection: String, filter: Option[Value], result: String)
   case class ParamsOfWaitForCollection(collection: String, filter: Option[Value], result: String, timeout: Option[Long])
+  case class ResultOfAggregateCollection(values: Value)
+  case class ResultOfBatchQuery(results: List[Value])
   case class ResultOfFindLastShardBlock(block_id: String)
   case class ResultOfQuery(result: Value)
   case class ResultOfQueryCollection(result: List[Value])
@@ -1155,17 +1205,31 @@ package net {
   }
 }
 package net {
+  /**
+   * Aggregates collection data.
+   * Aggregates values from the specified `fields` for records
+   * that satisfies the `filter` conditions,
+   * @param collection collection
+   * @param filter filter
+   * @param fields fields
+   */
+  def aggregateCollection(collection: String, filter: Option[Value], fields: Option[List[FieldAggregation]]): Future[Either[Throwable, ResultOfAggregateCollection]]
+  /**
+   * Performs multiple queries per single fetch.
+   * @param operations operations
+   */
+  def batchQuery(operations: List[ParamsOfQueryOperation]): Future[Either[Throwable, ResultOfBatchQuery]]
   /** Requests the list of alternative endpoints from server */
   def fetchEndpoints(): Future[Either[Throwable, EndpointsSet]]
   /**
    * Returns ID of the last block in a specified account shard
-   * @param address
+   * @param address address
    */
   def findLastShardBlock(address: String): Future[Either[Throwable, ResultOfFindLastShardBlock]]
   /**
    * Performs DAppServer GraphQL query.
-   * @param query
-   * @param variables Must be a map with named values thatcan be used in query.
+   * @param query query
+   * @param variables Must be a map with named values that can be used in query.
    */
   def query(query: String, variables: Option[Value]): Future[Either[Throwable, ResultOfQuery]]
   /**
@@ -1173,18 +1237,18 @@ package net {
    * Queries data that satisfies the `filter` conditions,
    * limits the number of returned records and orders them.
    * The projection fields are limited to `result` fields
-   * @param collection
-   * @param filter
-   * @param result
-   * @param order
-   * @param limit
+   * @param collection collection
+   * @param filter filter
+   * @param result result
+   * @param order order
+   * @param limit limit
    */
   def queryCollection(collection: String, filter: Option[Value], result: String, order: Option[List[OrderBy]], limit: Option[Long]): Future[Either[Throwable, ResultOfQueryCollection]]
   /** Resumes network module to enable network activity */
   def resume(): Future[Either[Throwable, Unit]]
   /**
    * Sets the list of endpoints to use on reinit
-   * @param endpoints
+   * @param endpoints endpoints
    */
   def setEndpoints(endpoints: List[String]): Future[Either[Throwable, Unit]]
   /**
@@ -1192,10 +1256,10 @@ package net {
    * Triggers for each insert/update of data
    * that satisfies the `filter` conditions.
    * The projection fields are limited to `result` fields.
-   * @param collection
-   * @param filter
-   * @param result
-   * @param callback
+   * @param collection collection
+   * @param filter filter
+   * @param result result
+   * @param callback callback
    */
   def subscribeCollection(collection: String, filter: Option[Value], result: String, callback: Request): Future[Either[Throwable, ResultOfSubscribeCollection]]
   /** Suspends network module to stop any network activity */
@@ -1213,10 +1277,10 @@ package net {
    * If not - waits for insert/update of data within the specified `timeout`,
    * and returns it.
    * The projection fields are limited to `result` fields
-   * @param collection
-   * @param filter
-   * @param result
-   * @param timeout
+   * @param collection collection
+   * @param filter filter
+   * @param result result
+   * @param timeout timeout
    */
   def waitForCollection(collection: String, filter: Option[Value], result: String, timeout: Option[Long]): Future[Either[Throwable, ResultOfWaitForCollection]]
 }
@@ -1233,8 +1297,17 @@ package debot {
     case object DebotFetchFailed extends DebotErrorCode {
       override val code: String = "802"
     }
+    case object DebotInvalidAbi extends DebotErrorCode {
+      override val code: String = "807"
+    }
+    case object DebotInvalidFunctionId extends DebotErrorCode {
+      override val code: String = "806"
+    }
     case object DebotInvalidHandle extends DebotErrorCode {
       override val code: String = "804"
+    }
+    case object DebotInvalidJsonParams extends DebotErrorCode {
+      override val code: String = "805"
     }
     case object DebotStartFailed extends DebotErrorCode {
       override val code: String = "801"
@@ -1272,6 +1345,11 @@ package debot {
      * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
      * Called by debot engine to communicate with debot browser.
      */
+    case class Send(message: String) extends ParamsOfAppDebotBrowser
+    /**
+     * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
+     * Called by debot engine to communicate with debot browser.
+     */
     case class ShowAction(action: DebotAction) extends ParamsOfAppDebotBrowser
     /**
      * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
@@ -1285,6 +1363,8 @@ package debot {
   case class ParamsOfExecute(debot_handle: DebotHandle, action: DebotAction)
   /** [UNSTABLE](UNSTABLE.md) Parameters to fetch debot. */
   case class ParamsOfFetch(address: String)
+  /** [UNSTABLE](UNSTABLE.md) Parameters of `send` function. */
+  case class ParamsOfSend(debot_handle: DebotHandle, source: String, func_id: Long, params: String)
   /** [UNSTABLE](UNSTABLE.md) Parameters to start debot. */
   case class ParamsOfStart(address: String)
   /** [UNSTABLE](UNSTABLE.md) Structure for storing debot handle returned from `start` and `fetch` functions. */
@@ -1308,8 +1388,8 @@ package debot {
    *
    * # Remarks
    * Chain of actions can be executed if input action generates a list of subactions.
-   * @param debot_handle
-   * @param action
+   * @param debot_handle debot_handle
+   * @param action action
    */
   def execute(debot_handle: DebotHandle, action: DebotAction): Future[Either[Throwable, Unit]]
   /**
@@ -1319,16 +1399,25 @@ package debot {
    *
    * # Remarks
    * It does not switch debot to context 0. Browser Callbacks are not called.
-   * @param address
-   * @param app_object
+   * @param address address
+   * @param app_object app_object
    */
   def fetch(address: String, app_object: ParamsOfAppDebotBrowser => ResultOfAppDebotBrowser): Future[Either[Throwable, RegisteredDebot]]
   /**
    * [UNSTABLE](UNSTABLE.md) Destroys debot handle.
    * Removes handle from Client Context and drops debot engine referenced by that handle.
-   * @param debot_handle
+   * @param debot_handle debot_handle
    */
   def remove(debot_handle: DebotHandle): Future[Either[Throwable, Unit]]
+  /**
+   * [UNSTABLE](UNSTABLE.md) Sends message to Debot.
+   * Used by Debot Browser to send response on Dinterface call or from other Debots.
+   * @param debot_handle debot_handle
+   * @param source source
+   * @param func_id func_id
+   * @param params params
+   */
+  def send(debot_handle: DebotHandle, source: String, func_id: Long, params: String): Future[Either[Throwable, Unit]]
   /**
    * [UNSTABLE](UNSTABLE.md) Starts an instance of debot.
    * Downloads debot smart contract from blockchain and switches it to
@@ -1340,8 +1429,8 @@ package debot {
    *
    * # Remarks
    * `start` is equivalent to `fetch` + switch to context 0.
-   * @param address
-   * @param app_object
+   * @param address address
+   * @param app_object app_object
    */
   def start(address: String, app_object: ParamsOfAppDebotBrowser => ResultOfAppDebotBrowser): Future[Either[Throwable, RegisteredDebot]]
 }

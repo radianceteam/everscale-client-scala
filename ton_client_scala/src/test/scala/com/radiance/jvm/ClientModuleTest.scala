@@ -20,7 +20,6 @@ class ClientModuleTest extends AnyFlatSpec with TestBase {
     val buildInfo = clientModule.buildInfo.get
     println(s"BuildNumber: ${buildInfo.build_number}")
     val apiReference = clientModule.getApiReference.get.api.spaces2
-    println(apiReference)
     assert(res.version.nonEmpty && apiReference.nonEmpty)
   }
 }

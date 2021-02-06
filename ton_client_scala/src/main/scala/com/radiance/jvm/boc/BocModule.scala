@@ -30,6 +30,7 @@ class BocModule(private val ctx: Context) {
   /**
    * Extracts code from TVC contract image
    * @param tvc
+   *   tvc
    */
   def getCodeFromTvc(
     tvc: String

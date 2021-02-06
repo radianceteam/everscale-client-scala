@@ -24,22 +24,27 @@ sealed trait DebotErrorCode {
 
 object DebotErrorCode {
 
-  case object DebotStartFailed extends DebotErrorCode {
-    override val code: String = "801"
-  }
-
-  case object DebotFetchFailed extends DebotErrorCode {
-    override val code: String = "802"
-  }
-
   case object DebotExecutionFailed extends DebotErrorCode {
     override val code: String = "803"
   }
-
+  case object DebotFetchFailed extends DebotErrorCode {
+    override val code: String = "802"
+  }
+  case object DebotInvalidAbi extends DebotErrorCode {
+    override val code: String = "807"
+  }
+  case object DebotInvalidFunctionId extends DebotErrorCode {
+    override val code: String = "806"
+  }
   case object DebotInvalidHandle extends DebotErrorCode {
     override val code: String = "804"
   }
-
+  case object DebotInvalidJsonParams extends DebotErrorCode {
+    override val code: String = "805"
+  }
+  case object DebotStartFailed extends DebotErrorCode {
+    override val code: String = "801"
+  }
 }
 
 case class DebotHandle(value: BigInt)
@@ -59,6 +64,11 @@ object ParamsOfAppDebotBrowser {
    * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
    */
   case class Log(msg: String) extends ParamsOfAppDebotBrowser
+
+  /**
+   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   */
+  case class Send(message: String) extends ParamsOfAppDebotBrowser
 
   /**
    * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
@@ -126,6 +136,12 @@ object ResultOfAppDebotBrowser {
     implicit val encoder: Encoder[ParamsOfFetch] = deriveEncoder[ParamsOfFetch]
   }
 
+  // TODO implement it
+  /**
+   * [UNSTABLE](UNSTABLE.md) Parameters of `send` function.
+   */
+  case class ParamsOfSend(debot_handle: DebotHandle, source: String, func_id: Long, params: String)
+
   case class ParamsOfExecute(debot_handle: DebotHandle, action: DebotAction) extends Bind {
     override type Out = Unit
     override val decoder: Decoder[Unit] = implicitly[Decoder[Unit]]
@@ -136,5 +152,4 @@ object ResultOfAppDebotBrowser {
       deriveEncoder[ParamsOfExecute]
   }
 
-  // TODO add decoder
 }

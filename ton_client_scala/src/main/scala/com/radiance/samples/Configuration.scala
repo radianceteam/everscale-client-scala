@@ -12,11 +12,12 @@ object Configuration {
       "net.ton.dev".some, // server_address:             Option[String]
       None, // endpoints:                  Option[List[String]]
       5.some, // network_retries_count:      Option[Int]
+      30000L.some, // max_reconnect_timeout:      Option[Long]
+      30000L.some, // reconnect_timeout:          Option[Long]
       5.some, // message_retries_count:      Option[Int]
       60000L.some, // message_processing_timeout: Option[Long]
       60000L.some, // wait_for_timeout:           Option[Long]
       30000L.some, // out_of_sync_threshold:      Option[Long]
-      30000L.some, // reconnect_timeout:          Option[Long]
       "".some // access_key:                 Option[String]
     )
 

@@ -5,9 +5,63 @@ import scala.concurrent.Future
 
 class NetModule(private val ctx: Context) {
 
+  // TODO add test
+  /**
+   * Aggregates collection data. Aggregates values from the specified `fields` for records that satisfies the `filter`
+   * conditions,
+   * @param collection
+   *   collection
+   * @param filter
+   *   filter
+   * @param fields
+   *   fields
+   */
+  def aggregateCollection(
+    collection: String,
+    filter: Option[Value],
+    fields: Option[List[FieldAggregation]]
+  ): Future[Either[Throwable, ResultOfAggregateCollection]] = {
+    val arg = ParamsOfAggregateCollection(collection, filter, fields)
+    ctx.execAsync("net.aggregate_collection", arg)
+  }
+
+  // TODO add test
+  /**
+   * Performs multiple queries per single fetch.
+   * @param operations
+   *   operations
+   */
+  def batchQuery(
+    operations: List[ParamsOfQueryOperation]
+  ): Future[Either[Throwable, ResultOfBatchQuery]] = {
+    val arg = ParamsOfBatchQuery(operations)
+    ctx.execAsync("net.batch_query", arg)
+  }
+
+  /**
+   * Requests the list of alternative endpoints from server
+   */
+  def fetchEndpoints(): Future[Either[Throwable, EndpointsSet]] = {
+    ctx.execAsyncParameterless[EndpointsSet]("net.fetch_endpoints")
+  }
+
+  /**
+   * Returns ID of the last block in a specified account shard
+   * @param address
+   *   address
+   */
+  def findLastShardBlock(
+    address: String
+  ): Future[Either[Throwable, ResultOfFindLastShardBlock]] = {
+    val arg = ParamsOfFindLastShardBlock(address)
+    ctx.execAsync("net.find_last_shard_block", arg)
+  }
+
   /**
    * @param query
-   *   @param variables Must be a map with named values thatcan be used in query.
+   *   query
+   * @param variables
+   *   Must be a map with named values that can be used in query.
    */
   def query(
     query: String,
@@ -49,6 +103,16 @@ class NetModule(private val ctx: Context) {
    */
   def resume(): Future[Either[Throwable, Unit]] = {
     ctx.execAsyncParameterless[Unit]("net.resume")
+  }
+
+  /**
+   * Sets the list of endpoints to use on reinit
+   * @param endpoints
+   *   endpoints
+   */
+  def setEndpoints(endpoints: List[String]): Future[Either[Throwable, Unit]] = {
+    val arg = EndpointsSet(endpoints)
+    ctx.execAsyncVoid("net.set_endpoints", arg)
   }
 
   /**
@@ -117,33 +181,6 @@ class NetModule(private val ctx: Context) {
   ): Future[Either[Throwable, ResultOfWaitForCollection]] = {
     val arg = ParamsOfWaitForCollection(collection, filter, result, timeout)
     ctx.execAsync("net.wait_for_collection", arg)
-  }
-
-  /**
-   * Sets the list of endpoints to use on reinit
-   * @param endpoints
-   */
-  def setEndpoints(endpoints: List[String]): Future[Either[Throwable, Unit]] = {
-    val arg = EndpointsSet(endpoints)
-    ctx.execAsyncVoid("net.set_endpoints", arg)
-  }
-
-  /**
-   * Requests the list of alternative endpoints from server
-   */
-  def fetchEndpoints(): Future[Either[Throwable, EndpointsSet]] = {
-    ctx.execAsyncParameterless[EndpointsSet]("net.fetch_endpoints")
-  }
-
-  /**
-   * Returns ID of the last block in a specified account shard
-   * @param address
-   */
-  def findLastShardBlock(
-    address: String
-  ): Future[Either[Throwable, ResultOfFindLastShardBlock]] = {
-    val arg = ParamsOfFindLastShardBlock(address)
-    ctx.execAsync("net.find_last_shard_block", arg)
   }
 
 }

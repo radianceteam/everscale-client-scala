@@ -70,7 +70,9 @@ class CryptoModule(private val ctx: Context) {
 
   /**
    * @param public
-   *   @param secret
+   *   public
+   * @param secret
+   *   secret
    */
   def getSigningBox(
     public: String,
@@ -315,7 +317,7 @@ class CryptoModule(private val ctx: Context) {
    * @param encrypted
    *   text
    * @param nonce
-   *
+   *   nonce
    * @param their_public
    *   Sender's public key - unprefixed 0-padded to 64 symbols hex string
    * @param secret
@@ -398,6 +400,28 @@ class CryptoModule(private val ctx: Context) {
         ParamsOfNaclSignDetached(unsigned, secret)
       )
 
+  // TODO add test
+  /**
+   * Verifies the signature with public key and `unsigned` data.
+   * @param unsigned
+   *   Encoded with `base64`.
+   * @param signature
+   *   Encoded with `hex`.
+   * @param public
+   */
+  def naclSignDetachedVerify(
+    unsigned: String,
+    signature: String,
+    public: String
+  ): Either[Throwable, ResultOfNaclSignDetachedVerify] = {
+    val arg = ParamsOfNaclSignDetachedVerify(unsigned, signature, public)
+    ctx
+      .execSync(
+        "crypto.nacl_sign_detached_verify",
+        arg
+      )
+  }
+
   /**
    * Generates a key pair for signing from the secret key
    * @param secret
@@ -425,6 +449,7 @@ class CryptoModule(private val ctx: Context) {
 
   /**
    * @param app_object
+   *   app_object
    */
   def registerSigningBox(
     app_object: AppObject[ParamsOfAppSigningBox, ResultOfAppSigningBox]
@@ -439,6 +464,7 @@ class CryptoModule(private val ctx: Context) {
 
   /**
    * @param handle
+   *   handle
    */
   def removeSigningBox(handle: SigningBoxHandle): Future[Either[Throwable, Unit]] = {
     ctx.unregisterAppObject(handle.value.toInt, "crypto.remove_signing_box")
@@ -521,7 +547,9 @@ class CryptoModule(private val ctx: Context) {
 
   /**
    * @param signing_box
-   *   @param unsigned Must be encoded with `base64`.
+   *   signing_box
+   * @param unsigned
+   *   Must be encoded with `base64`.
    */
   def signingBoxSign(
     signing_box: SigningBoxHandle,

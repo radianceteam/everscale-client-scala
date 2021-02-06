@@ -14,44 +14,16 @@ sealed trait CryptoErrorCode {
 
 object CryptoErrorCode {
 
-  case object InvalidPublicKey extends CryptoErrorCode {
-    override val code: String = "100"
+  case object Bip32InvalidDerivePath extends CryptoErrorCode {
+    override val code: String = "116"
   }
 
-  case object InvalidSecretKey extends CryptoErrorCode {
-    override val code: String = "101"
+  case object Bip32InvalidKey extends CryptoErrorCode {
+    override val code: String = "115"
   }
 
-  case object InvalidKey extends CryptoErrorCode {
-    override val code: String = "102"
-  }
-
-  case object InvalidFactorizeChallenge extends CryptoErrorCode {
-    override val code: String = "106"
-  }
-
-  case object InvalidBigInt extends CryptoErrorCode {
-    override val code: String = "107"
-  }
-
-  case object ScryptFailed extends CryptoErrorCode {
-    override val code: String = "108"
-  }
-
-  case object InvalidKeySize extends CryptoErrorCode {
-    override val code: String = "109"
-  }
-
-  case object NaclSecretBoxFailed extends CryptoErrorCode {
-    override val code: String = "110"
-  }
-
-  case object NaclBoxFailed extends CryptoErrorCode {
-    override val code: String = "111"
-  }
-
-  case object NaclSignFailed extends CryptoErrorCode {
-    override val code: String = "112"
+  case object Bip39InvalidDictionary extends CryptoErrorCode {
+    override val code: String = "117"
   }
 
   case object Bip39InvalidEntropy extends CryptoErrorCode {
@@ -62,28 +34,60 @@ object CryptoErrorCode {
     override val code: String = "114"
   }
 
-  case object Bip32InvalidKey extends CryptoErrorCode {
-    override val code: String = "115"
-  }
-
-  case object Bip32InvalidDerivePath extends CryptoErrorCode {
-    override val code: String = "116"
-  }
-
-  case object Bip39InvalidDictionary extends CryptoErrorCode {
-    override val code: String = "117"
-  }
-
   case object Bip39InvalidWordCount extends CryptoErrorCode {
     override val code: String = "118"
+  }
+
+  case object InvalidBigInt extends CryptoErrorCode {
+    override val code: String = "107"
+  }
+
+  case object InvalidFactorizeChallenge extends CryptoErrorCode {
+    override val code: String = "106"
+  }
+
+  case object InvalidKey extends CryptoErrorCode {
+    override val code: String = "102"
+  }
+
+  case object InvalidKeySize extends CryptoErrorCode {
+    override val code: String = "109"
+  }
+
+  case object InvalidPublicKey extends CryptoErrorCode {
+    override val code: String = "100"
+  }
+
+  case object InvalidSecretKey extends CryptoErrorCode {
+    override val code: String = "101"
+  }
+
+  case object InvalidSignature extends CryptoErrorCode {
+    override val code: String = "122"
+  }
+
+  case object MnemonicFromEntropyFailed extends CryptoErrorCode {
+    override val code: String = "120"
   }
 
   case object MnemonicGenerationFailed extends CryptoErrorCode {
     override val code: String = "119"
   }
 
-  case object MnemonicFromEntropyFailed extends CryptoErrorCode {
-    override val code: String = "120"
+  case object NaclBoxFailed extends CryptoErrorCode {
+    override val code: String = "111"
+  }
+
+  case object NaclSecretBoxFailed extends CryptoErrorCode {
+    override val code: String = "110"
+  }
+
+  case object NaclSignFailed extends CryptoErrorCode {
+    override val code: String = "112"
+  }
+
+  case object ScryptFailed extends CryptoErrorCode {
+    override val code: String = "108"
   }
 
   case object SigningBoxNotRegistered extends CryptoErrorCode {
@@ -420,6 +424,16 @@ object ParamsOfNaclSign {
     deriveEncoder[ParamsOfNaclSign]
 }
 
+case class ParamsOfNaclSignDetachedVerify(unsigned: String, signature: String, public: String) extends Bind {
+  override type Out = ResultOfNaclSignDetachedVerify
+  override val decoder: Decoder[ResultOfNaclSignDetachedVerify] = implicitly[Decoder[ResultOfNaclSignDetachedVerify]]
+}
+
+object ParamsOfNaclSignDetachedVerify {
+  implicit val encoder: Encoder[ParamsOfNaclSignDetachedVerify] =
+    deriveEncoder[ParamsOfNaclSignDetachedVerify]
+}
+
 // TODO were added
 case class ParamsOfNaclSignDetached(unsigned: String, secret: String) extends Bind {
   override type Out = ResultOfNaclSignDetached
@@ -690,6 +704,13 @@ case class ResultOfNaclSignDetached(signature: String)
 object ResultOfNaclSignDetached {
   implicit val decoder: Decoder[ResultOfNaclSignDetached] =
     deriveDecoder[ResultOfNaclSignDetached]
+}
+
+case class ResultOfNaclSignDetachedVerify(succeeded: Boolean)
+
+object ResultOfNaclSignDetachedVerify {
+  implicit val decoder: Decoder[ResultOfNaclSignDetachedVerify] =
+    deriveDecoder[ResultOfNaclSignDetachedVerify]
 }
 
 case class ResultOfNaclSignOpen(unsigned: String)

@@ -249,6 +249,13 @@ class Context private (var contextId: Int)(implicit
     callNativeAsync(functionName, arg.asJson.deepDropNullValues.noSpaces)
       .map(r => parse(r).flatMap(_.as[arg.Out](arg.decoder)))
 
+  private[jvm] def execAsyncNew[In: Encoder, Out: Decoder](
+    functionName: String,
+    arg: In
+  ): Future[Either[Throwable, Out]] =
+    callNativeAsync(functionName, arg.asJson.deepDropNullValues.noSpaces)
+      .map(r => parse(r).flatMap(_.as[Out]))
+
   private[jvm] def registerAppObject[Out: Decoder, T, V](
     functionName: String,
     params: String,

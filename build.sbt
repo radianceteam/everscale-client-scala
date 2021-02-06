@@ -1,8 +1,10 @@
 import scala.sys.process.Process
 
-val currentBranch = "1.6.0-rc"
+val currentBranch = "master"
 val pathToCmakeWin = """C:\Program Files\JetBrains\CLion 2020.2.4\bin\cmake\win\bin\cmake.exe"""
 val pathToCmakeLinux = """/usr/bin/cmake"""
+val pathToTonClientHeaderSdk = "TON-SDK/ton_client"
+val pathToTonClientHeaderNative = "native/include"
 
 lazy val pathToExternalDll = SettingKey[File]("pathToExternalDll")
 lazy val pathToBridgeDll = SettingKey[File]("pathToBridgeDll")
@@ -14,8 +16,8 @@ val root = project in file(".")
 
 lazy val ton_client_scala = project
   .settings(
-    scalaVersion := "2.13.3",
-    version := "1.1.0",
+    scalaVersion := "2.13.4",
+    version := "1.6.0",
     libraryDependencies ++= Seq(
       "io.circe"      %% "circe-core"         % "0.14.0-M1",
       "io.circe"      %% "circe-derivation"   % "0.13.0-M4",
@@ -77,7 +79,9 @@ lazy val buildBridgeImpl = Def.task {
   OperationSystem.define match {
     case Windows =>
       Process("cmd /C chcp 65001").!
-      val createDir = "cmd /C if not exist build mkdir build"
+      val deleteDir = "cmd /C if exist build rm /S /Q build"
+      Process(deleteDir, new File("native")).!
+      val createDir = "cmd /C mkdir build"
       Process(createDir, new File("native")).!
       val cmakeLoadCommand =
         s""""$pathToCmakeWin" -DCMAKE_BUILD_TYPE=Release -G "CodeBlocks - NMake Makefiles" $pathToParent"""
