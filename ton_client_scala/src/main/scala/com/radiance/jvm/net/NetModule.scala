@@ -22,7 +22,7 @@ class NetModule(private val ctx: Context) {
     fields: Option[List[FieldAggregation]]
   ): Future[Either[Throwable, ResultOfAggregateCollection]] = {
     val arg = ParamsOfAggregateCollection(collection, filter, fields)
-    ctx.execAsync("net.aggregate_collection", arg)
+    ctx.execAsync[ParamsOfAggregateCollection, ResultOfAggregateCollection]("net.aggregate_collection", arg)
   }
 
   // TODO add test
@@ -35,14 +35,14 @@ class NetModule(private val ctx: Context) {
     operations: List[ParamsOfQueryOperation]
   ): Future[Either[Throwable, ResultOfBatchQuery]] = {
     val arg = ParamsOfBatchQuery(operations)
-    ctx.execAsync("net.batch_query", arg)
+    ctx.execAsync[ParamsOfBatchQuery, ResultOfBatchQuery]("net.batch_query", arg)
   }
 
   /**
    * Requests the list of alternative endpoints from server
    */
   def fetchEndpoints(): Future[Either[Throwable, EndpointsSet]] = {
-    ctx.execAsyncParameterless[EndpointsSet]("net.fetch_endpoints")
+    ctx.execAsync[Unit, EndpointsSet]("net.fetch_endpoints", ())
   }
 
   /**
@@ -54,7 +54,7 @@ class NetModule(private val ctx: Context) {
     address: String
   ): Future[Either[Throwable, ResultOfFindLastShardBlock]] = {
     val arg = ParamsOfFindLastShardBlock(address)
-    ctx.execAsync("net.find_last_shard_block", arg)
+    ctx.execAsync[ParamsOfFindLastShardBlock, ResultOfFindLastShardBlock]("net.find_last_shard_block", arg)
   }
 
   /**
@@ -68,7 +68,7 @@ class NetModule(private val ctx: Context) {
     variables: Option[Value]
   ): Future[Either[Throwable, ResultOfQuery]] = {
     val arg = ParamsOfQuery(query, variables)
-    ctx.execAsync("net.query", arg)
+    ctx.execAsync[ParamsOfQuery, ResultOfQuery]("net.query", arg)
   }
 
   /**
@@ -95,14 +95,14 @@ class NetModule(private val ctx: Context) {
     limit: Option[Long]
   ): Future[Either[Throwable, ResultOfQueryCollection]] = {
     val arg = ParamsOfQueryCollection(collection, filter, result, order, limit)
-    ctx.execAsync("net.query_collection", arg)
+    ctx.execAsync[ParamsOfQueryCollection, ResultOfQueryCollection]("net.query_collection", arg)
   }
 
   /**
    * Resumes network module to enable network activity
    */
   def resume(): Future[Either[Throwable, Unit]] = {
-    ctx.execAsyncParameterless[Unit]("net.resume")
+    ctx.execAsync[Unit, Unit]("net.resume", ())
   }
 
   /**
@@ -112,7 +112,7 @@ class NetModule(private val ctx: Context) {
    */
   def setEndpoints(endpoints: List[String]): Future[Either[Throwable, Unit]] = {
     val arg = EndpointsSet(endpoints)
-    ctx.execAsyncVoid("net.set_endpoints", arg)
+    ctx.execAsync[EndpointsSet, Unit]("net.set_endpoints", arg)
   }
 
   /**
@@ -136,14 +136,18 @@ class NetModule(private val ctx: Context) {
     callback: Request
   ): Future[Either[Throwable, ResultOfSubscribeCollection]] = {
     val arg = ParamsOfSubscribeCollection(collection, filter, result)
-    ctx.execAsyncWithCallback("net.subscribe_collection", arg, callback)
+    ctx.execAsyncWithCallback[ParamsOfSubscribeCollection, ResultOfSubscribeCollection](
+      "net.subscribe_collection",
+      arg,
+      callback
+    )
   }
 
   /**
    * Suspends network module to stop any network activity
    */
   def suspend(): Future[Either[Throwable, Unit]] = {
-    ctx.execAsyncParameterless[Unit]("net.suspend")
+    ctx.execAsync[Unit, Unit]("net.suspend", ())
   }
 
   /**
@@ -154,8 +158,8 @@ class NetModule(private val ctx: Context) {
    *   Subscription handle. Must be closed with `unsubscribe`
    */
   def unsubscribe(handle: Long): Future[Either[Throwable, Unit]] = {
-    val arg = ParamsOfUnsubscribeCollection(handle)
-    ctx.execAsync("net.unsubscribe", arg)
+    val arg = ResultOfSubscribeCollection(handle)
+    ctx.execAsync[ResultOfSubscribeCollection, Unit]("net.unsubscribe", arg)
   }
 
   /**
@@ -180,7 +184,7 @@ class NetModule(private val ctx: Context) {
     timeout: Option[Long]
   ): Future[Either[Throwable, ResultOfWaitForCollection]] = {
     val arg = ParamsOfWaitForCollection(collection, filter, result, timeout)
-    ctx.execAsync("net.wait_for_collection", arg)
+    ctx.execAsync[ParamsOfWaitForCollection, ResultOfWaitForCollection]("net.wait_for_collection", arg)
   }
 
 }

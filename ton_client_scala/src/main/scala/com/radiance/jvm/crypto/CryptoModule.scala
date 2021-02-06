@@ -22,7 +22,7 @@ class CryptoModule(private val ctx: Context) {
     nonce: String
   ): Either[Throwable, ResultOfChaCha20] =
     ctx
-      .execSync("crypto.chacha20", ParamsOfChaCha20(data, key, nonce))
+      .execSync[ParamsOfChaCha20, ResultOfChaCha20]("crypto.chacha20", ParamsOfChaCha20(data, key, nonce))
 
   /**
    * Converts public key to ton safe_format
@@ -32,7 +32,7 @@ class CryptoModule(private val ctx: Context) {
   def convertPublicKeyToTonSafeFormat(
     public_key: String
   ): Either[Throwable, ResultOfConvertPublicKeyToTonSafeFormat] =
-    ctx.execSync(
+    ctx.execSync[ParamsOfConvertPublicKeyToTonSafeFormat, ResultOfConvertPublicKeyToTonSafeFormat](
       "crypto.convert_public_key_to_ton_safe_format",
       ParamsOfConvertPublicKeyToTonSafeFormat(public_key)
     )
@@ -45,7 +45,7 @@ class CryptoModule(private val ctx: Context) {
    */
   def factorize(composite: String): Either[Throwable, ResultOfFactorize] =
     ctx
-      .execSync("crypto.factorize", ParamsOfFactorize(composite))
+      .execSync[ParamsOfFactorize, ResultOfFactorize]("crypto.factorize", ParamsOfFactorize(composite))
 
   /**
    * Generates random byte array of the specified length and returns it in `base64` format
@@ -56,7 +56,7 @@ class CryptoModule(private val ctx: Context) {
     length: Long
   ): Either[Throwable, ResultOfGenerateRandomBytes] =
     ctx
-      .execSync(
+      .execSync[ParamsOfGenerateRandomBytes, ResultOfGenerateRandomBytes](
         "crypto.generate_random_bytes",
         ParamsOfGenerateRandomBytes(length)
       )
@@ -66,7 +66,7 @@ class CryptoModule(private val ctx: Context) {
    */
   def generateRandomSignKeys: Either[Throwable, KeyPair] =
     ctx
-      .execSyncParameterless[KeyPair]("crypto.generate_random_sign_keys")
+      .execSync[Unit, KeyPair]("crypto.generate_random_sign_keys", ())
 
   /**
    * @param public
@@ -79,7 +79,7 @@ class CryptoModule(private val ctx: Context) {
     secret: String
   ): Either[Throwable, RegisteredSigningBox] = {
     val arg = KeyPair(public, secret)
-    ctx.execSync("crypto.get_signing_box", arg)
+    ctx.execSync[KeyPair, RegisteredSigningBox]("crypto.get_signing_box", arg)
   }
 
   /**
@@ -96,7 +96,7 @@ class CryptoModule(private val ctx: Context) {
     child_index: Long,
     hardened: Boolean
   ): Either[Throwable, ResultOfHDKeyDeriveFromXPrv] =
-    ctx.execSync(
+    ctx.execSync[ParamsOfHDKeyDeriveFromXPrv, ResultOfHDKeyDeriveFromXPrv](
       "crypto.hdkey_derive_from_xprv",
       ParamsOfHDKeyDeriveFromXPrv(xprv, child_index, hardened)
     )
@@ -113,7 +113,7 @@ class CryptoModule(private val ctx: Context) {
     path: String
   ): Either[Throwable, ResultOfHDKeyDeriveFromXPrvPath] =
     ctx
-      .execSync(
+      .execSync[ParamsOfHDKeyDeriveFromXPrvPath, ResultOfHDKeyDeriveFromXPrvPath](
         "crypto.hdkey_derive_from_xprv_path",
         ParamsOfHDKeyDeriveFromXPrvPath(xprv, path)
       )
@@ -127,7 +127,7 @@ class CryptoModule(private val ctx: Context) {
     xprv: String
   ): Either[Throwable, ResultOfHDKeyPublicFromXPrv] =
     ctx
-      .execSync(
+      .execSync[ParamsOfHDKeyPublicFromXPrv, ResultOfHDKeyPublicFromXPrv](
         "crypto.hdkey_public_from_xprv",
         ParamsOfHDKeyPublicFromXPrv(xprv: String)
       )
@@ -141,7 +141,7 @@ class CryptoModule(private val ctx: Context) {
     xprv: String
   ): Either[Throwable, ResultOfHDKeySecretFromXPrv] =
     ctx
-      .execSync(
+      .execSync[ParamsOfHDKeySecretFromXPrv, ResultOfHDKeySecretFromXPrv](
         "crypto.hdkey_secret_from_xprv",
         ParamsOfHDKeySecretFromXPrv(xprv)
       )
@@ -160,7 +160,7 @@ class CryptoModule(private val ctx: Context) {
     dictionary: Option[Long],
     word_count: Option[Long]
   ): Either[Throwable, ResultOfHDKeyXPrvFromMnemonic] =
-    ctx.execSync(
+    ctx.execSync[ParamsOfHDKeyXPrvFromMnemonic, ResultOfHDKeyXPrvFromMnemonic](
       "crypto.hdkey_xprv_from_mnemonic",
       ParamsOfHDKeyXPrvFromMnemonic(phrase, dictionary, word_count)
     )
@@ -183,7 +183,7 @@ class CryptoModule(private val ctx: Context) {
     dictionary: Option[Long],
     word_count: Option[Long]
   ): Either[Throwable, KeyPair] =
-    ctx.execSync(
+    ctx.execSync[ParamsOfMnemonicDeriveSignKeys, KeyPair](
       "crypto.mnemonic_derive_sign_keys",
       ParamsOfMnemonicDeriveSignKeys(phrase, path, dictionary, word_count)
     )
@@ -202,7 +202,7 @@ class CryptoModule(private val ctx: Context) {
     dictionary: Option[Long],
     word_count: Option[Long]
   ): Either[Throwable, ResultOfMnemonicFromEntropy] =
-    ctx.execSync(
+    ctx.execSync[ParamsOfMnemonicFromEntropy, ResultOfMnemonicFromEntropy](
       "crypto.mnemonic_from_entropy",
       ParamsOfMnemonicFromEntropy(entropy, dictionary, word_count)
     )
@@ -216,7 +216,7 @@ class CryptoModule(private val ctx: Context) {
     dictionary: Option[Long],
     word_count: Option[Long]
   ): Either[Throwable, ResultOfMnemonicFromRandom] =
-    ctx.execSync(
+    ctx.execSync[ParamsOfMnemonicFromRandom, ResultOfMnemonicFromRandom](
       "crypto.mnemonic_from_random",
       ParamsOfMnemonicFromRandom(dictionary, word_count)
     )
@@ -236,7 +236,7 @@ class CryptoModule(private val ctx: Context) {
     dictionary: Option[Long],
     word_count: Option[Long]
   ): Either[Throwable, ResultOfMnemonicVerify] =
-    ctx.execSync(
+    ctx.execSync[ParamsOfMnemonicVerify, ResultOfMnemonicVerify](
       "crypto.mnemonic_verify",
       ParamsOfMnemonicVerify(phrase, dictionary, word_count)
     )
@@ -250,7 +250,10 @@ class CryptoModule(private val ctx: Context) {
     dictionary: Option[Long]
   ): Either[Throwable, ResultOfMnemonicWords] =
     ctx
-      .execSync("crypto.mnemonic_words", ParamsOfMnemonicWords(dictionary))
+      .execSync[ParamsOfMnemonicWords, ResultOfMnemonicWords](
+        "crypto.mnemonic_words",
+        ParamsOfMnemonicWords(dictionary)
+      )
 
   /**
    * Modular exponentiation Performs modular exponentiation for big integers (`base`^^`exponent` mod `modulus`). See
@@ -267,7 +270,7 @@ class CryptoModule(private val ctx: Context) {
     exponent: String,
     modulus: String
   ): Either[Throwable, ResultOfModularPower] =
-    ctx.execSync(
+    ctx.execSync[ParamsOfModularPower, ResultOfModularPower](
       "crypto.modular_power",
       ParamsOfModularPower(base, exponent, modulus)
     )
@@ -291,13 +294,13 @@ class CryptoModule(private val ctx: Context) {
     their_public: String,
     secret: String
   ): Either[Throwable, ResultOfNaclBox] =
-    ctx.execSync(
+    ctx.execSync[ParamsOfNaclBox, ResultOfNaclBox](
       "crypto.nacl_box",
       ParamsOfNaclBox(decrypted, nonce, their_public, secret)
     )
 
   def naclBoxKeypair: Either[Throwable, KeyPair] =
-    ctx.execSyncParameterless[KeyPair]("crypto.nacl_box_keypair")
+    ctx.execSync[Unit, KeyPair]("crypto.nacl_box_keypair", ())
 
   /**
    * Generates key pair from a secret key
@@ -306,7 +309,7 @@ class CryptoModule(private val ctx: Context) {
    */
   def naclBoxKeypairFromSecretKey(secret: String): Either[Throwable, KeyPair] =
     ctx
-      .execSync(
+      .execSync[ParamsOfNaclBoxKeyPairFromSecret, KeyPair](
         "crypto.nacl_box_keypair_from_secret_key",
         ParamsOfNaclBoxKeyPairFromSecret(secret)
       )
@@ -329,7 +332,7 @@ class CryptoModule(private val ctx: Context) {
     their_public: String,
     secret: String
   ): Either[Throwable, ResultOfNaclBoxOpen] =
-    ctx.execSync(
+    ctx.execSync[ParamsOfNaclBoxOpen, ResultOfNaclBoxOpen](
       "crypto.nacl_box_open",
       ParamsOfNaclBoxOpen(encrypted, nonce, their_public, secret)
     )
@@ -348,7 +351,7 @@ class CryptoModule(private val ctx: Context) {
     key: String
   ): Either[Throwable, ResultOfNaclBox] =
     ctx
-      .execSync(
+      .execSync[ParamsOfNaclSecretBox, ResultOfNaclBox](
         "crypto.nacl_secret_box",
         ParamsOfNaclSecretBox(decrypted, nonce, key)
       )
@@ -367,7 +370,7 @@ class CryptoModule(private val ctx: Context) {
     key: String
   ): Either[Throwable, ResultOfNaclBoxOpen] =
     ctx
-      .execSync(
+      .execSync[ParamsOfNaclSecretBoxOpen, ResultOfNaclBoxOpen](
         "crypto.nacl_secret_box_open",
         ParamsOfNaclSecretBoxOpen(encrypted, nonce, key)
       )
@@ -382,7 +385,7 @@ class CryptoModule(private val ctx: Context) {
     secret: String
   ): Either[Throwable, ResultOfNaclSign] =
     ctx
-      .execSync("crypto.nacl_sign", ParamsOfNaclSign(unsigned, secret))
+      .execSync[ParamsOfNaclSign, ResultOfNaclSign]("crypto.nacl_sign", ParamsOfNaclSign(unsigned, secret))
 
   /**
    * @param unsigned
@@ -395,9 +398,9 @@ class CryptoModule(private val ctx: Context) {
     secret: String
   ): Either[Throwable, ResultOfNaclSignDetached] =
     ctx
-      .execSync(
+      .execSync[ParamsOfNaclSign, ResultOfNaclSignDetached](
         "crypto.nacl_sign_detached",
-        ParamsOfNaclSignDetached(unsigned, secret)
+        ParamsOfNaclSign(unsigned, secret)
       )
 
   // TODO add test
@@ -416,7 +419,7 @@ class CryptoModule(private val ctx: Context) {
   ): Either[Throwable, ResultOfNaclSignDetachedVerify] = {
     val arg = ParamsOfNaclSignDetachedVerify(unsigned, signature, public)
     ctx
-      .execSync(
+      .execSync[ParamsOfNaclSignDetachedVerify, ResultOfNaclSignDetachedVerify](
         "crypto.nacl_sign_detached_verify",
         arg
       )
@@ -429,7 +432,7 @@ class CryptoModule(private val ctx: Context) {
    */
   def naclSignKeypairFromSecretKey(secret: String): Either[Throwable, KeyPair] =
     ctx
-      .execSync(
+      .execSync[ParamsOfNaclSignKeyPairFromSecret, KeyPair](
         "crypto.nacl_sign_keypair_from_secret_key",
         ParamsOfNaclSignKeyPairFromSecret(secret)
       )
@@ -445,7 +448,10 @@ class CryptoModule(private val ctx: Context) {
     public: String
   ): Either[Throwable, ResultOfNaclSignOpen] =
     ctx
-      .execSync("crypto.nacl_sign_open", ParamsOfNaclSignOpen(signed, public))
+      .execSync[ParamsOfNaclSignOpen, ResultOfNaclSignOpen](
+        "crypto.nacl_sign_open",
+        ParamsOfNaclSignOpen(signed, public)
+      )
 
   /**
    * @param app_object
@@ -503,7 +509,7 @@ class CryptoModule(private val ctx: Context) {
     p: Long,
     dk_len: Long
   ): Either[Throwable, ResultOfScrypt] =
-    ctx.execSync(
+    ctx.execSync[ParamsOfScrypt, ResultOfScrypt](
       "crypto.scrypt",
       ParamsOfScrypt(password, salt, log_n, r, p, dk_len)
     )
@@ -514,7 +520,7 @@ class CryptoModule(private val ctx: Context) {
    *   Input data for hash calculation. Encoded with `base64`.
    */
   def sha256(data: String): Either[Throwable, ResultOfHash] =
-    ctx.execSync("crypto.sha256", ParamsOfHash256(data))
+    ctx.execSync[ParamsOfHash, ResultOfHash]("crypto.sha256", ParamsOfHash(data))
 
   /**
    * Calculates SHA512 hash of the specified data.
@@ -522,7 +528,7 @@ class CryptoModule(private val ctx: Context) {
    *   Input data for hash calculation. Encoded with `base64`.
    */
   def sha512(data: String): Either[Throwable, ResultOfHash] =
-    ctx.execSync("crypto.sha512", ParamsOfHash512(data))
+    ctx.execSync[ParamsOfHash, ResultOfHash]("crypto.sha512", ParamsOfHash(data))
 
   /**
    * Signs a data using the provided keys.
@@ -533,7 +539,7 @@ class CryptoModule(private val ctx: Context) {
    */
   def sign(unsigned: String, keys: KeyPair): Either[Throwable, ResultOfSign] =
     ctx
-      .execSync("crypto.sign", ParamsOfSign(unsigned, keys))
+      .execSync[ParamsOfSign, ResultOfSign]("crypto.sign", ParamsOfSign(unsigned, keys))
 
   /**
    * @param handle
@@ -541,8 +547,8 @@ class CryptoModule(private val ctx: Context) {
   def signingBoxGetPublicKey(
     handle: SigningBoxHandle
   ): Either[Throwable, ResultOfSigningBoxGetPublicKey] = {
-    val arg = RegisteredSigningBox1(handle)
-    ctx.execSync("crypto.signing_box_get_public_key", arg)
+    val arg = RegisteredSigningBox(handle)
+    ctx.execSync[RegisteredSigningBox, ResultOfSigningBoxGetPublicKey]("crypto.signing_box_get_public_key", arg)
   }
 
   /**
@@ -556,7 +562,7 @@ class CryptoModule(private val ctx: Context) {
     unsigned: String
   ): Either[Throwable, ResultOfSigningBoxSign] = {
     val arg = ParamsOfSigningBoxSign(signing_box, unsigned)
-    ctx.execSync("crypto.signing_box_sign", arg)
+    ctx.execSync[ParamsOfSigningBoxSign, ResultOfSigningBoxSign]("crypto.signing_box_sign", arg)
   }
 
   /**
@@ -566,7 +572,7 @@ class CryptoModule(private val ctx: Context) {
    */
   def tonCrc16(data: String): Either[Throwable, ResultOfTonCrc16] =
     ctx
-      .execSync("crypto.ton_crc16", ParamsOfTonCrc16(data))
+      .execSync[ParamsOfTonCrc16, ResultOfTonCrc16]("crypto.ton_crc16", ParamsOfTonCrc16(data))
 
   /**
    * Verifies signed data using the provided public key. Raises error if verification is failed.
@@ -580,7 +586,7 @@ class CryptoModule(private val ctx: Context) {
     public: String
   ): Either[Throwable, ResultOfVerifySignature] =
     ctx
-      .execSync(
+      .execSync[ParamsOfVerifySignature, ResultOfVerifySignature](
         "crypto.verify_signature",
         ParamsOfVerifySignature(signed, public)
       )

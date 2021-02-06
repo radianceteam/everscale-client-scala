@@ -17,11 +17,7 @@ object DecodedOutput {
 case class ParamsOfProcessMessage(
   message_encode_params: ParamsOfEncodeMessage,
   send_events: Boolean
-) extends Bind {
-  override type Out = ResultOfProcessMessage
-  override val decoder: Decoder[ResultOfProcessMessage] =
-    implicitly[Decoder[ResultOfProcessMessage]]
-}
+)
 
 object ParamsOfProcessMessage {
   implicit val ParamsOfProcessMessageEncoder: Encoder[ParamsOfProcessMessage] =
@@ -32,11 +28,7 @@ case class ParamsOfSendMessage(
   message: String,
   abi: Option[Abi],
   send_events: Boolean
-) extends Bind {
-  override type Out = ResultOfSendMessage
-  override val decoder: Decoder[ResultOfSendMessage] =
-    implicitly[Decoder[ResultOfSendMessage]]
-}
+)
 
 object ParamsOfSendMessage {
   implicit val encoder: Encoder[ParamsOfSendMessage] =
@@ -48,11 +40,7 @@ case class ParamsOfWaitForTransaction(
   message: String,
   shard_block_id: String,
   send_events: Boolean
-) extends Bind {
-  override type Out = ResultOfProcessMessage
-  override val decoder: Decoder[ResultOfProcessMessage] =
-    implicitly[Decoder[ResultOfProcessMessage]]
-}
+)
 
 object ParamsOfWaitForTransaction {
   implicit val encoder: Encoder[ParamsOfWaitForTransaction] =

@@ -33,11 +33,7 @@ object AddressStringFormat {
 case class ParamsOfConvertAddress(
   address: String,
   output_format: AddressStringFormat
-) extends Bind {
-  override type Out = ResultOfConvertAddress
-  override val decoder: Decoder[ResultOfConvertAddress] =
-    implicitly[Decoder[ResultOfConvertAddress]]
-}
+)
 
 object ParamsOfConvertAddress {
   implicit val encoder: Encoder[ParamsOfConvertAddress] =

@@ -26,7 +26,7 @@ class AbiModule(ctx: Context) {
     signature: String
   ): Future[Either[Throwable, ResultOfAttachSignature]] = {
     val arg = ParamsOfAttachSignature(abi, public_key, message, signature)
-    ctx.execAsyncNew[ParamsOfAttachSignature, ResultOfAttachSignature]("abi.attach_signature", arg)
+    ctx.execAsync[ParamsOfAttachSignature, ResultOfAttachSignature]("abi.attach_signature", arg)
   }
 
   /**
@@ -47,7 +47,10 @@ class AbiModule(ctx: Context) {
   ): Future[Either[Throwable, ResultOfAttachSignatureToMessageBody]] = {
     val arg =
       ParamsOfAttachSignatureToMessageBody(abi, public_key, message, signature)
-    ctx.execAsync("abi.attach_signature_to_message_body", arg)
+    ctx.execAsync[ParamsOfAttachSignatureToMessageBody, ResultOfAttachSignatureToMessageBody](
+      "abi.attach_signature_to_message_body",
+      arg
+    )
   }
 
   /**
@@ -63,7 +66,7 @@ class AbiModule(ctx: Context) {
     message: String
   ): Future[Either[Throwable, DecodedMessageBody]] = {
     val arg = ParamsOfDecodeMessage(abi, message)
-    ctx.execAsync("abi.decode_message", arg)
+    ctx.execAsync[ParamsOfDecodeMessage, DecodedMessageBody]("abi.decode_message", arg)
   }
 
   /**
@@ -82,7 +85,7 @@ class AbiModule(ctx: Context) {
     is_internal: Boolean
   ): Future[Either[Throwable, DecodedMessageBody]] = {
     val arg = ParamsOfDecodeMessageBody(abi, body, is_internal)
-    ctx.execAsync("abi.decode_message_body", arg)
+    ctx.execAsync[ParamsOfDecodeMessageBody, DecodedMessageBody]("abi.decode_message_body", arg)
   }
 
   /**
@@ -108,7 +111,7 @@ class AbiModule(ctx: Context) {
   ): Future[Either[Throwable, ResultOfEncodeAccount]] = {
     val arg =
       ParamsOfEncodeAccount(state_init, balance, last_trans_lt, last_paid)
-    ctx.execAsync("abi.encode_account", arg)
+    ctx.execAsync[ParamsOfEncodeAccount, ResultOfEncodeAccount]("abi.encode_account", arg)
   }
 
   /**
@@ -177,7 +180,7 @@ class AbiModule(ctx: Context) {
       signer,
       processing_try_index
     )
-    ctx.execAsync("abi.encode_message", arg)
+    ctx.execAsync[ParamsOfEncodeMessage, ResultOfEncodeMessage]("abi.encode_message", arg)
   }
 
   /**
@@ -220,6 +223,6 @@ class AbiModule(ctx: Context) {
       signer,
       processing_try_index
     )
-    ctx.execAsync("abi.encode_message_body", arg)
+    ctx.execAsync[ParamsOfEncodeMessageBody, ResultOfEncodeMessageBody]("abi.encode_message_body", arg)
   }
 }

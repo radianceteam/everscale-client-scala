@@ -49,11 +49,7 @@ case class ParamsOfRunExecutor(
   execution_options: Option[ExecutionOptions],
   abi: Option[Abi],
   skip_transaction_check: Option[Boolean]
-) extends Bind {
-  override type Out = ResultOfRunExecutor
-  override val decoder: Decoder[ResultOfRunExecutor] =
-    implicitly[Decoder[ResultOfRunExecutor]]
-}
+)
 
 object ParamsOfRunExecutor {
   implicit val encoder: Encoder[ParamsOfRunExecutor] =
@@ -65,11 +61,7 @@ case class ParamsOfRunGet(
   function_name: String,
   input: Option[Value],
   execution_options: Option[ExecutionOptions]
-) extends Bind {
-  override type Out = ResultOfRunGet
-  override val decoder: Decoder[ResultOfRunGet] =
-    implicitly[Decoder[ResultOfRunGet]]
-}
+)
 
 object ParamsOfRunGet {
   implicit val encoder: Encoder[ParamsOfRunGet] =
@@ -81,11 +73,7 @@ case class ParamsOfRunTvm(
   account: String,
   execution_options: Option[ExecutionOptions],
   abi: Option[Abi]
-) extends Bind {
-  override type Out = ResultOfRunTvm
-  override val decoder: Decoder[ResultOfRunTvm] =
-    implicitly[Decoder[ResultOfRunTvm]]
-}
+)
 
 object ParamsOfRunTvm {
   implicit val encoder: Encoder[ParamsOfRunTvm] =

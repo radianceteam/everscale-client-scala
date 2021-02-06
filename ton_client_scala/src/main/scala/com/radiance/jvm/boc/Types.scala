@@ -27,54 +27,34 @@ object BocErrorCode {
   }
 
 }
-case class ParamsOfGetBlockchainConfig(block_boc: String) extends Bind {
-  override type Out = ResultOfGetBlockchainConfig
-  override val decoder: Decoder[ResultOfGetBlockchainConfig] =
-    implicitly[Decoder[ResultOfGetBlockchainConfig]]
-}
+case class ParamsOfGetBlockchainConfig(block_boc: String)
 
 object ParamsOfGetBlockchainConfig {
   implicit val encoder: Encoder[ParamsOfGetBlockchainConfig] =
     deriveEncoder[ParamsOfGetBlockchainConfig]
 }
 
-case class ParamsOfGetBocHash(boc: String) extends Bind {
-  override type Out = ResultOfGetBocHash
-  override val decoder: Decoder[ResultOfGetBocHash] =
-    implicitly[Decoder[ResultOfGetBocHash]]
-}
+case class ParamsOfGetBocHash(boc: String)
 
 object ParamsOfGetBocHash {
   implicit val encoder: Encoder[ParamsOfGetBocHash] =
     deriveEncoder[ParamsOfGetBocHash]
 }
 
-case class ParamsOfGetCodeFromTvc(tvc: String) extends Bind {
-  override type Out = ResultOfGetCodeFromTvc
-  override val decoder: Decoder[ResultOfGetCodeFromTvc] =
-    implicitly[Decoder[ResultOfGetCodeFromTvc]]
-}
+case class ParamsOfGetCodeFromTvc(tvc: String)
 
 object ParamsOfGetCodeFromTvc {
   implicit val encoder: Encoder[ParamsOfGetCodeFromTvc] =
     deriveEncoder[ParamsOfGetCodeFromTvc]
 }
 
-case class ParamsOfParse(boc: String) extends Bind {
-  override type Out = ResultOfParse
-  override val decoder: Decoder[ResultOfParse] =
-    implicitly[Decoder[ResultOfParse]]
-}
+case class ParamsOfParse(boc: String)
 
 object ParamsOfParse {
   implicit val encoder: Encoder[ParamsOfParse] = deriveEncoder[ParamsOfParse]
 }
 
-case class ParamsOfParseShardstate(boc: String, id: String, workchain_id: Int) extends Bind {
-  override type Out = ResultOfParse
-  override val decoder: Decoder[ResultOfParse] =
-    implicitly[Decoder[ResultOfParse]]
-}
+case class ParamsOfParseShardstate(boc: String, id: String, workchain_id: Int)
 
 object ParamsOfParseShardstate {
   implicit val encoder: Encoder[ParamsOfParseShardstate] =

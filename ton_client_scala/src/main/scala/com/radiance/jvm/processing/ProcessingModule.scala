@@ -38,7 +38,11 @@ class ProcessingModule(private val ctx: Context) {
     callback: Request
   ): Future[Either[Throwable, ResultOfProcessMessage]] = {
     val arg = ParamsOfProcessMessage(message_encode_params, send_events)
-    ctx.execAsyncWithCallback("processing.process_message", arg, callback)
+    ctx.execAsyncWithCallback[ParamsOfProcessMessage, ResultOfProcessMessage](
+      "processing.process_message",
+      arg,
+      callback
+    )
   }
 
   /**
@@ -70,7 +74,7 @@ class ProcessingModule(private val ctx: Context) {
     callback: Request
   ): Future[Either[Throwable, ResultOfSendMessage]] = {
     val arg = ParamsOfSendMessage(message, abi, send_events)
-    ctx.execAsync("processing.send_message", arg)
+    ctx.execAsync[ParamsOfSendMessage, ResultOfSendMessage]("processing.send_message", arg)
   }
 
   /**
@@ -118,7 +122,7 @@ class ProcessingModule(private val ctx: Context) {
   ): Future[Either[Throwable, ResultOfProcessMessage]] = {
     val arg =
       ParamsOfWaitForTransaction(abi, message, shard_block_id, send_events)
-    ctx.execAsync("processing.wait_for_transaction", arg)
+    ctx.execAsync[ParamsOfWaitForTransaction, ResultOfProcessMessage]("processing.wait_for_transaction", arg)
   }
 
 }

@@ -116,40 +116,26 @@ case class ParamsOfAggregateCollection(
   collection: String,
   filter: Option[Value],
   fields: Option[List[FieldAggregation]]
-) extends Bind {
-  override type Out = ResultOfAggregateCollection
-  override val decoder: Decoder[ResultOfAggregateCollection] = implicitly[Decoder[ResultOfAggregateCollection]]
-}
+)
 
 object ParamsOfAggregateCollection {
   implicit val encoder: Encoder[ParamsOfAggregateCollection] = deriveEncoder[ParamsOfAggregateCollection]
 }
 
-case class ParamsOfBatchQuery(operations: List[ParamsOfQueryOperation]) extends Bind {
-  override type Out = ResultOfBatchQuery
-  override val decoder: Decoder[ResultOfBatchQuery] = implicitly[Decoder[ResultOfBatchQuery]]
-}
+case class ParamsOfBatchQuery(operations: List[ParamsOfQueryOperation])
 
 object ParamsOfBatchQuery {
   implicit val encoder: Encoder[ParamsOfBatchQuery] = deriveEncoder[ParamsOfBatchQuery]
 }
 
-case class ParamsOfFindLastShardBlock(address: String) extends Bind {
-  override type Out = ResultOfFindLastShardBlock
-  override val decoder: Decoder[ResultOfFindLastShardBlock] =
-    implicitly[Decoder[ResultOfFindLastShardBlock]]
-}
+case class ParamsOfFindLastShardBlock(address: String)
 
 object ParamsOfFindLastShardBlock {
   implicit val encoder: Encoder[ParamsOfFindLastShardBlock] =
     deriveEncoder[ParamsOfFindLastShardBlock]
 }
 
-case class ParamsOfQuery(query: String, variables: Option[Value]) extends Bind {
-  override type Out = ResultOfQuery
-  override val decoder: Decoder[ResultOfQuery] =
-    implicitly[Decoder[ResultOfQuery]]
-}
+case class ParamsOfQuery(query: String, variables: Option[Value])
 
 object ParamsOfQuery {
   implicit val encoder: Encoder[ParamsOfQuery] = deriveEncoder[ParamsOfQuery]
@@ -161,11 +147,7 @@ case class ParamsOfQueryCollection(
   result: String,
   order: Option[List[OrderBy]],
   limit: Option[Long]
-) extends Bind {
-  override type Out = ResultOfQueryCollection
-  override val decoder: Decoder[ResultOfQueryCollection] =
-    implicitly[Decoder[ResultOfQueryCollection]]
-}
+)
 
 object ParamsOfQueryCollection {
   implicit val encoder: Encoder[ParamsOfQueryCollection] =
@@ -199,26 +181,11 @@ case class ParamsOfSubscribeCollection(
   collection: String,
   filter: Option[Value],
   result: String
-) extends Bind {
-  override type Out = ResultOfSubscribeCollection
-  override val decoder: Decoder[ResultOfSubscribeCollection] =
-    implicitly[Decoder[ResultOfSubscribeCollection]]
-}
+)
 
 object ParamsOfSubscribeCollection {
   implicit val encoder: Encoder[ParamsOfSubscribeCollection] =
     deriveEncoder[ParamsOfSubscribeCollection]
-}
-
-// TODO were added
-case class ParamsOfUnsubscribeCollection(handle: Long) extends Bind {
-  override type Out = Unit
-  override val decoder: Decoder[Unit] = implicitly[Decoder[Unit]]
-}
-
-object ParamsOfUnsubscribeCollection {
-  implicit val encoder: Encoder[ParamsOfUnsubscribeCollection] =
-    deriveEncoder[ParamsOfUnsubscribeCollection]
 }
 
 case class ParamsOfWaitForCollection(
@@ -226,11 +193,7 @@ case class ParamsOfWaitForCollection(
   filter: Option[Value],
   result: String,
   timeout: Option[Long]
-) extends Bind {
-  override type Out = ResultOfWaitForCollection
-  override val decoder: Decoder[ResultOfWaitForCollection] =
-    implicitly[Decoder[ResultOfWaitForCollection]]
-}
+)
 
 object ParamsOfWaitForCollection {
   implicit val encoder: Encoder[ParamsOfWaitForCollection] =
@@ -273,8 +236,8 @@ object ResultOfQueryCollection {
 case class ResultOfSubscribeCollection(handle: Long)
 
 object ResultOfSubscribeCollection {
-  implicit val decoder: Decoder[ResultOfSubscribeCollection] =
-    deriveDecoder[ResultOfSubscribeCollection]
+  implicit val codec: Codec[ResultOfSubscribeCollection] =
+    deriveCodec[ResultOfSubscribeCollection]
 }
 
 case class ResultOfWaitForCollection(result: Value)

@@ -265,11 +265,7 @@ case class ParamsOfAttachSignature(
   public_key: String,
   message: String,
   signature: String
-) extends Bind {
-  override type Out = ResultOfAttachSignature
-  override val decoder: Decoder[ResultOfAttachSignature] =
-    implicitly[Decoder[ResultOfAttachSignature]]
-}
+)
 
 object ParamsOfAttachSignature {
   implicit val encoder: Encoder[ParamsOfAttachSignature] =
@@ -281,22 +277,14 @@ case class ParamsOfAttachSignatureToMessageBody(
   public_key: String,
   message: String,
   signature: String
-) extends Bind {
-  override type Out = ResultOfAttachSignatureToMessageBody
-  override val decoder: Decoder[ResultOfAttachSignatureToMessageBody] =
-    implicitly[Decoder[ResultOfAttachSignatureToMessageBody]]
-}
+)
 
 object ParamsOfAttachSignatureToMessageBody {
   implicit val encoder: Encoder[ParamsOfAttachSignatureToMessageBody] =
     deriveEncoder[ParamsOfAttachSignatureToMessageBody]
 }
 
-case class ParamsOfDecodeMessage(abi: Abi, message: String) extends Bind {
-  override type Out = DecodedMessageBody
-  override val decoder: Decoder[DecodedMessageBody] =
-    implicitly[Decoder[DecodedMessageBody]]
-}
+case class ParamsOfDecodeMessage(abi: Abi, message: String)
 
 object ParamsOfDecodeMessage {
   implicit val encoder: Encoder[ParamsOfDecodeMessage] =
@@ -307,11 +295,7 @@ case class ParamsOfDecodeMessageBody(
   abi: Abi,
   body: String,
   is_internal: Boolean
-) extends Bind {
-  override type Out = DecodedMessageBody
-  override val decoder: Decoder[DecodedMessageBody] =
-    implicitly[Decoder[DecodedMessageBody]]
-}
+)
 
 object ParamsOfDecodeMessageBody {
   implicit val encoder: Encoder[ParamsOfDecodeMessageBody] =
@@ -323,11 +307,7 @@ case class ParamsOfEncodeAccount(
   balance: Option[BigInt],
   last_trans_lt: Option[BigInt],
   last_paid: Option[Long]
-) extends Bind {
-  override type Out = ResultOfEncodeAccount
-  override val decoder: Decoder[ResultOfEncodeAccount] =
-    implicitly[Decoder[ResultOfEncodeAccount]]
-}
+)
 
 object ParamsOfEncodeAccount {
   implicit val encoder: Encoder[ParamsOfEncodeAccount] =
@@ -341,11 +321,7 @@ case class ParamsOfEncodeMessage(
   call_set: Option[CallSet],
   signer: Signer,
   processing_try_index: Option[Long]
-) extends Bind {
-  override type Out = ResultOfEncodeMessage
-  override val decoder: Decoder[ResultOfEncodeMessage] =
-    implicitly[Decoder[ResultOfEncodeMessage]]
-}
+)
 
 object ParamsOfEncodeMessage {
   implicit val encoder: Encoder[ParamsOfEncodeMessage] =
@@ -358,11 +334,7 @@ case class ParamsOfEncodeMessageBody(
   is_internal: Boolean,
   signer: Signer,
   processing_try_index: Option[Long]
-) extends Bind {
-  override type Out = ResultOfEncodeMessageBody
-  override val decoder: Decoder[ResultOfEncodeMessageBody] =
-    implicitly[Decoder[ResultOfEncodeMessageBody]]
-}
+)
 
 object ParamsOfEncodeMessageBody {
   implicit val encoder: Encoder[ParamsOfEncodeMessageBody] =
