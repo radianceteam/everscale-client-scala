@@ -20,13 +20,15 @@ class AbiModule(ctx: Context) {
    *   Signature encoded in `hex`.
    */
   def attachSignature(
-    abi: Abi,
+    abi: AbiADT.Abi,
     public_key: String,
     message: String,
     signature: String
   ): Future[Either[Throwable, ResultOfAttachSignature]] = {
-    val arg = ParamsOfAttachSignature(abi, public_key, message, signature)
-    ctx.execAsync("abi.attach_signature", arg)
+    ctx.execAsync[ParamsOfAttachSignature, ResultOfAttachSignature](
+      "abi.attach_signature",
+      ParamsOfAttachSignature(abi, public_key, message, signature)
+    )
   }
 
   /**
@@ -40,14 +42,15 @@ class AbiModule(ctx: Context) {
    *   Signature. Must be encoded with `hex`.
    */
   def attachSignatureToMessageBody(
-    abi: Abi,
+    abi: AbiADT.Abi,
     public_key: String,
     message: String,
     signature: String
   ): Future[Either[Throwable, ResultOfAttachSignatureToMessageBody]] = {
-    val arg =
+    ctx.execAsync[ParamsOfAttachSignatureToMessageBody, ResultOfAttachSignatureToMessageBody](
+      "abi.attach_signature_to_message_body",
       ParamsOfAttachSignatureToMessageBody(abi, public_key, message, signature)
-    ctx.execAsync("abi.attach_signature_to_message_body", arg)
+    )
   }
 
   /**
@@ -59,11 +62,10 @@ class AbiModule(ctx: Context) {
    *   Message BOC
    */
   def decodeMessage(
-    abi: Abi,
+    abi: AbiADT.Abi,
     message: String
   ): Future[Either[Throwable, DecodedMessageBody]] = {
-    val arg = ParamsOfDecodeMessage(abi, message)
-    ctx.execAsync("abi.decode_message", arg)
+    ctx.execAsync[ParamsOfDecodeMessage, DecodedMessageBody]("abi.decode_message", ParamsOfDecodeMessage(abi, message))
   }
 
   /**
@@ -77,12 +79,14 @@ class AbiModule(ctx: Context) {
    *   True if the body belongs to the internal message.
    */
   def decodeMessageBody(
-    abi: Abi,
+    abi: AbiADT.Abi,
     body: String,
     is_internal: Boolean
   ): Future[Either[Throwable, DecodedMessageBody]] = {
-    val arg = ParamsOfDecodeMessageBody(abi, body, is_internal)
-    ctx.execAsync("abi.decode_message_body", arg)
+    ctx.execAsync[ParamsOfDecodeMessageBody, DecodedMessageBody](
+      "abi.decode_message_body",
+      ParamsOfDecodeMessageBody(abi, body, is_internal)
+    )
   }
 
   /**
@@ -101,20 +105,19 @@ class AbiModule(ctx: Context) {
    *   Initial value for the `last_paid`.
    */
   def encodeAccount(
-    state_init: StateInitSource,
+    state_init: StateInitSourceADT.StateInitSource,
     balance: Option[BigInt],
     last_trans_lt: Option[BigInt],
     last_paid: Option[Long]
   ): Future[Either[Throwable, ResultOfEncodeAccount]] = {
-    val arg =
+    ctx.execAsync[ParamsOfEncodeAccount, ResultOfEncodeAccount](
+      "abi.encode_account",
       ParamsOfEncodeAccount(state_init, balance, last_trans_lt, last_paid)
-    ctx.execAsync("abi.encode_account", arg)
+    )
   }
 
   /**
-   * Encodes an ABI-compatible message
-   *
-   * Allows to encode deploy and function call messages, both signed and unsigned.
+   * Encodes an ABI-compatible message. Allows to encode deploy and function call messages, both signed and unsigned.
    *
    * Use cases include messages of any possible type:
    *   - deploy with initial function call (i.e. `constructor` or any other function that is used for some kind of
@@ -132,32 +135,28 @@ class AbiModule(ctx: Context) {
    *
    * `Signer::Keys` creates a signed message with provided key pair.
    *
-   * [SOON] `Signer::SigningBox` Allows using a special interface to imlepement signing without private key disclosure
-   * to SDK. For instance, in case of using a cold wallet or HSM, when application calls some API to sign data.
+   * [SOON] `Signer::SigningBox` Allows using a special interface to implement signing without private key disclosure to
+   * SDK. For instance, in case of using a cold wallet or HSM, when application calls some API to sign data.
+   *
+   * There is an optional public key can be provided in deploy set in order to substitute one in TVM file.
+   *
+   * Public key resolving priority:
+   *   1. Public key from deploy set. 2. Public key, specified in TVM file. 3. Public key, provided by signer.
    * @param abi
-   *   Contract ABI.
-   *
+   *   Contract ABI
    * @param address
-   *   Target address the message will be sent to.
-   *
-   * Must be specified in case of non-deploy message.
+   *   Must be specified in case of non-deploy message.
    * @param deploy_set
-   *   Deploy parameters.
-   *
-   * Must be specified in case of deploy message.
+   *   Must be specified in case of deploy message.
    * @param call_set
-   *   Function call parameters.
-   *
-   * Must be specified in case of non-deploy message.
+   *   Must be specified in case of non-deploy message.
    *
    * In case of deploy message it is optional and contains parameters of the functions that will to be called upon
    * deploy transaction.
    * @param signer
-   *   Signing parameters.
+   *   Signer parameter
    * @param processing_try_index
-   *   Processing try index.
-   *
-   * Used in message processing with retries (if contract's ABI includes "expire" header).
+   *   .Used in message processing with retries (if contract's ABI includes "expire" header).
    *
    * Encoder uses the provided try index to calculate message expiration time. The 1st message expiration time is
    * specified in Client config.
@@ -168,22 +167,24 @@ class AbiModule(ctx: Context) {
    * Default value is 0.
    */
   def encodeMessage(
-    abi: Abi,
+    abi: AbiADT.Abi,
     address: Option[String],
     deploy_set: Option[DeploySet],
     call_set: Option[CallSet],
-    signer: Signer,
+    signer: SignerADT.Signer,
     processing_try_index: Option[Long]
   ): Future[Either[Throwable, ResultOfEncodeMessage]] = {
-    val arg = ParamsOfEncodeMessage(
-      abi,
-      address,
-      deploy_set,
-      call_set,
-      signer,
-      processing_try_index
+    ctx.execAsync[ParamsOfEncodeMessage, ResultOfEncodeMessage](
+      "abi.encode_message",
+      ParamsOfEncodeMessage(
+        abi,
+        address,
+        deploy_set,
+        call_set,
+        signer,
+        processing_try_index
+      )
     )
-    ctx.execAsync("abi.encode_message", arg)
   }
 
   /**
@@ -213,19 +214,21 @@ class AbiModule(ctx: Context) {
    * Default value is 0.
    */
   def encodeMessageBody(
-    abi: Abi,
+    abi: AbiADT.Abi,
     call_set: CallSet,
     is_internal: Boolean,
-    signer: Signer,
+    signer: SignerADT.Signer,
     processing_try_index: Option[Long]
   ): Future[Either[Throwable, ResultOfEncodeMessageBody]] = {
-    val arg = ParamsOfEncodeMessageBody(
-      abi,
-      call_set,
-      is_internal,
-      signer,
-      processing_try_index
+    ctx.execAsync[ParamsOfEncodeMessageBody, ResultOfEncodeMessageBody](
+      "abi.encode_message_body",
+      ParamsOfEncodeMessageBody(
+        abi,
+        call_set,
+        is_internal,
+        signer,
+        processing_try_index
+      )
     )
-    ctx.execAsync("abi.encode_message_body", arg)
   }
 }

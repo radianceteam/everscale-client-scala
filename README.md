@@ -3,12 +3,12 @@
 **Community links:**
 
 [![Chat on Telegram](https://img.shields.io/badge/chat-on%20telegram-9cf.svg)](https://t.me/RADIANCE_TON_SDK)
-[![SDK version](https://img.shields.io/badge/TON%20SDK%20version-1.5.2-green)](https://github.com/tonlabs/TON-SDK/tree/1.5.2)
+[![SDK version](https://img.shields.io/badge/TON%20SDK%20version-1.6.3-green)](https://github.com/tonlabs/TON-SDK/tree/1.6.3)
 
 **Scala TON Client** is a simple scala binding to the [TON SDK](https://github.com/tonlabs/TON-SDK). 
 
 Features:
-* All methods of the TON SDK v1.5.2 are implemented except Debot Browser functionality
+* All methods of the TON SDK v1.6.3 are implemented
 * Interaction with the TON SDK through synchronous an asynchronous calls
 * The every method contains inline-doc
 * The automatic download of the TON SDK library for the current environment
@@ -115,15 +115,16 @@ Simple Context instantiation:
     import scala.concurrent.ExecutionContext
 
     val networkConfig: NetworkConfig = NetworkConfig(
-      "net.ton.dev".some,                     // server_address:             Option[String]
-      None,                                   // endpoints:                  Option[List[String]]
-      5.some,                                 // network_retries_count:      Option[Int] 
-      5.some,                                 // message_retries_count:      Option[Int]
-      60000L.some,                            // message_processing_timeout: Option[Long]
-      60000L.some,                            // wait_for_timeout:           Option[Long]
-      30000L.some,                            // out_of_sync_threshold:      Option[Long]
-      30000L.some,                            // reconnect_timeout:          Option[Long]
-      "".some                                 // access_key:                 Option[String]
+      "net.ton.dev".some, // server_address:             Option[String]
+      None,               // endpoints:                  Option[List[String]]
+      5.some,             // network_retries_count:      Option[Int]
+      30000L.some,        // max_reconnect_timeout:      Option[Long]
+      30000L.some,        // reconnect_timeout:          Option[Long]
+      5.some,             // message_retries_count:      Option[Int]
+      60000L.some,        // message_processing_timeout: Option[Long]
+      60000L.some,        // wait_for_timeout:           Option[Long]
+      30000L.some,        // out_of_sync_threshold:      Option[Long]
+      "".some             // access_key:                 Option[String]
     )
 
     val cryptoConfig: CryptoConfig = CryptoConfig(
@@ -214,7 +215,7 @@ In subpackages of __com.radiance.jvm__ you can find modules that encapsulate def
     // Convert address to hex format
     val result: Either[Throwable, ResultOfConvertAddress] = utilsModule.convertAddress(
       "ee65d170830136253ad8bd2116a28fcbd4ac462c6f222f49a1505d2fa7f7f528", 
-      AddressStringFormat.Hex
+      AddressStringFormatADT.Hex
     )
 ```
 
@@ -277,7 +278,7 @@ Or:
       "accounts",
       query.some,
       "acc_type,acc_type_name,balance,boc,id,last_paid,workchain_id",
-      List(OrderBy("last_paid", SortDirection.ASC)).some,
+      List(OrderBy("last_paid", SortDirectionEnum.ASC)).some,
       2L.some
     )
 ```

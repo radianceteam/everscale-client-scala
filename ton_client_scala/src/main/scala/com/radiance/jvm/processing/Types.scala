@@ -17,11 +17,7 @@ object DecodedOutput {
 case class ParamsOfProcessMessage(
   message_encode_params: ParamsOfEncodeMessage,
   send_events: Boolean
-) extends Bind {
-  override type Out = ResultOfProcessMessage
-  override val decoder: Decoder[ResultOfProcessMessage] =
-    implicitly[Decoder[ResultOfProcessMessage]]
-}
+)
 
 object ParamsOfProcessMessage {
   implicit val ParamsOfProcessMessageEncoder: Encoder[ParamsOfProcessMessage] =
@@ -30,13 +26,9 @@ object ParamsOfProcessMessage {
 
 case class ParamsOfSendMessage(
   message: String,
-  abi: Option[Abi],
+  abi: Option[AbiADT.Abi],
   send_events: Boolean
-) extends Bind {
-  override type Out = ResultOfSendMessage
-  override val decoder: Decoder[ResultOfSendMessage] =
-    implicitly[Decoder[ResultOfSendMessage]]
-}
+)
 
 object ParamsOfSendMessage {
   implicit val encoder: Encoder[ParamsOfSendMessage] =
@@ -44,25 +36,22 @@ object ParamsOfSendMessage {
 }
 
 case class ParamsOfWaitForTransaction(
-  abi: Option[Abi],
+  abi: Option[AbiADT.Abi],
   message: String,
   shard_block_id: String,
   send_events: Boolean
-) extends Bind {
-  override type Out = ResultOfProcessMessage
-  override val decoder: Decoder[ResultOfProcessMessage] =
-    implicitly[Decoder[ResultOfProcessMessage]]
-}
+)
 
 object ParamsOfWaitForTransaction {
   implicit val encoder: Encoder[ParamsOfWaitForTransaction] =
     deriveEncoder[ParamsOfWaitForTransaction]
 }
 
-sealed trait ProcessingErrorCode {
-  val code: String
-}
-object ProcessingErrorCode {
+object ProcessingErrorCodeEnum {
+
+  sealed trait ProcessingErrorCode {
+    val code: String
+  }
 
   case object MessageAlreadyExpired extends ProcessingErrorCode {
     override val code: String = "501"

@@ -13,9 +13,9 @@ class UtilsModule(private val ctx: Context) {
    */
   def convertAddress(
     address: String,
-    output_format: AddressStringFormat
+    output_format: AddressStringFormatADT.AddressStringFormat
   ): Either[Throwable, ResultOfConvertAddress] =
-    ctx.execSync(
+    ctx.execSync[ParamsOfConvertAddress, ResultOfConvertAddress](
       "utils.convert_address",
       ParamsOfConvertAddress(address, output_format)
     )

@@ -60,6 +60,13 @@ object ScalaRepr {
     fields: List[FieldDescription]
   ) extends ScalaTypeDecl
 
+  case class ScalaValueClassType(
+                                 name: String,
+                                 summary: Option[String],
+                                 description: Option[String],
+                                 fields: List[FieldDescription]
+                               ) extends ScalaTypeDecl
+
   case class ScalaCaseObjectType(
     name: String,
     value: Option[String],
@@ -67,14 +74,14 @@ object ScalaRepr {
     description: Option[String]
   ) extends ScalaTypeDecl
 
-  case class SimpleAdtScalaType(
+  case class EnumScalaType(
     name: String,
     summary: Option[String],
     description: Option[String],
     list: List[ScalaCaseObjectType]
   ) extends ScalaTypeDecl
 
-  case class Adt(name: String, summary: Option[String], description: Option[String], list: List[ScalaTypeDecl])
+  case class AdtScalaType(name: String, summary: Option[String], description: Option[String], list: List[ScalaTypeDecl])
       extends ScalaTypeDecl
 
   case class ContentIsEmptyError(name: String, td: TypeDecl, summary: Option[String], description: Option[String])
@@ -160,12 +167,12 @@ object ScalaRepr {
 
     case EnumOfTypesDecl =>
       td.enum_types
-        .map(t => Adt(td.name, td.summary, td.description, t.map(e => toScalaTypeDecl(e))))
+        .map(t => AdtScalaType(td.name, td.summary, td.description, t.map(e => toScalaTypeDecl(e))))
         .getOrElse(ContentIsEmptyError("Error in EnumOfTypes decl", td, None, None))
 
     case EnumOfConstsDecl =>
       td.enum_consts
-        .map(list => SimpleAdtScalaType(td.name, td.summary, td.description, list.map(toCaseObjectDecl)))
+        .map(list => EnumScalaType(td.name, td.summary, td.description, list.map(toCaseObjectDecl)))
         .getOrElse(ContentIsEmptyError("Error in EnumOfConsts", td, None, None))
 
     case NoneDecl => ScalaCaseObjectType(td.name, td.value, td.summary, td.description)
@@ -174,7 +181,7 @@ object ScalaRepr {
       td.ref_name
         .map {
           n =>
-            ScalaCaseClassType(
+            ScalaValueClassType(
               td.name,
               td.summary,
               td.description,
@@ -188,14 +195,21 @@ object ScalaRepr {
         .flatMap(nt => td.number_size.map(ns => (nt, ns)))
         .map {
           case (IntSubtype, 64) =>
-            ScalaCaseClassType(
+            ScalaValueClassType(
               td.name,
               td.summary,
               td.description,
               List(FieldDescription("value", ScalaLongType, None, None))
             )
+          case (IntSubtype, 32) =>
+            ScalaValueClassType(
+              td.name,
+              td.summary,
+              td.description,
+              List(FieldDescription("value", ScalaIntType, None, None))
+            )
           case _                =>
-            ScalaCaseClassType(
+            ScalaValueClassType(
               td.name,
               td.summary,
               td.description,

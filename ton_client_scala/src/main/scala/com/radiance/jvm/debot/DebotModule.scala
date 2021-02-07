@@ -13,16 +13,19 @@ class DebotModule(private val ctx: Context) {
    *
    * # Remarks Chain of actions can be executed if input action generates a list of subactions.
    * @param debot_handle
-   *   @param action
+   *   debot_handle
+   * @param action
+   *   action
    */
   def execute(
     debot_handle: DebotHandle,
     action: DebotAction
   ): Future[Either[Throwable, Unit]] = {
-    val arg = ResultOfAppDebotBrowser.ParamsOfExecute(debot_handle, action)
-    ctx.executeWithAppObject[DebotAction](
+    ctx.executeWithAppObject[ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser](
       "debot.execute",
-      action,
+      ResultOfAppDebotBrowserADT
+        .ParamsOfExecute(debot_handle, action)
+        .asInstanceOf[ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser],
       debot_handle.value.toInt
     )
   }
@@ -33,13 +36,22 @@ class DebotModule(private val ctx: Context) {
    *
    * # Remarks It does not switch debot to context 0. Browser Callbacks are not called.
    * @param address
-   *   @param app_object
+   *   address
+   * @param app_object
+   *   app_object
    */
   def fetch(
     address: String,
-    app_object: AppObject[ParamsOfAppDebotBrowser, ResultOfAppDebotBrowser]
+    app_object: AppObject[
+      ParamsOfAppDebotBrowserADT.ParamsOfAppDebotBrowser,
+      ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser
+    ]
   ): Future[Either[Throwable, RegisteredDebot]] = {
-    ctx.registerAppObject[RegisteredDebot, ParamsOfAppDebotBrowser, ResultOfAppDebotBrowser](
+    ctx.registerAppObject[
+      RegisteredDebot,
+      ParamsOfAppDebotBrowserADT.ParamsOfAppDebotBrowser,
+      ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser
+    ](
       "debot.fetch",
       s"""{"address":"$address"}""",
       app_object
@@ -50,9 +62,37 @@ class DebotModule(private val ctx: Context) {
    * [UNSTABLE](UNSTABLE.md) Destroys debot handle. Removes handle from Client Context and drops debot engine referenced
    * by that handle.
    * @param debot_handle
+   *   debot_handle
    */
   def remove(debot_handle: DebotHandle): Future[Either[Throwable, Unit]] = {
     ctx.unregisterAppObject(debot_handle.value.toInt, "debot.remove")
+  }
+
+  /**
+   * [UNSTABLE](UNSTABLE.md) Sends message to Debot. Used by Debot Browser to send response on Dinterface call or from
+   * other Debots.
+   * @param debot_handle
+   *   debot_handle
+   * @param source
+   *   source
+   * @param func_id
+   *   func_id
+   * @param params
+   *   params
+   */
+  def send(
+    debot_handle: DebotHandle,
+    source: String,
+    func_id: Long,
+    params: String
+  ): Future[Either[Throwable, Unit]] = {
+    ctx.executeWithAppObject[ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser](
+      "debot.execute",
+      ResultOfAppDebotBrowserADT
+        .ParamsOfSend(debot_handle, source, func_id, params)
+        .asInstanceOf[ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser],
+      debot_handle.value.toInt
+    )
   }
 
   /**
@@ -63,13 +103,22 @@ class DebotModule(private val ctx: Context) {
    *
    * # Remarks `start` is equivalent to `fetch` + switch to context 0.
    * @param address
-   *   @param app_object
+   *   address
+   * @param app_object
+   *   app_object
    */
   def start(
     address: String,
-    app_object: AppObject[ParamsOfAppDebotBrowser, ResultOfAppDebotBrowser]
+    app_object: AppObject[
+      ParamsOfAppDebotBrowserADT.ParamsOfAppDebotBrowser,
+      ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser
+    ]
   ): Future[Either[Throwable, RegisteredDebot]] = {
-    ctx.registerAppObject[RegisteredDebot, ParamsOfAppDebotBrowser, ResultOfAppDebotBrowser](
+    ctx.registerAppObject[
+      RegisteredDebot,
+      ParamsOfAppDebotBrowserADT.ParamsOfAppDebotBrowser,
+      ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser
+    ](
       "debot.start",
       s"""{"address":"$address"}""",
       app_object

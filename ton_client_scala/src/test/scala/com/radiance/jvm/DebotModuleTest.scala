@@ -1,18 +1,23 @@
 package com.radiance.jvm
 
-import com.radiance.jvm.abi._
+import com.radiance.jvm.abi.{AbiADT, _}
 import com.radiance.jvm.crypto.{CryptoModule, KeyPair}
 import com.radiance.jvm.debot.DebotModule
 import org.scalatest.flatspec.AnyFlatSpec
-import Utils._
+import com.radiance.jvm.Utils._
 import cats.implicits._
 import com.radiance.jvm.processing.ProcessingModule
+import com.typesafe.scalalogging.Logger
 import io.circe.parser._
 import io.circe.syntax._
 
 import java.nio.charset.Charset
+import scala.annotation.nowarn
 
+@nowarn
 class DebotModuleTest extends AnyFlatSpec with TestBase {
+
+  private val logger = Logger[DebotModuleTest]
 
   override def init(): Unit = {
     super.init()
@@ -25,14 +30,14 @@ class DebotModuleTest extends AnyFlatSpec with TestBase {
   private def initDebot: (String, String, KeyPair) = {
     val keys = cryptoModule.generateRandomSignKeys.get
 
-    val targetAbi = extractAbi(V2, "testDebotTarget.abi.json")
-    val debotAbi = extractAbi(V2, "testDebot.abi.json")
+    val targetAbi: AbiADT.Abi = extractAbi(V2, "testDebotTarget.abi.json")
+    val debotAbi: AbiADT.Abi = extractAbi(V2, "testDebot.abi.json")
 
     val targetAddr = deployWithGiver(
       targetAbi,
       DeploySet(extractTvc(V2, "testDebotTarget.tvc")),
       CallSet("constructor"),
-      Signer.Keys(keys)
+      SignerADT.Keys(keys)
     ).get
 
     val debotAddr = deployWithGiver(
@@ -53,7 +58,7 @@ class DebotModuleTest extends AnyFlatSpec with TestBase {
         }""".stripMargin
         ).getOrElse(throw new IllegalArgumentException("Not a json")).some
       ),
-      Signer.Keys(keys)
+      SignerADT.Keys(keys)
     ).get
 
     (debotAddr, targetAddr, keys)
@@ -61,10 +66,11 @@ class DebotModuleTest extends AnyFlatSpec with TestBase {
 
   behavior.of("DebotModule")
 
+  // TODO implement it
   it should "be executed correctly" ignore {
     val (debotAddr, targetAddr, keys) = initDebot
     val res = debotModule.start(debotAddr, null).get
-    println(res)
+    logger.info(res.toString)
 
     assert(true)
   }

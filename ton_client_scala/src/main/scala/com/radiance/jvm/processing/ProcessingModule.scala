@@ -1,6 +1,6 @@
 package com.radiance.jvm.processing
 
-import com.radiance.jvm.{Context, _}
+import com.radiance.jvm._
 import com.radiance.jvm.abi._
 
 import scala.concurrent.Future
@@ -37,8 +37,11 @@ class ProcessingModule(private val ctx: Context) {
     send_events: Boolean,
     callback: Request
   ): Future[Either[Throwable, ResultOfProcessMessage]] = {
-    val arg = ParamsOfProcessMessage(message_encode_params, send_events)
-    ctx.execAsyncWithCallback("processing.process_message", arg, callback)
+    ctx.execAsyncWithCallback[ParamsOfProcessMessage, ResultOfProcessMessage](
+      "processing.process_message",
+      ParamsOfProcessMessage(message_encode_params, send_events),
+      callback
+    )
   }
 
   /**
@@ -65,12 +68,15 @@ class ProcessingModule(private val ctx: Context) {
    */
   def sendMessage(
     message: String,
-    abi: Option[Abi],
+    abi: Option[AbiADT.Abi],
     send_events: Boolean,
     callback: Request
   ): Future[Either[Throwable, ResultOfSendMessage]] = {
-    val arg = ParamsOfSendMessage(message, abi, send_events)
-    ctx.execAsync("processing.send_message", arg)
+    ctx.execAsyncWithCallback[ParamsOfSendMessage, ResultOfSendMessage](
+      "processing.send_message",
+      ParamsOfSendMessage(message, abi, send_events),
+      callback
+    )
   }
 
   /**
@@ -110,15 +116,17 @@ class ProcessingModule(private val ctx: Context) {
    *   Callback io.circe.Json => Unit
    */
   def waitForTransaction(
-    abi: Option[Abi],
+    abi: Option[AbiADT.Abi],
     message: String,
     shard_block_id: String,
     send_events: Boolean,
     callback: Request
   ): Future[Either[Throwable, ResultOfProcessMessage]] = {
-    val arg =
-      ParamsOfWaitForTransaction(abi, message, shard_block_id, send_events)
-    ctx.execAsync("processing.wait_for_transaction", arg)
+    ctx.execAsyncWithCallback[ParamsOfWaitForTransaction, ResultOfProcessMessage](
+      "processing.wait_for_transaction",
+      ParamsOfWaitForTransaction(abi, message, shard_block_id, send_events),
+      callback
+    )
   }
 
 }

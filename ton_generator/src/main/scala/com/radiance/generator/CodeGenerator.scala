@@ -13,7 +13,7 @@ import scala.collection.mutable
 object CodeGenerator extends App {
 
   import scala.io.Source
-  val jsonString: String = Source.fromResource("api-1.5.0.json").getLines.mkString("")
+  val jsonString: String = Source.fromResource("api-1.6.3.json").getLines.mkString("")
 
   val rootRes = parse(jsonString).map(_.as[ApiDescription.Root])
   val root = rootRes.fold(
@@ -86,10 +86,10 @@ object CodeGenerator extends App {
           )
         )
 
-        val tree1 = (DEF(decl.camelName, returnType)
-          .withParams(extendedParams.map(p => PARAM(p.name.get, toType(p.typ, usedModules)): ValDef))): Tree
+        val tree1: Tree = (DEF(decl.camelName, returnType)
+          .withParams(extendedParams.map(p => PARAM(p.name.get, toType(p.typ, usedModules)): ValDef)))
         val fullInfo = commentOpt.fold("")(u => u.stripSuffix("\n") + "\n") + extendedParams
-          .map(p => s"@param ${p.name.get} ${p.description.getOrElse("")}")
+          .map(p => s"@param ${p.name.get} ${p.description.getOrElse(p.name.get)}")
           .mkString("\n")
         val tree = tree1.withDoc(fullInfo)
         tree :: acc
@@ -114,7 +114,12 @@ object CodeGenerator extends App {
             val elm = CASECLASSDEF(RootClass.newClass(name)).withParams(params).tree
             commentOpt.map(elm.withDoc(_)).getOrElse(elm) :: acc
 
-          case SimpleAdtScalaType(traitName, _, _, list) =>
+          case ScalaValueClassType(name, _, _, fields) =>
+            val params = fields.map { f => PARAM(f.name, toType(f.typ, usedModules)): ValDef }
+            val elm = CASECLASSDEF(RootClass.newClass(name)).withParents("AnyVal").withParams(params).tree
+            commentOpt.map(elm.withDoc(_)).getOrElse(elm) :: acc
+
+          case EnumScalaType(traitName, _, _, list) =>
             val valueCheck: mutable.Set[Option[String]] = mutable.Set()
 
             val objDecls = list.sortBy(_.name).map {
@@ -142,12 +147,12 @@ object CodeGenerator extends App {
             } else {
               throw new IllegalArgumentException("Something wrong with value field")
             }
+
             val first = commentOpt.fold(sealedTrait)(sealedTrait.withDoc(_))
-            val second = OBJECTDEF(traitName).mkTree(objDecls)
+            val encloseObj = OBJECTDEF(traitName + "Enum").mkTree(first :: objDecls)
+            encloseObj :: acc
 
-            first :: second :: acc
-
-          case Adt(traitName, _, _, list) =>
+          case AdtScalaType(traitName, _, _, list) =>
             val sealedTrait = TRAITDEF(traitName).withFlags(Flags.SEALED).tree
             val first = commentOpt.map(sealedTrait.withDoc(_)).getOrElse(sealedTrait)
 
@@ -162,10 +167,15 @@ object CodeGenerator extends App {
                 val elm = CASECLASSDEF(RootClass.newClass(name)).withParams(params).withParents(traitName).tree
                 commentOpt.map(elm.withDoc(_)).getOrElse(elm)
 
+              case ScalaValueClassType(name, _, _, fields) =>
+                val params = fields.map { f => PARAM(f.name, toType(f.typ, usedModules)): ValDef }
+                val elm = CASECLASSDEF(RootClass.newClass(name)).withParams(params).withParents(traitName).tree
+                commentOpt.map(elm.withDoc(_)).getOrElse(elm)
+
               case x => throw new IllegalArgumentException(s"Unexpected value: $x in ADT definition")
             }
-            val scopeObject = OBJECTDEF(traitName).mkTree(childDecls)
-            first :: scopeObject :: acc
+            val encloseObj = OBJECTDEF(traitName + "ADT").mkTree(first :: childDecls)
+            encloseObj :: acc
 
           case x => throw new IllegalArgumentException(s"Unexpected value: $x while types pattern matching")
         }

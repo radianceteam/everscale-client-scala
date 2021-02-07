@@ -1,41 +1,26 @@
 package com.radiance.jvm.abi
 
-import com.radiance.jvm.Utils.generateType
 import com.radiance.jvm._
 import com.radiance.jvm.crypto._
 import io.circe._
 import io.circe.derivation._
+import io.circe.generic.extras
 
-sealed trait Abi
+object AbiADT {
 
-object Abi {
-  import io.circe.syntax._
+  sealed trait Abi
+
   case class Contract(value: AbiContract) extends Abi
-  object Contract {
-    implicit val encoder: Encoder[Contract] = deriveEncoder[Contract]
-  }
 
   case class Json(value: String) extends Abi
-  object Json {
-    implicit val encoder: Encoder[Json] = deriveEncoder[Json]
-  }
 
   case class Handle(value: AbiHandle) extends Abi
-  object Handle {
-    implicit val encoder: Encoder[Handle] = deriveEncoder[Handle]
-  }
 
   case class Serialized(value: AbiContract) extends Abi
-  object Serialized {
-    implicit val encoder: Encoder[Serialized] = deriveEncoder[Serialized]
-  }
 
-  implicit val encoder: Encoder[Abi] = {
-    case a: Contract   => a.asJson.deepMerge(generateType(a))
-    case a: Json       => a.asJson.deepMerge(generateType(a))
-    case a: Handle     => a.asJson.deepMerge(generateType(a))
-    case a: Serialized => a.asJson.deepMerge(generateType(a))
-  }
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[Abi] =
+    extras.semiauto.deriveConfiguredEncoder[Abi]
 }
 
 case class AbiContract(
@@ -62,11 +47,11 @@ object AbiData {
   implicit val codec: Codec[AbiData] = deriveCodec[AbiData]
 }
 
-sealed trait AbiErrorCode {
-  val code: String
-}
+object AbiErrorCodeEnum {
 
-object AbiErrorCode {
+  sealed trait AbiErrorCode {
+    val code: String
+  }
 
   case object RequiredAddressMissingForEncodeMessage extends AbiErrorCode {
     override val code: String = "301"
@@ -135,10 +120,10 @@ object AbiFunction {
   implicit val codec: Codec[AbiFunction] = deriveCodec[AbiFunction]
 }
 
-case class AbiHandle(value: BigInt)
+case class AbiHandle(value: BigInt) extends AnyVal
 
 object AbiHandle {
-  implicit val encoder: Encoder[AbiHandle] = deriveEncoder[AbiHandle]
+  implicit val encoder: Encoder[AbiHandle] = Encoder.instance(h => Json.fromBigInt(h.value))
 }
 
 case class AbiParam(
@@ -162,7 +147,7 @@ object CallSet {
 }
 
 case class DecodedMessageBody(
-  body_type: MessageBodyType,
+  body_type: MessageBodyTypeEnum.MessageBodyType,
   name: String,
   value: Option[Value],
   header: Option[FunctionHeader]
@@ -176,7 +161,8 @@ object DecodedMessageBody {
 case class DeploySet(
   tvc: String,
   workchain_id: Option[Int] = None,
-  initial_data: Option[Value] = None
+  initial_data: Option[Value] = None,
+  initial_pubkey: Option[String] = None
 )
 
 object DeploySet {
@@ -202,9 +188,9 @@ object FunctionHeader {
   implicit val encoder: Codec[FunctionHeader] = deriveCodec[FunctionHeader]
 }
 
-sealed trait MessageBodyType
+object MessageBodyTypeEnum {
 
-object MessageBodyType {
+  sealed trait MessageBodyType
 
   /**
    * Message contains the input of the ABI function.
@@ -228,47 +214,29 @@ object MessageBodyType {
    */
   case object Event extends MessageBodyType
 
-  implicit val decoder: Decoder[MessageBodyType] = Decoder[String].emap {
-    case "Input"          => Right(Input)
-    case "Output"         => Right(Output)
-    case "InternalOutput" => Right(InternalOutput)
-    case "Event"          => Right(Event)
-    case x                => Left(s"Can't read MessageBodyType from $x")
-  }
+  implicit val decoder: Decoder[MessageBodyType] =
+    extras.semiauto.deriveEnumerationDecoder[MessageBodyType]
 }
 
-sealed trait MessageSource
+object MessageSourceADT {
 
-object MessageSource {
-  import io.circe.syntax._
+  sealed trait MessageSource
 
-  case class Encoded(message: String, abi: Option[Abi]) extends MessageSource
-  object Encoded {
-    implicit val encoder: Encoder[Encoded] = deriveEncoder[Encoded]
-  }
+  case class Encoded(message: String, abi: Option[AbiADT.Abi]) extends MessageSource
 
   case class EncodingParams(value: ParamsOfEncodeMessage) extends MessageSource
-  object EncodingParams {
-    implicit val encoder: Encoder[EncodingParams] =
-      deriveEncoder[EncodingParams]
-  }
 
-  implicit val encoder: Encoder[MessageSource] = {
-    case a: Encoded        => a.asJson.deepMerge(generateType(a))
-    case a: EncodingParams => a.asJson.deepMerge(generateType(a))
-  }
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[MessageSource] =
+    extras.semiauto.deriveConfiguredEncoder[MessageSource]
 }
 
 case class ParamsOfAttachSignature(
-  abi: Abi,
+  abi: AbiADT.Abi,
   public_key: String,
   message: String,
   signature: String
-) extends Bind {
-  override type Out = ResultOfAttachSignature
-  override val decoder: Decoder[ResultOfAttachSignature] =
-    implicitly[Decoder[ResultOfAttachSignature]]
-}
+)
 
 object ParamsOfAttachSignature {
   implicit val encoder: Encoder[ParamsOfAttachSignature] =
@@ -276,26 +244,18 @@ object ParamsOfAttachSignature {
 }
 
 case class ParamsOfAttachSignatureToMessageBody(
-  abi: Abi,
+  abi: AbiADT.Abi,
   public_key: String,
   message: String,
   signature: String
-) extends Bind {
-  override type Out = ResultOfAttachSignatureToMessageBody
-  override val decoder: Decoder[ResultOfAttachSignatureToMessageBody] =
-    implicitly[Decoder[ResultOfAttachSignatureToMessageBody]]
-}
+)
 
 object ParamsOfAttachSignatureToMessageBody {
   implicit val encoder: Encoder[ParamsOfAttachSignatureToMessageBody] =
     deriveEncoder[ParamsOfAttachSignatureToMessageBody]
 }
 
-case class ParamsOfDecodeMessage(abi: Abi, message: String) extends Bind {
-  override type Out = DecodedMessageBody
-  override val decoder: Decoder[DecodedMessageBody] =
-    implicitly[Decoder[DecodedMessageBody]]
-}
+case class ParamsOfDecodeMessage(abi: AbiADT.Abi, message: String)
 
 object ParamsOfDecodeMessage {
   implicit val encoder: Encoder[ParamsOfDecodeMessage] =
@@ -303,14 +263,10 @@ object ParamsOfDecodeMessage {
 }
 
 case class ParamsOfDecodeMessageBody(
-  abi: Abi,
+  abi: AbiADT.Abi,
   body: String,
   is_internal: Boolean
-) extends Bind {
-  override type Out = DecodedMessageBody
-  override val decoder: Decoder[DecodedMessageBody] =
-    implicitly[Decoder[DecodedMessageBody]]
-}
+)
 
 object ParamsOfDecodeMessageBody {
   implicit val encoder: Encoder[ParamsOfDecodeMessageBody] =
@@ -318,15 +274,11 @@ object ParamsOfDecodeMessageBody {
 }
 
 case class ParamsOfEncodeAccount(
-  state_init: StateInitSource,
+  state_init: StateInitSourceADT.StateInitSource,
   balance: Option[BigInt],
   last_trans_lt: Option[BigInt],
   last_paid: Option[Long]
-) extends Bind {
-  override type Out = ResultOfEncodeAccount
-  override val decoder: Decoder[ResultOfEncodeAccount] =
-    implicitly[Decoder[ResultOfEncodeAccount]]
-}
+)
 
 object ParamsOfEncodeAccount {
   implicit val encoder: Encoder[ParamsOfEncodeAccount] =
@@ -334,17 +286,13 @@ object ParamsOfEncodeAccount {
 }
 
 case class ParamsOfEncodeMessage(
-  abi: Abi,
+  abi: AbiADT.Abi,
   address: Option[String],
   deploy_set: Option[DeploySet],
   call_set: Option[CallSet],
-  signer: Signer,
+  signer: SignerADT.Signer,
   processing_try_index: Option[Long]
-) extends Bind {
-  override type Out = ResultOfEncodeMessage
-  override val decoder: Decoder[ResultOfEncodeMessage] =
-    implicitly[Decoder[ResultOfEncodeMessage]]
-}
+)
 
 object ParamsOfEncodeMessage {
   implicit val encoder: Encoder[ParamsOfEncodeMessage] =
@@ -352,16 +300,12 @@ object ParamsOfEncodeMessage {
 }
 
 case class ParamsOfEncodeMessageBody(
-  abi: Abi,
+  abi: AbiADT.Abi,
   call_set: CallSet,
   is_internal: Boolean,
-  signer: Signer,
+  signer: SignerADT.Signer,
   processing_try_index: Option[Long]
-) extends Bind {
-  override type Out = ResultOfEncodeMessageBody
-  override val decoder: Decoder[ResultOfEncodeMessageBody] =
-    implicitly[Decoder[ResultOfEncodeMessageBody]]
-}
+)
 
 object ParamsOfEncodeMessageBody {
   implicit val encoder: Encoder[ParamsOfEncodeMessageBody] =
@@ -411,70 +355,45 @@ object ResultOfEncodeMessageBody {
     deriveDecoder[ResultOfEncodeMessageBody]
 }
 
-sealed trait Signer
+object SignerADT {
 
-object Signer {
-  import io.circe.Json._
-  import io.circe.syntax._
+  sealed trait Signer
+
   case object None extends Signer
 
   case class External(public_key: String) extends Signer
-  object External {
-    implicit val encoder: Encoder[External] = deriveEncoder[External]
-  }
 
   case class Keys(keys: KeyPair) extends Signer
-  object Keys {
-    implicit val encoder: Encoder[Keys] = deriveEncoder[Keys]
-  }
 
   case class SigningBox(handle: SigningBoxHandle) extends Signer
-  object SigningBox {
-    implicit val encoder: Encoder[SigningBox] = deriveEncoder[SigningBox]
-  }
 
-  implicit val encoder: Encoder[Signer] = {
-    case None          => fromFields(Seq("type" -> fromString("None")))
-    case a: External   => a.asJson.deepMerge(generateType(a))
-    case a: Keys       => a.asJson.deepMerge(generateType(a))
-    case a: SigningBox => a.asJson.deepMerge(generateType(a))
-  }
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[Signer] =
+    extras.semiauto.deriveConfiguredEncoder[Signer]
 }
 
-case class StateInitParams(abi: Abi, value: Value)
+case class StateInitParams(abi: AbiADT.Abi, value: Value)
 
 object StateInitParams {
   implicit val encoder: Encoder[StateInitParams] =
     deriveEncoder[StateInitParams]
 }
 
-sealed trait StateInitSource
+object StateInitSourceADT {
 
-object StateInitSource {
-  import io.circe.syntax._
+  sealed trait StateInitSource
 
-  case class Message(source: MessageSource) extends StateInitSource
-  object Message {
-    implicit val encoder: Encoder[Message] = deriveEncoder[Message]
-  }
+  case class Message(source: MessageSourceADT.MessageSource) extends StateInitSource
 
   case class StateInit(code: String, data: String, library: Option[String]) extends StateInitSource
-  object StateInit {
-    implicit val encoder: Encoder[StateInit] = deriveEncoder[StateInit]
-  }
 
   case class Tvc(
     tvc: String,
     public_key: Option[String],
     init_params: Option[StateInitParams]
   ) extends StateInitSource
-  object Tvc {
-    implicit val encoder: Encoder[Tvc] = deriveEncoder[Tvc]
-  }
 
-  implicit val encoder: Encoder[StateInitSource] = {
-    case a: Message   => a.asJson.deepMerge(generateType(a))
-    case a: StateInit => a.asJson.deepMerge(generateType(a))
-    case a: Tvc       => a.asJson.deepMerge(generateType(a))
-  }
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[StateInitSource] =
+    extras.semiauto.deriveConfiguredEncoder[StateInitSource]
 }

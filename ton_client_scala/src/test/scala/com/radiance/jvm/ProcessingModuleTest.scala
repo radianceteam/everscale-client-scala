@@ -2,13 +2,13 @@ package com.radiance.jvm
 
 import com.radiance.jvm.abi._
 import org.scalatest.flatspec.AnyFlatSpec
-
 import cats.implicits._
 import com.radiance.jvm.crypto.CryptoModule
 import com.radiance.jvm.processing.ProcessingModule
+import com.typesafe.scalalogging.Logger
 
 class ProcessingModuleTest extends AnyFlatSpec with TestBase {
-
+  private val logger = Logger[ProcessingModuleTest]
   override def init(): Unit = {
     super.init()
     cryptoModule = new CryptoModule(ctx)
@@ -30,18 +30,18 @@ class ProcessingModuleTest extends AnyFlatSpec with TestBase {
           "constructor",
           FunctionHeader(None, None, keys.public.some).some
         ).some,
-        Signer.Keys(keys),
+        SignerADT.Keys(keys),
         None
       )
       .get
 
-    println(s"Address: ${encoded.address}")
+    logger.info(s"Address: ${encoded.address}")
 
     val f = getGramsFromGiver(
       encoded.address,
-      e => println("Get grams from Giver: \n" + e)
+      e => logger.info("Get grams from Giver: \n" + e)
     ).get
-    println(f)
+    logger.info(f.toString)
     assert(true)
   }
 }

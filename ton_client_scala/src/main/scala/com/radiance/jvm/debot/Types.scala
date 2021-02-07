@@ -1,9 +1,7 @@
 package com.radiance.jvm.debot
-
-import com.radiance.jvm._
 import com.radiance.jvm.crypto._
-import io.circe.derivation._
 import io.circe._
+import io.circe.generic.extras
 
 case class DebotAction(
   description: String,
@@ -15,50 +13,61 @@ case class DebotAction(
 )
 
 object DebotAction {
-  implicit val encoder: Encoder[DebotAction] = deriveEncoder[DebotAction]
+  implicit val encoder: Encoder[DebotAction] = derivation.deriveEncoder[DebotAction]
 }
 
-sealed trait DebotErrorCode {
-  val code: String
-}
+object DebotErrorCodeEnum {
 
-object DebotErrorCode {
-
-  case object DebotStartFailed extends DebotErrorCode {
-    override val code: String = "801"
-  }
-
-  case object DebotFetchFailed extends DebotErrorCode {
-    override val code: String = "802"
+  sealed trait DebotErrorCode {
+    val code: String
   }
 
   case object DebotExecutionFailed extends DebotErrorCode {
     override val code: String = "803"
   }
-
+  case object DebotFetchFailed extends DebotErrorCode {
+    override val code: String = "802"
+  }
+  case object DebotInvalidAbi extends DebotErrorCode {
+    override val code: String = "807"
+  }
+  case object DebotInvalidFunctionId extends DebotErrorCode {
+    override val code: String = "806"
+  }
   case object DebotInvalidHandle extends DebotErrorCode {
     override val code: String = "804"
   }
-
+  case object DebotInvalidJsonParams extends DebotErrorCode {
+    override val code: String = "805"
+  }
+  case object DebotStartFailed extends DebotErrorCode {
+    override val code: String = "801"
+  }
 }
 
-case class DebotHandle(value: BigInt)
+case class DebotHandle(value: BigInt) extends AnyVal
 
 object DebotHandle {
-  implicit val codec: Codec[DebotHandle] = deriveCodec[DebotHandle]
+  implicit val decoder: Decoder[DebotHandle] = Decoder.instance(c => c.value.as[BigInt].map(DebotHandle(_)))
+  implicit val encoder: Encoder[DebotHandle] = Encoder.instance(a => Json.fromBigInt(a.value))
 }
 
-/**
- * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
- */
-sealed trait ParamsOfAppDebotBrowser
+object ParamsOfAppDebotBrowserADT {
 
-object ParamsOfAppDebotBrowser {
+  /**
+   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   */
+  sealed trait ParamsOfAppDebotBrowser
 
   /**
    * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
    */
   case class Log(msg: String) extends ParamsOfAppDebotBrowser
+
+  /**
+   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   */
+  case class Send(message: String) extends ParamsOfAppDebotBrowser
 
   /**
    * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
@@ -90,51 +99,44 @@ object ParamsOfAppDebotBrowser {
    */
   case object SwitchCompleted extends ParamsOfAppDebotBrowser
 
-  // TODO add encoder
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[ParamsOfAppDebotBrowser] =
+    extras.semiauto.deriveConfiguredEncoder[ParamsOfAppDebotBrowser]
 }
 
-case class ParamsOfStart(address: String) extends Bind {
-  override type Out = RegisteredDebot
-  override val decoder: Decoder[RegisteredDebot] =
-    implicitly[Decoder[RegisteredDebot]]
-}
+case class ParamsOfStart(address: String)
 
 object ParamsOfStart {
-  implicit val encoder: Encoder[ParamsOfStart] = deriveEncoder[ParamsOfStart]
+  implicit val encoder: Encoder[ParamsOfStart] = derivation.deriveEncoder[ParamsOfStart]
 }
 
 case class RegisteredDebot(debot_handle: DebotHandle)
 
 object RegisteredDebot {
-  implicit val codec: Codec[RegisteredDebot] = deriveCodec[RegisteredDebot]
+  implicit val codec: Codec[RegisteredDebot] = derivation.deriveCodec[RegisteredDebot]
 }
 
-sealed trait ResultOfAppDebotBrowser
+object ResultOfAppDebotBrowserADT {
 
-object ResultOfAppDebotBrowser {
+  sealed trait ResultOfAppDebotBrowser
+
   case class Input(value: String) extends ResultOfAppDebotBrowser
+
   case class GetSigningBox(signing_box: SigningBoxHandle) extends ResultOfAppDebotBrowser
+
   case object InvokeDebot extends ResultOfAppDebotBrowser
 
-  case class ParamsOfFetch(address: String) extends Bind {
-    override type Out = RegisteredDebot
-    override val decoder: Decoder[RegisteredDebot] =
-      implicitly[Decoder[RegisteredDebot]]
-  }
+  case class ParamsOfFetch(address: String)
 
-  object ParamsOfFetch {
-    implicit val encoder: Encoder[ParamsOfFetch] = deriveEncoder[ParamsOfFetch]
-  }
+  /**
+   * [UNSTABLE](UNSTABLE.md) Parameters of `send` function.
+   */
+  case class ParamsOfSend(debot_handle: DebotHandle, source: String, func_id: Long, params: String)
 
-  case class ParamsOfExecute(debot_handle: DebotHandle, action: DebotAction) extends Bind {
-    override type Out = Unit
-    override val decoder: Decoder[Unit] = implicitly[Decoder[Unit]]
-  }
+  case class ParamsOfExecute(debot_handle: DebotHandle, action: DebotAction)
 
-  object ParamsOfExecute {
-    implicit val encoder: Encoder[ParamsOfExecute] =
-      deriveEncoder[ParamsOfExecute]
-  }
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[ResultOfAppDebotBrowser] =
+    extras.semiauto.deriveConfiguredEncoder[ResultOfAppDebotBrowser]
 
-  // TODO add decoder
 }

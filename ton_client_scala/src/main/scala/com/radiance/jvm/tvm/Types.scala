@@ -5,29 +5,21 @@ import com.radiance.jvm.abi._
 import com.radiance.jvm.processing._
 import io.circe._
 import io.circe.derivation._
+import io.circe.generic.extras
 
-sealed trait AccountForExecutor
+object AccountForExecutorADT {
 
-object AccountForExecutor {
-
-  import io.circe.Json._
-  import io.circe.syntax._
+  sealed trait AccountForExecutor
 
   case class Account(boc: String, unlimited_balance: Option[Boolean]) extends AccountForExecutor
-
-  object Account {
-    implicit val encoder: Encoder[Account] = deriveEncoder[Account]
-  }
 
   case object None extends AccountForExecutor
 
   case object Uninit extends AccountForExecutor
 
-  implicit val encoder: Encoder[AccountForExecutor] = {
-    case None       => fromFields(Seq("type" -> fromString("None")))
-    case Uninit     => fromFields(Seq("type" -> fromString("Uninit")))
-    case a: Account => a.asJson.deepMerge(Utils.generateType(a))
-  }
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[AccountForExecutor] =
+    extras.semiauto.deriveConfiguredEncoder[AccountForExecutor]
 
 }
 
@@ -45,15 +37,11 @@ object ExecutionOptions {
 
 case class ParamsOfRunExecutor(
   message: String,
-  account: AccountForExecutor,
+  account: AccountForExecutorADT.AccountForExecutor,
   execution_options: Option[ExecutionOptions],
-  abi: Option[Abi],
+  abi: Option[AbiADT.Abi],
   skip_transaction_check: Option[Boolean]
-) extends Bind {
-  override type Out = ResultOfRunExecutor
-  override val decoder: Decoder[ResultOfRunExecutor] =
-    implicitly[Decoder[ResultOfRunExecutor]]
-}
+)
 
 object ParamsOfRunExecutor {
   implicit val encoder: Encoder[ParamsOfRunExecutor] =
@@ -65,11 +53,7 @@ case class ParamsOfRunGet(
   function_name: String,
   input: Option[Value],
   execution_options: Option[ExecutionOptions]
-) extends Bind {
-  override type Out = ResultOfRunGet
-  override val decoder: Decoder[ResultOfRunGet] =
-    implicitly[Decoder[ResultOfRunGet]]
-}
+)
 
 object ParamsOfRunGet {
   implicit val encoder: Encoder[ParamsOfRunGet] =
@@ -80,12 +64,8 @@ case class ParamsOfRunTvm(
   message: String,
   account: String,
   execution_options: Option[ExecutionOptions],
-  abi: Option[Abi]
-) extends Bind {
-  override type Out = ResultOfRunTvm
-  override val decoder: Decoder[ResultOfRunTvm] =
-    implicitly[Decoder[ResultOfRunTvm]]
-}
+  abi: Option[AbiADT.Abi]
+)
 
 object ParamsOfRunTvm {
   implicit val encoder: Encoder[ParamsOfRunTvm] =
@@ -137,11 +117,11 @@ object TransactionFees {
     deriveDecoder[TransactionFees]
 }
 
-sealed trait TvmErrorCode {
-  val code: String
-}
+object TvmErrorCodeEnum {
 
-object TvmErrorCode {
+  sealed trait TvmErrorCode {
+    val code: String
+  }
 
   case object CanNotReadTransaction extends TvmErrorCode {
     override val code: String = "401"

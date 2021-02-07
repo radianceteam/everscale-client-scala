@@ -1,15 +1,15 @@
-package com.radiance.jvm
+package com.radiance
 
-import com.radiance.jvm.abi._
-import io.circe.parser._
+import com.radiance.jvm.Utils.encode
+import com.radiance.jvm.Version
+import com.radiance.jvm.abi.{AbiADT, AbiContract}
+import io.circe.Decoder
+import io.circe.derivation.deriveDecoder
+import io.circe.parser.parse
 
 import java.nio.file.{Files, Paths}
-import scala.io.Source
-import Utils._
-import io.circe._
-import io.circe.derivation._
-
 import scala.concurrent.{Await, Future}
+import scala.io.Source
 import scala.concurrent.duration._
 
 trait TestUtils {
@@ -19,7 +19,7 @@ trait TestUtils {
 
   protected def extractAbi(version: Version, path: String) =
     parse(Source.fromResource(s"${version.name}/$path").mkString)
-      .flatMap(_.as[AbiContract].map(u => Abi.Serialized(u)))
+      .flatMap(_.as[AbiContract].map(u => AbiADT.Serialized(u)))
       .fold(t => throw t, r => r)
 
   protected def extractTvc(version: Version, path: String): String =
