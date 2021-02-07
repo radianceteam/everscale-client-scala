@@ -10,6 +10,7 @@ import io.circe.syntax._
 import java.nio.file.{Files, Path, Paths}
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import scala.annotation.nowarn
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Success, Try}
 
@@ -69,6 +70,7 @@ object Context {
     val byteArr =
       Files.readAllBytes(Paths.get(getClass.getResource(s"/$fileName").toURI))
     Files.write(tempDir.resolve(fileName), byteArr)
+    ()
   }
 
   def apply(config: ClientConfig)(implicit
@@ -109,10 +111,13 @@ class Context private (var contextId: Int)(implicit
   private val appCallbackMap: ConcurrentHashMap[Int, AppObject[Any, Any]] =
     new ConcurrentHashMap[Int, AppObject[Any, Any]]()
 
+  @nowarn
   @native private[jvm] def createContext(config: String): String
 
+  @nowarn
   @native private[jvm] def destroyContext(context: Int): Unit
 
+  @nowarn
   @native private[jvm] def asyncRequest(
     context: Int,
     functionName: String,
@@ -120,6 +125,7 @@ class Context private (var contextId: Int)(implicit
     promise: Promise[String]
   ): Unit
 
+  @nowarn
   @native private[jvm] def asyncRequestWithAppId(
     context: Int,
     functionName: String,
@@ -127,6 +133,7 @@ class Context private (var contextId: Int)(implicit
     appId: Int
   ): Unit
 
+  @nowarn
   @native private[jvm] def unregisterAppId(
     context: Int,
     functionName: String,
@@ -134,6 +141,7 @@ class Context private (var contextId: Int)(implicit
     appId: Int
   ): Unit
 
+  @nowarn
   @native private[jvm] def syncRequest(
     context: Int,
     functionName: String,
@@ -181,8 +189,11 @@ class Context private (var contextId: Int)(implicit
     if (finished) {
       callbackMap.remove(promise)
     }
+    ()
   }
 
+  //TODO fix finished param
+  @nowarn
   private[jvm] def asyncHandlerWithAppId(
     code: Int,
     params: String,

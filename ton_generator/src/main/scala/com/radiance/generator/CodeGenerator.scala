@@ -114,7 +114,7 @@ object CodeGenerator extends App {
             val elm = CASECLASSDEF(RootClass.newClass(name)).withParams(params).tree
             commentOpt.map(elm.withDoc(_)).getOrElse(elm) :: acc
 
-          case SimpleAdtScalaType(traitName, _, _, list) =>
+          case EnumScalaType(traitName, _, _, list) =>
             val valueCheck: mutable.Set[Option[String]] = mutable.Set()
 
             val objDecls = list.sortBy(_.name).map {
@@ -142,12 +142,12 @@ object CodeGenerator extends App {
             } else {
               throw new IllegalArgumentException("Something wrong with value field")
             }
+
             val first = commentOpt.fold(sealedTrait)(sealedTrait.withDoc(_))
-            val second = OBJECTDEF(traitName).mkTree(objDecls)
+            val encloseObj = OBJECTDEF(traitName + "Enum").mkTree(first :: objDecls)
+            encloseObj :: acc
 
-            first :: second :: acc
-
-          case Adt(traitName, _, _, list) =>
+          case AdtScalaType(traitName, _, _, list) =>
             val sealedTrait = TRAITDEF(traitName).withFlags(Flags.SEALED).tree
             val first = commentOpt.map(sealedTrait.withDoc(_)).getOrElse(sealedTrait)
 
@@ -164,8 +164,8 @@ object CodeGenerator extends App {
 
               case x => throw new IllegalArgumentException(s"Unexpected value: $x in ADT definition")
             }
-            val scopeObject = OBJECTDEF(traitName).mkTree(childDecls)
-            first :: scopeObject :: acc
+            val encloseObj = OBJECTDEF(traitName + "ADT").mkTree(first :: childDecls)
+            encloseObj :: acc
 
           case x => throw new IllegalArgumentException(s"Unexpected value: $x while types pattern matching")
         }

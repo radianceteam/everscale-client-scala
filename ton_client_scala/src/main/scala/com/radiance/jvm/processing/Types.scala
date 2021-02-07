@@ -47,10 +47,11 @@ object ParamsOfWaitForTransaction {
     deriveEncoder[ParamsOfWaitForTransaction]
 }
 
-sealed trait ProcessingErrorCode {
-  val code: String
-}
-object ProcessingErrorCode {
+object ProcessingErrorCodeEnum {
+
+  sealed trait ProcessingErrorCode {
+    val code: String
+  }
 
   case object MessageAlreadyExpired extends ProcessingErrorCode {
     override val code: String = "501"

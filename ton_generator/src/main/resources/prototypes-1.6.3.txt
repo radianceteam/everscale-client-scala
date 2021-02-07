@@ -1,17 +1,17 @@
 package client {
   case class AbiConfig(workchain: Option[Int], message_expiration_timeout: Option[Long], message_expiration_timeout_grow_factor: Option[Float])
-  sealed trait AppRequestResult
-  object AppRequestResult {
+  object AppRequestResultADT {
+    sealed trait AppRequestResult
     case class Error(text: String) extends AppRequestResult
     case class Ok(result: Value) extends AppRequestResult
   }
   case class BuildInfoDependency(name: String, git_commit: String)
   case class ClientConfig(network: Option[NetworkConfig], crypto: Option[CryptoConfig], abi: Option[AbiConfig])
   case class ClientError(code: Long, message: String, data: Value)
-  sealed trait ClientErrorCode {
-    val code: String
-  }
-  object ClientErrorCode {
+  object ClientErrorCodeEnum {
+    sealed trait ClientErrorCode {
+      val code: String
+    }
     case object AppRequestError extends ClientErrorCode {
       override val code: String = "26"
     }
@@ -136,10 +136,10 @@ package client {
   def version(): Future[Either[Throwable, ResultOfVersion]]
 }
 package crypto {
-  sealed trait CryptoErrorCode {
-    val code: String
-  }
-  object CryptoErrorCode {
+  object CryptoErrorCodeEnum {
+    sealed trait CryptoErrorCode {
+      val code: String
+    }
     case object Bip32InvalidDerivePath extends CryptoErrorCode {
       override val code: String = "116"
     }
@@ -202,9 +202,9 @@ package crypto {
     }
   }
   case class KeyPair(public: String, secret: String)
-  /** Signing box callbacks. */
-  sealed trait ParamsOfAppSigningBox
-  object ParamsOfAppSigningBox {
+  object ParamsOfAppSigningBoxADT {
+    /** Signing box callbacks. */
+    sealed trait ParamsOfAppSigningBox
     /** Get signing box public key */
     case object GetPublicKey extends ParamsOfAppSigningBox
     /** Signing box callbacks. */
@@ -241,9 +241,9 @@ package crypto {
   case class ParamsOfTonCrc16(data: String)
   case class ParamsOfVerifySignature(signed: String, public: String)
   case class RegisteredSigningBox(handle: SigningBoxHandle)
-  /** Returning values from signing box callbacks. */
-  sealed trait ResultOfAppSigningBox
-  object ResultOfAppSigningBox {
+  object ResultOfAppSigningBoxADT {
+    /** Returning values from signing box callbacks. */
+    sealed trait ResultOfAppSigningBox
     /** Returning values from signing box callbacks. */
     case class GetPublicKey(public_key: String) extends ResultOfAppSigningBox
     /** Returning values from signing box callbacks. */
@@ -526,8 +526,8 @@ package crypto {
   def verifySignature(signed: String, public: String): Future[Either[Throwable, ResultOfVerifySignature]]
 }
 package abi {
-  sealed trait Abi
-  object Abi {
+  object AbiADT {
+    sealed trait Abi
     case class Contract(value: AbiContract) extends Abi
     case class Handle(value: AbiHandle) extends Abi
     case class Json(value: String) extends Abi
@@ -535,10 +535,10 @@ package abi {
   }
   case class AbiContract(`ABI version`: Option[Long], abi_version: Option[Long], header: Option[List[String]], functions: Option[List[AbiFunction]], events: Option[List[AbiEvent]], data: Option[List[AbiData]])
   case class AbiData(key: BigInt, name: String, `type`: String, components: Option[List[AbiParam]])
-  sealed trait AbiErrorCode {
-    val code: String
-  }
-  object AbiErrorCode {
+  object AbiErrorCodeEnum {
+    sealed trait AbiErrorCode {
+      val code: String
+    }
     case object AttachSignatureFailed extends AbiErrorCode {
       override val code: String = "307"
     }
@@ -589,8 +589,8 @@ package abi {
    * If a contract's ABI does not include some headers, then they are not filled.
    */
   case class FunctionHeader(expire: Option[Long], time: Option[BigInt], pubkey: Option[String])
-  sealed trait MessageBodyType
-  object MessageBodyType {
+  object MessageBodyTypeEnum {
+    sealed trait MessageBodyType
     /** Message contains the input of the ABI event. */
     case object Event extends MessageBodyType
     /** Message contains the input of the ABI function. */
@@ -604,8 +604,8 @@ package abi {
     /** Message contains the output of the ABI function. */
     case object Output extends MessageBodyType
   }
-  sealed trait MessageSource
-  object MessageSource {
+  object MessageSourceADT {
+    sealed trait MessageSource
     case class Encoded(message: String, abi: Option[Abi]) extends MessageSource
     case class EncodingParams(value: ParamsOfEncodeMessage) extends MessageSource
   }
@@ -621,8 +621,8 @@ package abi {
   case class ResultOfEncodeAccount(account: String, id: String)
   case class ResultOfEncodeMessage(message: String, data_to_sign: Option[String], address: String, message_id: String)
   case class ResultOfEncodeMessageBody(body: String, data_to_sign: Option[String])
-  sealed trait Signer
-  object Signer {
+  object SignerADT {
+    sealed trait Signer
     case class External(public_key: String) extends Signer
     case class Keys(keys: KeyPair) extends Signer
     /**
@@ -633,8 +633,8 @@ package abi {
     case class SigningBox(handle: SigningBoxHandle) extends Signer
   }
   case class StateInitParams(abi: Abi, value: Value)
-  sealed trait StateInitSource
-  object StateInitSource {
+  object StateInitSourceADT {
+    sealed trait StateInitSource
     case class Message(source: MessageSource) extends StateInitSource
     case class StateInit(code: String, data: String, library: Option[String]) extends StateInitSource
     case class Tvc(tvc: String, public_key: Option[String], init_params: Option[StateInitParams]) extends StateInitSource
@@ -753,10 +753,10 @@ package abi {
   def encodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long]): Future[Either[Throwable, ResultOfEncodeMessageBody]]
 }
 package boc {
-  sealed trait BocErrorCode {
-    val code: String
-  }
-  object BocErrorCode {
+  object BocErrorCodeEnum {
+    sealed trait BocErrorCode {
+      val code: String
+    }
     case object InappropriateBlock extends BocErrorCode {
       override val code: String = "203"
     }
@@ -831,10 +831,10 @@ package processing {
   case class ParamsOfProcessMessage(message_encode_params: ParamsOfEncodeMessage, send_events: Boolean)
   case class ParamsOfSendMessage(message: String, abi: Option[Abi], send_events: Boolean)
   case class ParamsOfWaitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Boolean)
-  sealed trait ProcessingErrorCode {
-    val code: String
-  }
-  object ProcessingErrorCode {
+  object ProcessingErrorCodeEnum {
+    sealed trait ProcessingErrorCode {
+      val code: String
+    }
     case object BlockNotFound extends ProcessingErrorCode {
       override val code: String = "511"
     }
@@ -875,8 +875,8 @@ package processing {
       override val code: String = "508"
     }
   }
-  sealed trait ProcessingEvent
-  object ProcessingEvent {
+  object ProcessingEventADT {
+    sealed trait ProcessingEvent
     case class DidSend(shard_block_id: String, message_id: String, message: String) extends ProcessingEvent
     case class FetchFirstBlockFailed(error: ClientError) extends ProcessingEvent
     case class FetchNextBlockFailed(shard_block_id: String, message_id: String, message: String, error: ClientError) extends ProcessingEvent
@@ -973,8 +973,8 @@ package processing {
   def waitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Boolean, callback: Request): Future[Either[Throwable, ResultOfProcessMessage]]
 }
 package utils {
-  sealed trait AddressStringFormat
-  object AddressStringFormat {
+  object AddressStringFormatADT {
+    sealed trait AddressStringFormat
     case object AccountId extends AddressStringFormat
     case class Base64(url: Boolean, test: Boolean, bounce: Boolean) extends AddressStringFormat
     case object Hex extends AddressStringFormat
@@ -991,8 +991,8 @@ package utils {
   def convertAddress(address: String, output_format: AddressStringFormat): Future[Either[Throwable, ResultOfConvertAddress]]
 }
 package tvm {
-  sealed trait AccountForExecutor
-  object AccountForExecutor {
+  object AccountForExecutorADT {
+    sealed trait AccountForExecutor
     case class Account(boc: String, unlimited_balance: Option[Boolean]) extends AccountForExecutor
     /** Non-existing account to run a creation internal message. Should be used with `skip_transaction_check = true` if the message has no deploy data since transactions on the uninitialized account are always aborted */
     case object None extends AccountForExecutor
@@ -1007,10 +1007,10 @@ package tvm {
   case class ResultOfRunGet(output: Value)
   case class ResultOfRunTvm(out_messages: List[String], decoded: Option[DecodedOutput], account: String)
   case class TransactionFees(in_msg_fwd_fee: BigInt, storage_fee: BigInt, gas_fee: BigInt, out_msgs_fwd_fee: BigInt, total_account_fees: BigInt, total_output: BigInt)
-  sealed trait TvmErrorCode {
-    val code: String
-  }
-  object TvmErrorCode {
+  object TvmErrorCodeEnum {
+    sealed trait TvmErrorCode {
+      val code: String
+    }
     case object AccountCodeMissing extends TvmErrorCode {
       override val code: String = "406"
     }
@@ -1115,8 +1115,8 @@ package tvm {
   def runTvm(message: String, account: String, execution_options: Option[ExecutionOptions], abi: Option[Abi]): Future[Either[Throwable, ResultOfRunTvm]]
 }
 package net {
-  sealed trait AggregationFn
-  object AggregationFn {
+  object AggregationFnEnum {
+    sealed trait AggregationFn
     /** Returns an average value for a field in filtered records */
     case object AVERAGE extends AggregationFn
     /** Returns count of filtered record */
@@ -1130,10 +1130,10 @@ package net {
   }
   case class EndpointsSet(endpoints: List[String])
   case class FieldAggregation(field: String, fn: AggregationFn)
-  sealed trait NetErrorCode {
-    val code: String
-  }
-  object NetErrorCode {
+  object NetErrorCodeEnum {
+    sealed trait NetErrorCode {
+      val code: String
+    }
     case object ClockOutOfSync extends NetErrorCode {
       override val code: String = "606"
     }
@@ -1183,8 +1183,8 @@ package net {
   case class ParamsOfFindLastShardBlock(address: String)
   case class ParamsOfQuery(query: String, variables: Option[Value])
   case class ParamsOfQueryCollection(collection: String, filter: Option[Value], result: String, order: Option[List[OrderBy]], limit: Option[Long])
-  sealed trait ParamsOfQueryOperation
-  object ParamsOfQueryOperation {
+  object ParamsOfQueryOperationADT {
+    sealed trait ParamsOfQueryOperation
     case class AggregateCollection(value: ParamsOfAggregateCollection) extends ParamsOfQueryOperation
     case class QueryCollection(value: ParamsOfQueryCollection) extends ParamsOfQueryOperation
     case class WaitForCollection(value: ParamsOfWaitForCollection) extends ParamsOfQueryOperation
@@ -1198,8 +1198,8 @@ package net {
   case class ResultOfQueryCollection(result: List[Value])
   case class ResultOfSubscribeCollection(handle: Long)
   case class ResultOfWaitForCollection(result: Value)
-  sealed trait SortDirection
-  object SortDirection {
+  object SortDirectionEnum {
+    sealed trait SortDirection
     case object ASC extends SortDirection
     case object DESC extends SortDirection
   }
@@ -1287,10 +1287,10 @@ package net {
 package debot {
   /** [UNSTABLE](UNSTABLE.md) Describes a debot action in a Debot Context. */
   case class DebotAction(description: String, name: String, action_type: Long, to: Long, attributes: String, misc: String)
-  sealed trait DebotErrorCode {
-    val code: String
-  }
-  object DebotErrorCode {
+  object DebotErrorCodeEnum {
+    sealed trait DebotErrorCode {
+      val code: String
+    }
     case object DebotExecutionFailed extends DebotErrorCode {
       override val code: String = "803"
     }
@@ -1315,12 +1315,12 @@ package debot {
   }
   /** [UNSTABLE](UNSTABLE.md) Handle of registered in SDK debot */
   case class DebotHandle(value: BigInt)
-  /**
-   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
-   * Called by debot engine to communicate with debot browser.
-   */
-  sealed trait ParamsOfAppDebotBrowser
-  object ParamsOfAppDebotBrowser {
+  object ParamsOfAppDebotBrowserADT {
+    /**
+     * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
+     * Called by debot engine to communicate with debot browser.
+     */
+    sealed trait ParamsOfAppDebotBrowser
     /**
      * Get signing box to sign data.
      * Signing box returned is owned and disposed by debot engine
@@ -1369,9 +1369,9 @@ package debot {
   case class ParamsOfStart(address: String)
   /** [UNSTABLE](UNSTABLE.md) Structure for storing debot handle returned from `start` and `fetch` functions. */
   case class RegisteredDebot(debot_handle: DebotHandle)
-  /** [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks. */
-  sealed trait ResultOfAppDebotBrowser
-  object ResultOfAppDebotBrowser {
+  object ResultOfAppDebotBrowserADT {
+    /** [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks. */
+    sealed trait ResultOfAppDebotBrowser
     /** [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks. */
     case class GetSigningBox(signing_box: SigningBoxHandle) extends ResultOfAppDebotBrowser
     /** [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks. */

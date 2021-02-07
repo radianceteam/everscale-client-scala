@@ -4,11 +4,11 @@ import com.radiance.jvm._
 import io.circe.derivation._
 import io.circe._
 
-sealed trait BocErrorCode {
-  val code: String
-}
+object BocErrorCodeEnum {
 
-object BocErrorCode {
+  sealed trait BocErrorCode {
+    val code: String
+  }
 
   case object InvalidBoc extends BocErrorCode {
     override val code: String = "201"

@@ -1,6 +1,5 @@
 package com.radiance.jvm.utils
 
-import com.radiance.jvm.tvm.AccountForExecutorADT.AccountForExecutor
 import io.circe._
 import io.circe.derivation._
 import io.circe.generic.extras

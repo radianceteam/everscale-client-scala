@@ -1,7 +1,9 @@
 package com.radiance.samples
 
+import scala.annotation.nowarn
 import scala.concurrent.Future
 
+@nowarn
 object Modules {
 
   object ClientModuleSamples {

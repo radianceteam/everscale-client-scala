@@ -3,6 +3,7 @@ package com.radiance.jvm.debot
 import com.radiance.jvm._
 import com.radiance.jvm.app.AppObject
 
+import scala.annotation.nowarn
 import scala.concurrent.Future
 
 class DebotModule(private val ctx: Context) {
@@ -17,6 +18,7 @@ class DebotModule(private val ctx: Context) {
    * @param action
    *   action
    */
+  @nowarn // TODO fix it
   def execute(
     debot_handle: DebotHandle,
     action: DebotAction

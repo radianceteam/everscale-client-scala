@@ -37,11 +37,11 @@ object ClientError {
   implicit val codec: Codec[ClientError] = deriveCodec[ClientError]
 }
 
-sealed trait ClientErrorCode {
-  val code: String
-}
+object ClientErrorCodeEnum {
 
-object ClientErrorCode {
+  sealed trait ClientErrorCode {
+    val code: String
+  }
 
   case object NotImplemented extends ClientErrorCode {
     val code: String = "1"

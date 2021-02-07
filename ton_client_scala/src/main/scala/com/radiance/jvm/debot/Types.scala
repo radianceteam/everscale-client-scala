@@ -16,11 +16,11 @@ object DebotAction {
   implicit val encoder: Encoder[DebotAction] = derivation.deriveEncoder[DebotAction]
 }
 
-sealed trait DebotErrorCode {
-  val code: String
-}
+object DebotErrorCodeEnum {
 
-object DebotErrorCode {
+  sealed trait DebotErrorCode {
+    val code: String
+  }
 
   case object DebotExecutionFailed extends DebotErrorCode {
     override val code: String = "803"

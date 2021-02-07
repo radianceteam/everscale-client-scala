@@ -3,16 +3,13 @@ package com.radiance.jvm.crypto
 import io.circe._
 import io.circe.derivation._
 import io.circe.Json._
-import io.circe.syntax._
-import cats.implicits._
-import com.radiance.jvm.Utils._
 import io.circe.generic.extras
 
-sealed trait CryptoErrorCode {
-  val code: String
-}
+object CryptoErrorCodeEnum {
 
-object CryptoErrorCode {
+  sealed trait CryptoErrorCode {
+    val code: String
+  }
 
   case object Bip32InvalidDerivePath extends CryptoErrorCode {
     override val code: String = "116"

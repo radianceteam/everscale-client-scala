@@ -117,11 +117,11 @@ object TransactionFees {
     deriveDecoder[TransactionFees]
 }
 
-sealed trait TvmErrorCode {
-  val code: String
-}
+object TvmErrorCodeEnum {
 
-object TvmErrorCode {
+  sealed trait TvmErrorCode {
+    val code: String
+  }
 
   case object CanNotReadTransaction extends TvmErrorCode {
     override val code: String = "401"

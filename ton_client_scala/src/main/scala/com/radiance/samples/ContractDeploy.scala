@@ -2,8 +2,10 @@ package com.radiance.samples
 
 import com.radiance.jvm.crypto.CryptoModule
 
+import scala.annotation.nowarn
 import scala.concurrent.ExecutionContext
 
+@nowarn
 object ContractDeploy {
 
   def readFromFile(name: String) = ???
@@ -34,7 +36,7 @@ object ContractDeploy {
     "0:841288ed3b55d9cdafa806807f02a0ae0c169aa5edfe88a789a6482429756a94"
 
   // Create keys
-  val keys = cryptoModule.generateRandomSignKeys.right.get
+  val keys = cryptoModule.generateRandomSignKeys.getOrElse(throw new IllegalArgumentException())
 
   // Get grams for deploy
   def getGrams(

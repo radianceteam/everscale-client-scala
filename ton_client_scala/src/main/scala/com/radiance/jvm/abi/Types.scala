@@ -47,11 +47,11 @@ object AbiData {
   implicit val codec: Codec[AbiData] = deriveCodec[AbiData]
 }
 
-sealed trait AbiErrorCode {
-  val code: String
-}
+object AbiErrorCodeEnum {
 
-object AbiErrorCode {
+  sealed trait AbiErrorCode {
+    val code: String
+  }
 
   case object RequiredAddressMissingForEncodeMessage extends AbiErrorCode {
     override val code: String = "301"

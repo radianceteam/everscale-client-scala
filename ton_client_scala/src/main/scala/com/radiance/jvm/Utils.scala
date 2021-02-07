@@ -1,9 +1,5 @@
 package com.radiance.jvm
 
-import io.circe
-import io.circe.Encoder
-import io.circe.Json._
-
 import java.util.Base64
 
 object Utils {
