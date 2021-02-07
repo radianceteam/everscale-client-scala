@@ -39,7 +39,8 @@ lazy val ton_client_scala = project
     scalacOptions := Seq(
       "-Xfatal-warnings",
       // Feature options
-      "-encoding", "utf-8",
+      "-encoding",
+      "utf-8",
       "-explaintypes",
       "-feature",
       "-language:existentials",
@@ -47,7 +48,6 @@ lazy val ton_client_scala = project
       "-language:higherKinds",
       "-language:implicitConversions",
       "-Ymacro-annotations",
-
       // Linting options
       "-unchecked",
       "-Xcheckinit",
@@ -75,9 +75,8 @@ lazy val ton_client_scala = project
       "-Wunused:params",
       "-Wunused:patvars",
       "-Wunused:privates",
-      "-Wvalue-discard",
+      "-Wvalue-discard"
     )
-
   )
 
 lazy val native = project
