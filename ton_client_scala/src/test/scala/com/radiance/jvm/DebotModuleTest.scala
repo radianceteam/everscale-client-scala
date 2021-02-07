@@ -1,6 +1,6 @@
 package com.radiance.jvm
 
-import com.radiance.jvm.abi._
+import com.radiance.jvm.abi.{AbiADT, _}
 import com.radiance.jvm.crypto.{CryptoModule, KeyPair}
 import com.radiance.jvm.debot.DebotModule
 import org.scalatest.flatspec.AnyFlatSpec
@@ -25,14 +25,14 @@ class DebotModuleTest extends AnyFlatSpec with TestBase {
   private def initDebot: (String, String, KeyPair) = {
     val keys = cryptoModule.generateRandomSignKeys.get
 
-    val targetAbi = extractAbi(V2, "testDebotTarget.abi.json")
-    val debotAbi = extractAbi(V2, "testDebot.abi.json")
+    val targetAbi: AbiADT.Abi = extractAbi(V2, "testDebotTarget.abi.json")
+    val debotAbi: AbiADT.Abi = extractAbi(V2, "testDebot.abi.json")
 
     val targetAddr = deployWithGiver(
       targetAbi,
       DeploySet(extractTvc(V2, "testDebotTarget.tvc")),
       CallSet("constructor"),
-      Signer.Keys(keys)
+      SignerADT.Keys(keys)
     ).get
 
     val debotAddr = deployWithGiver(
@@ -53,7 +53,7 @@ class DebotModuleTest extends AnyFlatSpec with TestBase {
         }""".stripMargin
         ).getOrElse(throw new IllegalArgumentException("Not a json")).some
       ),
-      Signer.Keys(keys)
+      SignerADT.Keys(keys)
     ).get
 
     (debotAddr, targetAddr, keys)

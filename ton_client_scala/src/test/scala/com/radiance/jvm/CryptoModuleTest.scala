@@ -1,6 +1,6 @@
 package com.radiance.jvm
 
-import com.radiance.jvm.crypto.{CryptoModule, KeyPair, ParamsOfAppSigningBox, ResultOfAppSigningBox}
+import com.radiance.jvm.crypto.{CryptoModule, KeyPair, ParamsOfAppSigningBoxADT, ResultOfAppSigningBoxADT}
 import org.scalatest.flatspec.AnyFlatSpec
 import cats.implicits._
 import Utils._
@@ -222,10 +222,11 @@ class CryptoModuleTest extends AnyFlatSpec with TestBase {
   it should "correctly work with app object" ignore {
     val publicKey: String = "02a8eb63085f73c33fa31b4d1134259406347284f8dab6fc68f4bf8c96f6c39b75"
 
-    val app_object: AppObject[ParamsOfAppSigningBox, ResultOfAppSigningBox] =
-      new AppObject[ParamsOfAppSigningBox, ResultOfAppSigningBox]({
-        case ParamsOfAppSigningBox.GetPublicKey   => ResultOfAppSigningBox.GetPublicKey(publicKey)
-        case ParamsOfAppSigningBox.Sign(unsigned) => ResultOfAppSigningBox.Sign(unsigned)
+    val app_object
+      : AppObject[ParamsOfAppSigningBoxADT.ParamsOfAppSigningBox, ResultOfAppSigningBoxADT.ResultOfAppSigningBox] =
+      new AppObject[ParamsOfAppSigningBoxADT.ParamsOfAppSigningBox, ResultOfAppSigningBoxADT.ResultOfAppSigningBox]({
+        case ParamsOfAppSigningBoxADT.GetPublicKey   => ResultOfAppSigningBoxADT.GetPublicKey(publicKey)
+        case ParamsOfAppSigningBoxADT.Sign(unsigned) => ResultOfAppSigningBoxADT.Sign(unsigned)
       })
     val registeredBox = cryptoModule.registerSigningBox(app_object).get
 

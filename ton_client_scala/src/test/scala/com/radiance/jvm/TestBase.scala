@@ -11,12 +11,12 @@ import com.radiance.jvm.tvm._
 import io.circe._
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
-
 import io.circe.Json._
 
 import scala.concurrent.{ExecutionContext, Future}
 import cats.implicits._
 import cats.data.EitherT
+import com.radiance.TestUtils
 import com.radiance.jvm.utils.UtilsModule
 
 trait TestBase extends BeforeAndAfter with TestUtils { this: AnyFlatSpec =>
@@ -25,13 +25,13 @@ trait TestBase extends BeforeAndAfter with TestUtils { this: AnyFlatSpec =>
 
   protected implicit val ec: ExecutionContext = ExecutionContext.global
 
-  protected val eventsAbiV2: Abi = extractAbi(V2, "Events.abi.json")
+  protected val eventsAbiV2: AbiADT.Abi = extractAbi(V2, "Events.abi.json")
   protected val eventsTvcV2: String = extractTvc(V2, "Events.tvc")
 
-  protected val subscriptionAbiV2: Abi = extractAbi(V2, "Subscription.abi.json")
+  protected val subscriptionAbiV2: AbiADT.Abi = extractAbi(V2, "Subscription.abi.json")
   protected val subscriptionTvcV2: String = extractTvc(V2, "Subscription.tvc")
 
-  protected val giverAbiV1: Abi = extractAbi(V1, "Giver.abi.json")
+  protected val giverAbiV1: AbiADT.Abi = extractAbi(V1, "Giver.abi.json")
   protected val giverAddress: String =
     "0:841288ed3b55d9cdafa806807f02a0ae0c169aa5edfe88a789a6482429756a94"
 
@@ -69,10 +69,10 @@ trait TestBase extends BeforeAndAfter with TestUtils { this: AnyFlatSpec =>
     } yield r).get.signature
 
   protected def deployWithGiver(
-    a: Abi,
+    a: AbiADT.Abi,
     deploySet: DeploySet,
     callSet: CallSet,
-    signer: Signer,
+    signer: SignerADT.Signer,
     callback: Request = _ => ()
   ): Future[Either[Throwable, String]] = {
     (for {
@@ -115,7 +115,7 @@ trait TestBase extends BeforeAndAfter with TestUtils { this: AnyFlatSpec =>
           None,
           inputMsg.some
         ).some,
-        Signer.None,
+        SignerADT.None,
         None
       ),
       false,

@@ -20,13 +20,15 @@ class AbiModule(ctx: Context) {
    *   Signature encoded in `hex`.
    */
   def attachSignature(
-    abi: Abi,
+    abi: AbiADT.Abi,
     public_key: String,
     message: String,
     signature: String
   ): Future[Either[Throwable, ResultOfAttachSignature]] = {
-    val arg = ParamsOfAttachSignature(abi, public_key, message, signature)
-    ctx.execAsync[ParamsOfAttachSignature, ResultOfAttachSignature]("abi.attach_signature", arg)
+    ctx.execAsync[ParamsOfAttachSignature, ResultOfAttachSignature](
+      "abi.attach_signature",
+      ParamsOfAttachSignature(abi, public_key, message, signature)
+    )
   }
 
   /**
@@ -40,16 +42,14 @@ class AbiModule(ctx: Context) {
    *   Signature. Must be encoded with `hex`.
    */
   def attachSignatureToMessageBody(
-    abi: Abi,
+    abi: AbiADT.Abi,
     public_key: String,
     message: String,
     signature: String
   ): Future[Either[Throwable, ResultOfAttachSignatureToMessageBody]] = {
-    val arg =
-      ParamsOfAttachSignatureToMessageBody(abi, public_key, message, signature)
     ctx.execAsync[ParamsOfAttachSignatureToMessageBody, ResultOfAttachSignatureToMessageBody](
       "abi.attach_signature_to_message_body",
-      arg
+      ParamsOfAttachSignatureToMessageBody(abi, public_key, message, signature)
     )
   }
 
@@ -62,11 +62,10 @@ class AbiModule(ctx: Context) {
    *   Message BOC
    */
   def decodeMessage(
-    abi: Abi,
+    abi: AbiADT.Abi,
     message: String
   ): Future[Either[Throwable, DecodedMessageBody]] = {
-    val arg = ParamsOfDecodeMessage(abi, message)
-    ctx.execAsync[ParamsOfDecodeMessage, DecodedMessageBody]("abi.decode_message", arg)
+    ctx.execAsync[ParamsOfDecodeMessage, DecodedMessageBody]("abi.decode_message", ParamsOfDecodeMessage(abi, message))
   }
 
   /**
@@ -80,12 +79,14 @@ class AbiModule(ctx: Context) {
    *   True if the body belongs to the internal message.
    */
   def decodeMessageBody(
-    abi: Abi,
+    abi: AbiADT.Abi,
     body: String,
     is_internal: Boolean
   ): Future[Either[Throwable, DecodedMessageBody]] = {
-    val arg = ParamsOfDecodeMessageBody(abi, body, is_internal)
-    ctx.execAsync[ParamsOfDecodeMessageBody, DecodedMessageBody]("abi.decode_message_body", arg)
+    ctx.execAsync[ParamsOfDecodeMessageBody, DecodedMessageBody](
+      "abi.decode_message_body",
+      ParamsOfDecodeMessageBody(abi, body, is_internal)
+    )
   }
 
   /**
@@ -104,14 +105,15 @@ class AbiModule(ctx: Context) {
    *   Initial value for the `last_paid`.
    */
   def encodeAccount(
-    state_init: StateInitSource,
+    state_init: StateInitSourceADT.StateInitSource,
     balance: Option[BigInt],
     last_trans_lt: Option[BigInt],
     last_paid: Option[Long]
   ): Future[Either[Throwable, ResultOfEncodeAccount]] = {
-    val arg =
+    ctx.execAsync[ParamsOfEncodeAccount, ResultOfEncodeAccount](
+      "abi.encode_account",
       ParamsOfEncodeAccount(state_init, balance, last_trans_lt, last_paid)
-    ctx.execAsync[ParamsOfEncodeAccount, ResultOfEncodeAccount]("abi.encode_account", arg)
+    )
   }
 
   /**
@@ -165,22 +167,24 @@ class AbiModule(ctx: Context) {
    * Default value is 0.
    */
   def encodeMessage(
-    abi: Abi,
+    abi: AbiADT.Abi,
     address: Option[String],
     deploy_set: Option[DeploySet],
     call_set: Option[CallSet],
-    signer: Signer,
+    signer: SignerADT.Signer,
     processing_try_index: Option[Long]
   ): Future[Either[Throwable, ResultOfEncodeMessage]] = {
-    val arg = ParamsOfEncodeMessage(
-      abi,
-      address,
-      deploy_set,
-      call_set,
-      signer,
-      processing_try_index
+    ctx.execAsync[ParamsOfEncodeMessage, ResultOfEncodeMessage](
+      "abi.encode_message",
+      ParamsOfEncodeMessage(
+        abi,
+        address,
+        deploy_set,
+        call_set,
+        signer,
+        processing_try_index
+      )
     )
-    ctx.execAsync[ParamsOfEncodeMessage, ResultOfEncodeMessage]("abi.encode_message", arg)
   }
 
   /**
@@ -210,19 +214,21 @@ class AbiModule(ctx: Context) {
    * Default value is 0.
    */
   def encodeMessageBody(
-    abi: Abi,
+    abi: AbiADT.Abi,
     call_set: CallSet,
     is_internal: Boolean,
-    signer: Signer,
+    signer: SignerADT.Signer,
     processing_try_index: Option[Long]
   ): Future[Either[Throwable, ResultOfEncodeMessageBody]] = {
-    val arg = ParamsOfEncodeMessageBody(
-      abi,
-      call_set,
-      is_internal,
-      signer,
-      processing_try_index
+    ctx.execAsync[ParamsOfEncodeMessageBody, ResultOfEncodeMessageBody](
+      "abi.encode_message_body",
+      ParamsOfEncodeMessageBody(
+        abi,
+        call_set,
+        is_internal,
+        signer,
+        processing_try_index
+      )
     )
-    ctx.execAsync[ParamsOfEncodeMessageBody, ResultOfEncodeMessageBody]("abi.encode_message_body", arg)
   }
 }

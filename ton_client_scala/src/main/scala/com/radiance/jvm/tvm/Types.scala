@@ -5,29 +5,21 @@ import com.radiance.jvm.abi._
 import com.radiance.jvm.processing._
 import io.circe._
 import io.circe.derivation._
+import io.circe.generic.extras
 
-sealed trait AccountForExecutor
+object AccountForExecutorADT {
 
-object AccountForExecutor {
-
-  import io.circe.Json._
-  import io.circe.syntax._
+  sealed trait AccountForExecutor
 
   case class Account(boc: String, unlimited_balance: Option[Boolean]) extends AccountForExecutor
-
-  object Account {
-    implicit val encoder: Encoder[Account] = deriveEncoder[Account]
-  }
 
   case object None extends AccountForExecutor
 
   case object Uninit extends AccountForExecutor
 
-  implicit val encoder: Encoder[AccountForExecutor] = {
-    case None       => fromFields(Seq("type" -> fromString("None")))
-    case Uninit     => fromFields(Seq("type" -> fromString("Uninit")))
-    case a: Account => a.asJson.deepMerge(Utils.generateType(a))
-  }
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[AccountForExecutor] =
+    extras.semiauto.deriveConfiguredEncoder[AccountForExecutor]
 
 }
 
@@ -45,9 +37,9 @@ object ExecutionOptions {
 
 case class ParamsOfRunExecutor(
   message: String,
-  account: AccountForExecutor,
+  account: AccountForExecutorADT.AccountForExecutor,
   execution_options: Option[ExecutionOptions],
-  abi: Option[Abi],
+  abi: Option[AbiADT.Abi],
   skip_transaction_check: Option[Boolean]
 )
 
@@ -72,7 +64,7 @@ case class ParamsOfRunTvm(
   message: String,
   account: String,
   execution_options: Option[ExecutionOptions],
-  abi: Option[Abi]
+  abi: Option[AbiADT.Abi]
 )
 
 object ParamsOfRunTvm {

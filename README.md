@@ -215,7 +215,7 @@ In subpackages of __com.radiance.jvm__ you can find modules that encapsulate def
     // Convert address to hex format
     val result: Either[Throwable, ResultOfConvertAddress] = utilsModule.convertAddress(
       "ee65d170830136253ad8bd2116a28fcbd4ac462c6f222f49a1505d2fa7f7f528", 
-      AddressStringFormat.Hex
+      AddressStringFormatADT.Hex
     )
 ```
 
@@ -278,7 +278,7 @@ Or:
       "accounts",
       query.some,
       "acc_type,acc_type_name,balance,boc,id,last_paid,workchain_id",
-      List(OrderBy("last_paid", SortDirection.ASC)).some,
+      List(OrderBy("last_paid", SortDirectionEnum.ASC)).some,
       2L.some
     )
 ```

@@ -78,8 +78,7 @@ class CryptoModule(private val ctx: Context) {
     public: String,
     secret: String
   ): Either[Throwable, RegisteredSigningBox] = {
-    val arg = KeyPair(public, secret)
-    ctx.execSync[KeyPair, RegisteredSigningBox]("crypto.get_signing_box", arg)
+    ctx.execSync[KeyPair, RegisteredSigningBox]("crypto.get_signing_box", KeyPair(public, secret))
   }
 
   /**
@@ -129,7 +128,7 @@ class CryptoModule(private val ctx: Context) {
     ctx
       .execSync[ParamsOfHDKeyPublicFromXPrv, ResultOfHDKeyPublicFromXPrv](
         "crypto.hdkey_public_from_xprv",
-        ParamsOfHDKeyPublicFromXPrv(xprv: String)
+        ParamsOfHDKeyPublicFromXPrv(xprv)
       )
 
   /**
@@ -417,11 +416,10 @@ class CryptoModule(private val ctx: Context) {
     signature: String,
     public: String
   ): Either[Throwable, ResultOfNaclSignDetachedVerify] = {
-    val arg = ParamsOfNaclSignDetachedVerify(unsigned, signature, public)
     ctx
       .execSync[ParamsOfNaclSignDetachedVerify, ResultOfNaclSignDetachedVerify](
         "crypto.nacl_sign_detached_verify",
-        arg
+        ParamsOfNaclSignDetachedVerify(unsigned, signature, public)
       )
   }
 
@@ -458,10 +456,17 @@ class CryptoModule(private val ctx: Context) {
    *   app_object
    */
   def registerSigningBox(
-    app_object: AppObject[ParamsOfAppSigningBox, ResultOfAppSigningBox]
+    app_object: AppObject[
+      ParamsOfAppSigningBoxADT.ParamsOfAppSigningBox,
+      ResultOfAppSigningBoxADT.ResultOfAppSigningBox
+    ]
   ): Future[Either[Throwable, RegisteredSigningBox]] = {
     ctx
-      .registerAppObject[RegisteredSigningBox, ParamsOfAppSigningBox, ResultOfAppSigningBox](
+      .registerAppObject[
+        RegisteredSigningBox,
+        ParamsOfAppSigningBoxADT.ParamsOfAppSigningBox,
+        ResultOfAppSigningBoxADT.ResultOfAppSigningBox
+      ](
         "crypto.register_signing_box",
         "",
         app_object
@@ -547,8 +552,10 @@ class CryptoModule(private val ctx: Context) {
   def signingBoxGetPublicKey(
     handle: SigningBoxHandle
   ): Either[Throwable, ResultOfSigningBoxGetPublicKey] = {
-    val arg = RegisteredSigningBox(handle)
-    ctx.execSync[RegisteredSigningBox, ResultOfSigningBoxGetPublicKey]("crypto.signing_box_get_public_key", arg)
+    ctx.execSync[RegisteredSigningBox, ResultOfSigningBoxGetPublicKey](
+      "crypto.signing_box_get_public_key",
+      RegisteredSigningBox(handle)
+    )
   }
 
   /**
@@ -561,8 +568,10 @@ class CryptoModule(private val ctx: Context) {
     signing_box: SigningBoxHandle,
     unsigned: String
   ): Either[Throwable, ResultOfSigningBoxSign] = {
-    val arg = ParamsOfSigningBoxSign(signing_box, unsigned)
-    ctx.execSync[ParamsOfSigningBoxSign, ResultOfSigningBoxSign]("crypto.signing_box_sign", arg)
+    ctx.execSync[ParamsOfSigningBoxSign, ResultOfSigningBoxSign](
+      "crypto.signing_box_sign",
+      ParamsOfSigningBoxSign(signing_box, unsigned)
+    )
   }
 
   /**

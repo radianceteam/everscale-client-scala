@@ -5,7 +5,7 @@ import io.circe.Encoder
 
 case class ParamsOfResolveAppRequest(
   app_request_id: Long,
-  result: AppRequestResult
+  result: AppRequestResultADT.AppRequestResult
 )
 
 object ParamsOfResolveAppRequest {

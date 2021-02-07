@@ -21,7 +21,7 @@ class DebotModule(private val ctx: Context) {
     debot_handle: DebotHandle,
     action: DebotAction
   ): Future[Either[Throwable, Unit]] = {
-    val arg = ResultOfAppDebotBrowser.ParamsOfExecute(debot_handle, action)
+    val arg = ResultOfAppDebotBrowserADT.ParamsOfExecute(debot_handle, action)
     ctx.executeWithAppObject[DebotAction](
       "debot.execute",
       action,
@@ -41,9 +41,16 @@ class DebotModule(private val ctx: Context) {
    */
   def fetch(
     address: String,
-    app_object: AppObject[ParamsOfAppDebotBrowser, ResultOfAppDebotBrowser]
+    app_object: AppObject[
+      ParamsOfAppDebotBrowserADT.ParamsOfAppDebotBrowser,
+      ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser
+    ]
   ): Future[Either[Throwable, RegisteredDebot]] = {
-    ctx.registerAppObject[RegisteredDebot, ParamsOfAppDebotBrowser, ResultOfAppDebotBrowser](
+    ctx.registerAppObject[
+      RegisteredDebot,
+      ParamsOfAppDebotBrowserADT.ParamsOfAppDebotBrowser,
+      ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser
+    ](
       "debot.fetch",
       s"""{"address":"$address"}""",
       app_object
@@ -95,9 +102,16 @@ class DebotModule(private val ctx: Context) {
    */
   def start(
     address: String,
-    app_object: AppObject[ParamsOfAppDebotBrowser, ResultOfAppDebotBrowser]
+    app_object: AppObject[
+      ParamsOfAppDebotBrowserADT.ParamsOfAppDebotBrowser,
+      ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser
+    ]
   ): Future[Either[Throwable, RegisteredDebot]] = {
-    ctx.registerAppObject[RegisteredDebot, ParamsOfAppDebotBrowser, ResultOfAppDebotBrowser](
+    ctx.registerAppObject[
+      RegisteredDebot,
+      ParamsOfAppDebotBrowserADT.ParamsOfAppDebotBrowser,
+      ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser
+    ](
       "debot.start",
       s"""{"address":"$address"}""",
       app_object

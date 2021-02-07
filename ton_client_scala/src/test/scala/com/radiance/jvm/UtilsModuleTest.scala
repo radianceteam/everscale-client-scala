@@ -16,19 +16,19 @@ class UtilsModuleTest extends AnyFlatSpec with TestBase {
     val result = utilsModule
       .convertAddress(
         "ee65d170830136253ad8bd2116a28fcbd4ac462c6f222f49a1505d2fa7f7f528",
-        AddressStringFormat.Hex
+        AddressStringFormatADT.Hex
       )
       .get
     val result1 = utilsModule
       .convertAddress(
         "ee65d170830136253ad8bd2116a28fcbd4ac462c6f222f49a1505d2fa7f7f528",
-        AddressStringFormat.AccountId
+        AddressStringFormatADT.AccountId
       )
       .get
     val result2 = utilsModule
       .convertAddress(
         "ee65d170830136253ad8bd2116a28fcbd4ac462c6f222f49a1505d2fa7f7f528",
-        AddressStringFormat.Base64(true, true, true)
+        AddressStringFormatADT.Base64(true, true, true)
       )
       .get
 

@@ -19,11 +19,13 @@ lazy val ton_client_scala = project
     scalaVersion := "2.13.4",
     version := "1.6.0",
     libraryDependencies ++= Seq(
-      "io.circe"      %% "circe-core"         % "0.14.0-M1",
-      "io.circe"      %% "circe-derivation"   % "0.13.0-M4",
-      "io.circe"      %% "circe-parser"       % "0.14.0-M1",
-      "org.scalatest" %% "scalatest-flatspec" % "3.2.3"    % Test,
-      "org.typelevel" %% "cats-core"          % "2.3.0-M2" % Test
+      "io.circe"      %% "circe-core"               % "0.14.0-M1",
+      "io.circe"      %% "circe-derivation"         % "0.13.0-M4",
+      "io.circe"      %% "circe-parser"             % "0.14.0-M1",
+      "io.circe"      %% "circe-generic-extras"     % "0.13.0",
+      "org.scalatest" %% "scalatest-flatspec"       % "3.2.3"    % Test,
+      "org.scalatest" %% "scalatest-shouldmatchers" % "3.2.3"    % Test,
+      "org.typelevel" %% "cats-core"                % "2.3.0-M2" % Test
     ),
     pathToExternalDll := baseDirectory.in(`TON-SDK`).value.getAbsoluteFile / "ton_client" / "client" / "build",
     pathToBridgeDll := baseDirectory.in(native).value.getAbsoluteFile / "build",

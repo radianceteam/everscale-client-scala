@@ -6,6 +6,7 @@ import io.circe.Json._
 import io.circe.syntax._
 import cats.implicits._
 import com.radiance.jvm.Utils._
+import io.circe.generic.extras
 
 sealed trait CryptoErrorCode {
   val code: String
@@ -101,23 +102,17 @@ object KeyPair {
   implicit val codec: Codec[KeyPair] = deriveCodec[KeyPair]
 }
 
-sealed trait ParamsOfAppSigningBox
+object ParamsOfAppSigningBoxADT {
 
-object ParamsOfAppSigningBox {
+  sealed trait ParamsOfAppSigningBox
 
   case object GetPublicKey extends ParamsOfAppSigningBox
 
   case class Sign(unsigned: String) extends ParamsOfAppSigningBox
 
-  object Sign {
-    implicit val decoder: Decoder[Sign] = deriveDecoder[Sign]
-  }
-
-  implicit val decoder: Decoder[ParamsOfAppSigningBox] = (c: HCursor) =>
-    c.get[String]("type").flatMap {
-      case "GetPublicKey" => GetPublicKey.asRight
-      case "Sign"         => c.as[Sign]
-    }
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val decoder: Decoder[ParamsOfAppSigningBox] =
+    extras.semiauto.deriveConfiguredDecoder[ParamsOfAppSigningBox]
 }
 
 case class ParamsOfChaCha20(data: String, key: String, nonce: String)
@@ -392,24 +387,17 @@ object RegisteredSigningBox {
     deriveCodec[RegisteredSigningBox]
 }
 
-sealed trait ResultOfAppSigningBox
+object ResultOfAppSigningBoxADT {
 
-object ResultOfAppSigningBox {
+  sealed trait ResultOfAppSigningBox
+
   case class GetPublicKey(public_key: String) extends ResultOfAppSigningBox
+
   case class Sign(signature: String) extends ResultOfAppSigningBox
 
-  object GetPublicKey {
-    implicit val encoder: Encoder[GetPublicKey] = deriveEncoder[GetPublicKey]
-  }
-
-  object Sign {
-    implicit val encoder: Encoder[Sign] = deriveEncoder[Sign]
-  }
-
-  implicit val encoder: Encoder[ResultOfAppSigningBox] = {
-    case a: GetPublicKey => a.asJson.deepMerge(generateType(a))
-    case a: Sign         => a.asJson.deepMerge(generateType(a))
-  }
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[ResultOfAppSigningBox] =
+    extras.semiauto.deriveConfiguredEncoder[ResultOfAppSigningBox]
 
 }
 

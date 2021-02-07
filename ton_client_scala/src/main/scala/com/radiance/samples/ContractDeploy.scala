@@ -28,7 +28,7 @@ object ContractDeploy {
   val processingModule = new ProcessingModule(ctx)
   val cryptoModule = new CryptoModule(ctx)
 
-  protected val giverAbiV1: Abi = readFromFile("Giver.abi.json")
+  protected val giverAbiV1: AbiADT.Abi = readFromFile("Giver.abi.json")
 
   val giverAddress: String =
     "0:841288ed3b55d9cdafa806807f02a0ae0c169aa5edfe88a789a6482429756a94"
@@ -50,7 +50,7 @@ object ContractDeploy {
         giverAddress.some,
         None,
         CallSet("sendGrams", None, inputMsg.some).some,
-        Signer.None,
+        SignerADT.None,
         None
       ),
       send_events = true,
@@ -59,10 +59,10 @@ object ContractDeploy {
   }
 
   def deployContract(
-    a: Abi,
+    a: AbiADT.Abi,
     deploySet: DeploySet,
     callSet: CallSet,
-    signer: Signer,
+    signer: SignerADT.Signer,
     callback: Request = _ => ()
   ): Future[Either[Throwable, String]] = {
     (for {
@@ -89,7 +89,7 @@ object ContractDeploy {
   }
 
   // load ABI from file
-  val subscriptionAbiV2: Abi = readFromFileAsObj("Subscription.abi.json")
+  val subscriptionAbiV2: AbiADT.Abi = readFromFileAsObj("Subscription.abi.json")
   // load TVC from file
   val subscriptionTvcV2: String = readFromFile("Subscription.tvc")
 
@@ -105,7 +105,7 @@ object ContractDeploy {
       None,
       fromFields(Seq("wallet" -> fromString(s"$walletAddress"))).some
     ),
-    Signer.Keys(keys)
+    SignerADT.Keys(keys)
   )
 
 }

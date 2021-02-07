@@ -26,9 +26,9 @@ class AppObject[T: Decoder, V: Encoder](f: T => V)(implicit
       res <- Try(f(arg).asJson).toEither
     } yield res) match {
       case Right(body) =>
-        ParamsOfResolveAppRequest(appRequestId, AppRequestResult.Ok(body))
+        ParamsOfResolveAppRequest(appRequestId, AppRequestResultADT.Ok(body))
       case Left(t)     =>
-        ParamsOfResolveAppRequest(appRequestId, AppRequestResult.Error(t.getMessage))
+        ParamsOfResolveAppRequest(appRequestId, AppRequestResultADT.Error(t.getMessage))
     }).asJson.noSpaces
   }
 }

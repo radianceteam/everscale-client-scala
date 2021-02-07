@@ -18,6 +18,8 @@ object OperationCode {
       case 3   => AppRequestCode
       case 4   => AppNotifyCode
       case 100 => CustomCode
+      // TODO
+      case 101 => throw new IllegalArgumentException(s"Unexpected code: 101")
       case x   => throw new IllegalArgumentException(s"Unexpected code: $x")
     }
 }

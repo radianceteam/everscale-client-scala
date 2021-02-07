@@ -21,19 +21,21 @@ class TvmModule(private val ctx: Context) {
    */
   def runExecutor(
     message: String,
-    account: AccountForExecutor,
+    account: AccountForExecutorADT.AccountForExecutor,
     execution_options: Option[ExecutionOptions],
-    abi: Option[Abi],
+    abi: Option[AbiADT.Abi],
     skip_transaction_check: Option[Boolean]
   ): Future[Either[Throwable, ResultOfRunExecutor]] = {
-    val arg = ParamsOfRunExecutor(
-      message,
-      account,
-      execution_options,
-      abi,
-      skip_transaction_check
+    ctx.execAsync[ParamsOfRunExecutor, ResultOfRunExecutor](
+      "tvm.run_executor",
+      ParamsOfRunExecutor(
+        message,
+        account,
+        execution_options,
+        abi,
+        skip_transaction_check
+      )
     )
-    ctx.execAsync[ParamsOfRunExecutor, ResultOfRunExecutor]("tvm.run_executor", arg)
   }
 
   /**
@@ -53,8 +55,10 @@ class TvmModule(private val ctx: Context) {
     input: Option[Value],
     execution_options: Option[ExecutionOptions]
   ): Future[Either[Throwable, ResultOfRunGet]] = {
-    val arg = ParamsOfRunGet(account, function_name, input, execution_options)
-    ctx.execAsync[ParamsOfRunGet, ResultOfRunGet]("tvm.run_get", arg)
+    ctx.execAsync[ParamsOfRunGet, ResultOfRunGet](
+      "tvm.run_get",
+      ParamsOfRunGet(account, function_name, input, execution_options)
+    )
   }
 
   /**
@@ -71,10 +75,12 @@ class TvmModule(private val ctx: Context) {
     message: String,
     account: String,
     execution_options: Option[ExecutionOptions],
-    abi: Option[Abi]
+    abi: Option[AbiADT.Abi]
   ): Future[Either[Throwable, ResultOfRunTvm]] = {
-    val arg = ParamsOfRunTvm(message, account, execution_options, abi)
-    ctx.execAsync[ParamsOfRunTvm, ResultOfRunTvm]("tvm.run_tvm", arg)
+    ctx.execAsync[ParamsOfRunTvm, ResultOfRunTvm](
+      "tvm.run_tvm",
+      ParamsOfRunTvm(message, account, execution_options, abi)
+    )
   }
 
 }

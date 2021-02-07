@@ -54,7 +54,7 @@ class NetModuleTest extends AnyFlatSpec with TestBase {
         "accounts",
         query.some,
         "acc_type,acc_type_name,balance,boc,id,last_paid,workchain_id",
-        List(OrderBy("last_paid", SortDirection.ASC)).some,
+        List(OrderBy("last_paid", SortDirectionEnum.ASC)).some,
         2L.some
       )
       .get

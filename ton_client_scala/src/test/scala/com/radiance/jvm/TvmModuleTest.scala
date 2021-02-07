@@ -41,7 +41,7 @@ class TvmModuleTest extends AnyFlatSpec with TestBase {
   it should "successfully execute participant_list" in {
     val roea = abiModule
       .encodeAccount(
-        StateInitSource.StateInit(ELECTOR_CODE, ELECTOR_DATA, None),
+        StateInitSourceADT.StateInit(ELECTOR_CODE, ELECTOR_DATA, None),
         None,
         None,
         None
@@ -56,7 +56,7 @@ class TvmModuleTest extends AnyFlatSpec with TestBase {
   it should "successfully execute compute_returned_stake" in {
     val roea = abiModule
       .encodeAccount(
-        StateInitSource.StateInit(ELECTOR_CODE, ELECTOR_DATA, None),
+        StateInitSourceADT.StateInit(ELECTOR_CODE, ELECTOR_DATA, None),
         None,
         None,
         None
@@ -76,7 +76,7 @@ class TvmModuleTest extends AnyFlatSpec with TestBase {
   it should "successfully execute past_elections" in {
     val roea = abiModule
       .encodeAccount(
-        StateInitSource.StateInit(ELECTOR_CODE, ELECTOR_DATA, None),
+        StateInitSourceADT.StateInit(ELECTOR_CODE, ELECTOR_DATA, None),
         None,
         None,
         None
@@ -90,7 +90,7 @@ class TvmModuleTest extends AnyFlatSpec with TestBase {
   it should "be successful 1" in {
     val roea = abiModule
       .encodeAccount(
-        StateInitSource.StateInit(ELECTOR_CODE, ELECTOR_DATA, None),
+        StateInitSourceADT.StateInit(ELECTOR_CODE, ELECTOR_DATA, None),
         None,
         None,
         None
@@ -136,7 +136,7 @@ class TvmModuleTest extends AnyFlatSpec with TestBase {
         tvmModule
           .runExecutor(
             encoded.message,
-            AccountForExecutor.Account(account, true.some),
+            AccountForExecutorADT.Account(account, true.some),
             None,
             abi.some,
             None
@@ -149,7 +149,7 @@ class TvmModuleTest extends AnyFlatSpec with TestBase {
         val result = tvmModule
           .runExecutor(
             encoded.message,
-            AccountForExecutor.Account(account, None),
+            AccountForExecutorADT.Account(account, None),
             None,
             abi.some,
             None
@@ -171,7 +171,7 @@ class TvmModuleTest extends AnyFlatSpec with TestBase {
 
   it should "be successful 3" in {
     val account = testRunMessage(
-      (encoded: ResultOfEncodeMessage, abi: Abi, account: String) =>
+      (encoded: ResultOfEncodeMessage, abi: AbiADT.Abi, account: String) =>
         {
           tvmModule.runTvm(encoded.message, account, None, abi.some)
         }.map(_.map(_.account))
@@ -183,12 +183,12 @@ class TvmModuleTest extends AnyFlatSpec with TestBase {
   private def testRunMessage(
     runner: (
       ResultOfEncodeMessage,
-      Abi,
+      AbiADT.Abi,
       String
     ) => Future[Either[Throwable, String]]
   ): String = {
     val keys = cryptoModule.generateRandomSignKeys.get
-    val signer = Signer.Keys(keys)
+    val signer = SignerADT.Keys(keys)
 
     val (out, accountRes) = (for {
       address <- EitherT(

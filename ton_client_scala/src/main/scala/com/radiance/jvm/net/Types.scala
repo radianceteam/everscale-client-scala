@@ -1,15 +1,13 @@
 package com.radiance.jvm.net
 
-import com.radiance.jvm.Utils.generateType
 import com.radiance.jvm._
 import io.circe._
 import io.circe.derivation._
-import io.circe.Json._
-import io.circe.syntax._
+import io.circe.generic.extras
 
-sealed trait AggregationFn
+object AggregationFnEnum {
 
-object AggregationFn {
+  sealed trait AggregationFn
 
   /**
    * Returns an average value for a field in filtered records
@@ -36,13 +34,8 @@ object AggregationFn {
    */
   case object SUM extends AggregationFn
 
-  implicit val encoder: Encoder[AggregationFn] = {
-    case AVERAGE => fromString("AVERAGE")
-    case COUNT   => fromString("COUNT")
-    case MAX     => fromString("MAX")
-    case MIN     => fromString("MIN")
-    case SUM     => fromString("SUM")
-  }
+  implicit val encoder: Encoder[AggregationFn] =
+    extras.semiauto.deriveEnumerationEncoder[AggregationFn]
 }
 
 case class EndpointsSet(endpoints: List[String])
@@ -51,7 +44,7 @@ object EndpointsSet {
   implicit val codec: Codec[EndpointsSet] = deriveCodec[EndpointsSet]
 }
 
-case class FieldAggregation(field: String, fn: AggregationFn)
+case class FieldAggregation(field: String, fn: AggregationFnEnum.AggregationFn)
 
 object FieldAggregation {
   implicit val encoder: Encoder[FieldAggregation] = deriveEncoder[FieldAggregation]
@@ -106,7 +99,7 @@ object NetErrorCode {
   }
 }
 
-case class OrderBy(path: String, direction: SortDirection)
+case class OrderBy(path: String, direction: SortDirectionEnum.SortDirection)
 
 object OrderBy {
   implicit val encoder: Encoder[OrderBy] = deriveEncoder[OrderBy]
@@ -122,7 +115,7 @@ object ParamsOfAggregateCollection {
   implicit val encoder: Encoder[ParamsOfAggregateCollection] = deriveEncoder[ParamsOfAggregateCollection]
 }
 
-case class ParamsOfBatchQuery(operations: List[ParamsOfQueryOperation])
+case class ParamsOfBatchQuery(operations: List[ParamsOfQueryOperationADT.ParamsOfQueryOperation])
 
 object ParamsOfBatchQuery {
   implicit val encoder: Encoder[ParamsOfBatchQuery] = deriveEncoder[ParamsOfBatchQuery]
@@ -154,27 +147,19 @@ object ParamsOfQueryCollection {
     deriveEncoder[ParamsOfQueryCollection]
 }
 
-sealed trait ParamsOfQueryOperation
-object ParamsOfQueryOperation {
+object ParamsOfQueryOperationADT {
+
+  sealed trait ParamsOfQueryOperation
+
   case class AggregateCollection(value: ParamsOfAggregateCollection) extends ParamsOfQueryOperation
-  object AggregateCollection {
-    implicit val encoder: Encoder[AggregateCollection] = deriveEncoder[AggregateCollection]
-  }
+
   case class QueryCollection(value: ParamsOfQueryCollection) extends ParamsOfQueryOperation
-  object QueryCollection {
-    implicit val encoder: Encoder[QueryCollection] = deriveEncoder[QueryCollection]
-  }
+
   case class WaitForCollection(value: ParamsOfWaitForCollection) extends ParamsOfQueryOperation
-  object WaitForCollection {
-    implicit val encoder: Encoder[WaitForCollection] = deriveEncoder[WaitForCollection]
-  }
 
-  implicit val encoder: Encoder[ParamsOfQueryOperation] = {
-    case a: AggregateCollection => a.asJson.deepMerge(generateType(a))
-    case a: QueryCollection     => a.asJson.deepMerge(generateType(a))
-    case a: WaitForCollection   => a.asJson.deepMerge(generateType(a))
-
-  }
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[ParamsOfQueryOperation] =
+    extras.semiauto.deriveConfiguredEncoder[ParamsOfQueryOperation]
 }
 
 case class ParamsOfSubscribeCollection(
@@ -247,15 +232,14 @@ object ResultOfWaitForCollection {
     deriveDecoder[ResultOfWaitForCollection]
 }
 
-sealed trait SortDirection
+object SortDirectionEnum {
 
-object SortDirection {
-  import io.circe.Json._
+  sealed trait SortDirection
+
   case object ASC extends SortDirection
+
   case object DESC extends SortDirection
 
-  implicit val encoder: Encoder[SortDirection] = {
-    case ASC  => fromString("ASC")
-    case DESC => fromString("DESC")
-  }
+  implicit val encoder: Encoder[SortDirection] =
+    extras.semiauto.deriveEnumerationEncoder[SortDirection]
 }

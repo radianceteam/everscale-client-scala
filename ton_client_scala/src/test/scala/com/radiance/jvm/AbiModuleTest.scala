@@ -47,7 +47,7 @@ class AbiModuleTest extends AnyFlatSpec with TestBase {
         None,
         deploySet.some,
         deployCallSet.some,
-        Signer.External(keys.public),
+        SignerADT.External(keys.public),
         None
       )
       .get
@@ -58,7 +58,7 @@ class AbiModuleTest extends AnyFlatSpec with TestBase {
         address.some,
         None,
         runCallSet.some,
-        Signer.External(keys.public),
+        SignerADT.External(keys.public),
         None
       )
       .get
@@ -81,7 +81,7 @@ class AbiModuleTest extends AnyFlatSpec with TestBase {
         address.some,
         None,
         runCallSet.some,
-        Signer.Keys(keys),
+        SignerADT.Keys(keys),
         None
       )
       .get
@@ -93,7 +93,7 @@ class AbiModuleTest extends AnyFlatSpec with TestBase {
         address.some,
         None,
         runCallSet.some,
-        Signer.None,
+        SignerADT.None,
         None
       )
       .get

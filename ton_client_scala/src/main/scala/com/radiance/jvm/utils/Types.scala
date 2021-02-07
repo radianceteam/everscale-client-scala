@@ -1,17 +1,13 @@
 package com.radiance.jvm.utils
 
-import com.radiance.jvm._
-import com.radiance.jvm.Utils
-
+import com.radiance.jvm.tvm.AccountForExecutorADT.AccountForExecutor
 import io.circe._
 import io.circe.derivation._
+import io.circe.generic.extras
 
-sealed trait AddressStringFormat
+object AddressStringFormatADT {
 
-object AddressStringFormat {
-
-  import io.circe.Json._
-  import io.circe.syntax._
+  sealed trait AddressStringFormat
 
   case object AccountId extends AddressStringFormat
 
@@ -19,20 +15,14 @@ object AddressStringFormat {
 
   case class Base64(url: Boolean, test: Boolean, bounce: Boolean) extends AddressStringFormat
 
-  object Base64 {
-    implicit val encoder: Encoder[Base64] = deriveEncoder[Base64]
-  }
-
-  implicit val encoder: Encoder[AddressStringFormat] = {
-    case AccountId => fromFields(Seq("type" -> fromString("AccountId")))
-    case Hex       => fromFields(Seq("type" -> fromString("Hex")))
-    case a: Base64 => a.asJson.deepMerge(Utils.generateType(a))
-  }
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[AddressStringFormat] =
+    extras.semiauto.deriveConfiguredEncoder[AddressStringFormat]
 }
 
 case class ParamsOfConvertAddress(
   address: String,
-  output_format: AddressStringFormat
+  output_format: AddressStringFormatADT.AddressStringFormat
 )
 
 object ParamsOfConvertAddress {

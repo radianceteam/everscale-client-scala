@@ -13,8 +13,10 @@ class BocModule(private val ctx: Context) {
   def getBlockchainConfig(
     block_boc: String
   ): Future[Either[Throwable, ResultOfGetBlockchainConfig]] = {
-    val arg = ParamsOfGetBlockchainConfig(block_boc)
-    ctx.execAsync[ParamsOfGetBlockchainConfig, ResultOfGetBlockchainConfig]("boc.get_blockchain_config", arg)
+    ctx.execAsync[ParamsOfGetBlockchainConfig, ResultOfGetBlockchainConfig](
+      "boc.get_blockchain_config",
+      ParamsOfGetBlockchainConfig(block_boc)
+    )
   }
 
   /**
@@ -23,8 +25,7 @@ class BocModule(private val ctx: Context) {
    *   BOC encoded as base64
    */
   def getBocHash(boc: String): Future[Either[Throwable, ResultOfGetBocHash]] = {
-    val arg = ParamsOfGetBocHash(boc)
-    ctx.execAsync[ParamsOfGetBocHash, ResultOfGetBocHash]("boc.get_boc_hash", arg)
+    ctx.execAsync[ParamsOfGetBocHash, ResultOfGetBocHash]("boc.get_boc_hash", ParamsOfGetBocHash(boc))
   }
 
   /**
@@ -35,8 +36,7 @@ class BocModule(private val ctx: Context) {
   def getCodeFromTvc(
     tvc: String
   ): Future[Either[Throwable, ResultOfGetCodeFromTvc]] = {
-    val arg = ParamsOfGetCodeFromTvc(tvc)
-    ctx.execAsync[ParamsOfGetCodeFromTvc, ResultOfGetCodeFromTvc]("boc.get_code_from_tvc", arg)
+    ctx.execAsync[ParamsOfGetCodeFromTvc, ResultOfGetCodeFromTvc]("boc.get_code_from_tvc", ParamsOfGetCodeFromTvc(tvc))
   }
 
   /**
@@ -47,8 +47,7 @@ class BocModule(private val ctx: Context) {
    *   BOC encoded as base64
    */
   def parseAccount(boc: String): Future[Either[Throwable, ResultOfParse]] = {
-    val arg = ParamsOfParse(boc)
-    ctx.execAsync[ParamsOfParse, ResultOfParse]("boc.parse_account", arg)
+    ctx.execAsync[ParamsOfParse, ResultOfParse]("boc.parse_account", ParamsOfParse(boc))
   }
 
   /**
@@ -59,8 +58,7 @@ class BocModule(private val ctx: Context) {
    *   BOC encoded as base64
    */
   def parseBlock(boc: String): Future[Either[Throwable, ResultOfParse]] = {
-    val arg = ParamsOfParse(boc)
-    ctx.execAsync[ParamsOfParse, ResultOfParse]("boc.parse_block", arg)
+    ctx.execAsync[ParamsOfParse, ResultOfParse]("boc.parse_block", ParamsOfParse(boc))
   }
 
   /**
@@ -71,8 +69,7 @@ class BocModule(private val ctx: Context) {
    *   BOC encoded as base64
    */
   def parseMessage(boc: String): Future[Either[Throwable, ResultOfParse]] = {
-    val arg = ParamsOfParse(boc)
-    ctx.execAsync[ParamsOfParse, ResultOfParse]("boc.parse_message", arg)
+    ctx.execAsync[ParamsOfParse, ResultOfParse]("boc.parse_message", ParamsOfParse(boc))
   }
 
   /**
@@ -91,8 +88,10 @@ class BocModule(private val ctx: Context) {
     id: String,
     workchain_id: Int
   ): Future[Either[Throwable, ResultOfParse]] = {
-    val arg = ParamsOfParseShardstate(boc, id, workchain_id)
-    ctx.execAsync[ParamsOfParseShardstate, ResultOfParse]("boc.parse_shardstate", arg)
+    ctx.execAsync[ParamsOfParseShardstate, ResultOfParse](
+      "boc.parse_shardstate",
+      ParamsOfParseShardstate(boc, id, workchain_id)
+    )
   }
 
   /**
@@ -105,8 +104,7 @@ class BocModule(private val ctx: Context) {
   def parseTransaction(
     boc: String
   ): Future[Either[Throwable, ResultOfParse]] = {
-    val arg = ParamsOfParse(boc)
-    ctx.execAsync[ParamsOfParse, ResultOfParse]("boc.parse_transaction", arg)
+    ctx.execAsync[ParamsOfParse, ResultOfParse]("boc.parse_transaction", ParamsOfParse(boc))
   }
 
 }
