@@ -10,7 +10,6 @@ import com.radiance.TestUtils
 import com.radiance.jvm.abi.MessageBodyTypeEnum
 import com.radiance.jvm.debot.ParamsOfAppDebotBrowserADT
 import com.radiance.jvm.net.AggregationFnEnum
-import com.radiance.jvm.net.AggregationFnEnum.AggregationFn
 
 class SerdeTest extends AnyFlatSpec with TestUtils {
 

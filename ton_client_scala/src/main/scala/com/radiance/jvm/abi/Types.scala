@@ -120,10 +120,10 @@ object AbiFunction {
   implicit val codec: Codec[AbiFunction] = deriveCodec[AbiFunction]
 }
 
-case class AbiHandle(value: BigInt)
+case class AbiHandle(value: BigInt) extends AnyVal
 
 object AbiHandle {
-  implicit val encoder: Encoder[AbiHandle] = deriveEncoder[AbiHandle]
+  implicit val encoder: Encoder[AbiHandle] = Encoder.instance(h => Json.fromBigInt(h.value))
 }
 
 case class AbiParam(

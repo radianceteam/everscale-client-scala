@@ -3,7 +3,6 @@ package com.radiance.jvm.debot
 import com.radiance.jvm._
 import com.radiance.jvm.app.AppObject
 
-import scala.annotation.nowarn
 import scala.concurrent.Future
 
 class DebotModule(private val ctx: Context) {
@@ -18,15 +17,15 @@ class DebotModule(private val ctx: Context) {
    * @param action
    *   action
    */
-  @nowarn // TODO fix it
   def execute(
     debot_handle: DebotHandle,
     action: DebotAction
   ): Future[Either[Throwable, Unit]] = {
-    val arg = ResultOfAppDebotBrowserADT.ParamsOfExecute(debot_handle, action)
-    ctx.executeWithAppObject[DebotAction](
+    ctx.executeWithAppObject[ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser](
       "debot.execute",
-      action,
+      ResultOfAppDebotBrowserADT
+        .ParamsOfExecute(debot_handle, action)
+        .asInstanceOf[ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser],
       debot_handle.value.toInt
     )
   }
@@ -69,7 +68,6 @@ class DebotModule(private val ctx: Context) {
     ctx.unregisterAppObject(debot_handle.value.toInt, "debot.remove")
   }
 
-  // TODO implement it
   /**
    * [UNSTABLE](UNSTABLE.md) Sends message to Debot. Used by Debot Browser to send response on Dinterface call or from
    * other Debots.
@@ -87,8 +85,15 @@ class DebotModule(private val ctx: Context) {
     source: String,
     func_id: Long,
     params: String
-  ): Future[Either[Throwable, Unit]] =
-    ???
+  ): Future[Either[Throwable, Unit]] = {
+    ctx.executeWithAppObject[ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser](
+      "debot.execute",
+      ResultOfAppDebotBrowserADT
+        .ParamsOfSend(debot_handle, source, func_id, params)
+        .asInstanceOf[ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser],
+      debot_handle.value.toInt
+    )
+  }
 
   /**
    * [UNSTABLE](UNSTABLE.md) Starts an instance of debot. Downloads debot smart contract from blockchain and switches it

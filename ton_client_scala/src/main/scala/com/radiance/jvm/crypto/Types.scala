@@ -2,7 +2,6 @@ package com.radiance.jvm.crypto
 
 import io.circe._
 import io.circe.derivation._
-import io.circe.Json._
 import io.circe.generic.extras
 
 object CryptoErrorCodeEnum {
@@ -584,13 +583,9 @@ object ResultOfVerifySignature {
     deriveDecoder[ResultOfVerifySignature]
 }
 
-case class SigningBoxHandle(value: BigInt)
+case class SigningBoxHandle(value: BigInt) extends AnyVal
 
 object SigningBoxHandle {
-  // TODO unusual behavior
-  implicit val decoder: Decoder[SigningBoxHandle] =
-    (c: HCursor) => c.value.as[BigInt].map(SigningBoxHandle(_))
-
-  implicit val encoder: Encoder[SigningBoxHandle] = (a: SigningBoxHandle) => fromBigInt(a.value)
-
+  implicit val decoder: Decoder[SigningBoxHandle] = Decoder.instance(c => c.value.as[BigInt].map(SigningBoxHandle(_)))
+  implicit val encoder: Encoder[SigningBoxHandle] = Encoder.instance(a => Json.fromBigInt(a.value))
 }

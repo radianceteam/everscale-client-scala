@@ -3,6 +3,7 @@ package com.radiance.jvm
 import cats.implicits._
 import com.radiance.jvm.app.AppObject
 import com.radiance.jvm.client.ClientConfig
+import com.typesafe.scalalogging.Logger
 import io.circe._
 import io.circe.parser._
 import io.circe.syntax._
@@ -78,19 +79,19 @@ object Context {
   ): Context = {
     val ctx = new Context(-1)
     val create = ctx.createContext(config.asJson.deepDropNullValues.noSpaces)
-    parse(create).toTry.fold(
+    (for {
+      json <- parse(create)
+      response <- json.as[CreateContextResponse]
+      res <- response.error match {
+               case None        => ctx.setCtxId(response.result).asRight
+               case Some(error) =>
+                 new RuntimeException(
+                   error.asJson.deepDropNullValues.spaces2
+                 ).asLeft
+             }
+    } yield res).fold(
       t => throw t,
-      (u: Json) =>
-        u.as[CreateContextResponse]
-          .fold(
-            t => throw t,
-            r =>
-              if (r.error.isEmpty) ctx.setCtxId(r.result)
-              else
-                throw new RuntimeException(
-                  r.error.asJson.deepDropNullValues.spaces2
-                )
-          )
+      identity
     )
   }
   init()
@@ -99,6 +100,8 @@ object Context {
 class Context private (var contextId: Int)(implicit
   val ec: ExecutionContext
 ) {
+
+  private val logger = Logger[Context]
 
   private val maxId = new AtomicInteger(0)
 
@@ -168,7 +171,10 @@ class Context private (var contextId: Int)(implicit
           .getOrElse(throw new RuntimeException(s"Unexpected message format: $params"))
         promise.tryFailure(exception)
 
-      case NopCode => // nop
+      case NopCode    =>
+        logger.debug(s"Nop operation code was received.")
+      case Unknown(i) =>
+        logger.debug(s"Unknown operation code was received. Value: $i")
 
       case CustomCode    =>
         Option(callbackMap.get(promise))
@@ -192,7 +198,7 @@ class Context private (var contextId: Int)(implicit
     ()
   }
 
-  //TODO fix finished param
+  // TODO fix finished param
   @nowarn
   private[jvm] def asyncHandlerWithAppId(
     code: Int,
@@ -201,21 +207,25 @@ class Context private (var contextId: Int)(implicit
     finished: Boolean
   ): Unit = {
     OperationCode.fromInt(code) match {
-      case SuccessCode =>
+      case SuccessCode    =>
+        logger.debug("SuccessCode was received")
+        logger.debug(s"Params: $params")
         Option(appPromiseMap.remove(appId)).foreach(p => p.success(params))
-
-      case ErrorCode =>
+      case ErrorCode      =>
+        logger.error(s"ErrorCode was received. Message: $params")
         Option(appPromiseMap.remove(appId)).foreach(p => p.failure(new IllegalStateException(params)))
-
-      case NopCode => // nop
-
-      case CustomCode => // nop
-
-      case AppNotifyCode => // TODO nop
-
+      case NopCode        =>
+        logger.debug("NopCode was received")
+      case CustomCode     =>
+        logger.debug("CustomCode was received")
+      case AppNotifyCode  =>
+        logger.debug("AppNotifyCode was received")
       case AppRequestCode =>
+        logger.debug("AppRequestCode was received")
+        logger.debug(s"Params: $params")
         val app = appCallbackMap.get(appId)
         val str = app.resolveRequest(params)
+        logger.debug(s"Response: $str")
         asyncRequestWithAppId(contextId, app.functionName, str, appId)
 
     }
@@ -265,6 +275,7 @@ class Context private (var contextId: Int)(implicit
     asyncRequestWithAppId(contextId, functionName, params, appId)
     promise.future
       .map(r => parse(r).flatMap(_.as[Out]))
+      .recover { case e => e.asLeft }
   }
 
   private[jvm] def executeWithAppObject[T: Encoder](
@@ -275,8 +286,7 @@ class Context private (var contextId: Int)(implicit
     val promise: Promise[String] = Promise[String]()
     appPromiseMap.put(appId, promise)
     asyncRequestWithAppId(contextId, functionName, arg.asJson.noSpaces, appId)
-    promise.future
-      .map(_ => ().asRight)
+    promise.future.map(_ => ().asRight).recover { case e => e.asLeft }
   }
 
   private[jvm] def unregisterAppObject(
@@ -287,8 +297,8 @@ class Context private (var contextId: Int)(implicit
     val appId = handleValue
     appPromiseMap.put(appId, promise)
     appCallbackMap.remove(appId)
-    unregisterAppId(contextId, functionName, "", appId)
-    promise.future.map(_ => Right(()))
+    unregisterAppId(contextId, functionName, s"""{"handle":$handleValue}""", appId)
+    promise.future.map(_ => ().asRight).recover { case e => e.asLeft }
   }
 
   private[jvm] def execAsync[In: Encoder, Out: Decoder](
@@ -297,6 +307,7 @@ class Context private (var contextId: Int)(implicit
   ): Future[Either[Throwable, Out]] =
     callNativeAsync(functionName, arg.asJson.deepDropNullValues.noSpaces)
       .map(r => parse(r).flatMap(_.as[Out]))
+      .recover { case e => e.asLeft }
 
   private[jvm] def execSync[In: Encoder, Out: Decoder](
     functionName: String,
@@ -313,8 +324,8 @@ class Context private (var contextId: Int)(implicit
       json <- parse(response)
       obj <- json.as[OperationResponse[Out]]
       res <- obj match {
-               case OperationResponse(Right(r)) => Right(r)
-               case OperationResponse(Left(t))  => Left(new Exception(t.asJson.spaces2))
+               case OperationResponse(Right(r)) => r.asRight
+               case OperationResponse(Left(t))  => new Exception(t.asJson.spaces2).asLeft
              }
     } yield res
   }
@@ -328,6 +339,6 @@ class Context private (var contextId: Int)(implicit
       functionName,
       arg.asJson.deepDropNullValues.noSpaces,
       callback
-    ).map(r => parse(r).flatMap(_.as[Out]))
+    ).map(r => parse(r).flatMap(_.as[Out])).recover { case e => e.asLeft }
 
 }

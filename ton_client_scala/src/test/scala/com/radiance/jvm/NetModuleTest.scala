@@ -5,11 +5,14 @@ import io.circe._
 import io.circe.parser._
 import io.circe.Json._
 import org.scalatest.flatspec.AnyFlatSpec
-
 import cats.implicits._
 import com.radiance.jvm.client._
+import com.typesafe.scalalogging.Logger
+import org.scalatest.matchers.should.Matchers._
 
 class NetModuleTest extends AnyFlatSpec with TestBase {
+
+  private val logger = Logger[NetModuleTest]
 
   override protected val config = ClientConfig(
     NetworkConfig("http://net.ton.dev".some).some
@@ -25,8 +28,8 @@ class NetModuleTest extends AnyFlatSpec with TestBase {
   // TODO fix it
   it should "execute simple query" ignore {
     val query =
-      fromFields(Seq("last_paid" -> fromFields(Seq("in" -> fromValues(List(1601332024, 1601331924).map(fromLong(_)))))))
-    println(s"Query:\n${query.spaces2}")
+      fromFields(Seq("last_paid" -> fromFields(Seq("in" -> fromValues(List(1601332024L, 1601331924L).map(fromLong))))))
+    logger.info(s"Query:\n${query.spaces2}")
     val res = netModule
       .waitForCollection(
         "accounts",
@@ -35,8 +38,8 @@ class NetModuleTest extends AnyFlatSpec with TestBase {
         60000L.some
       )
       .get
-    println(s"Result:\n$res")
-    assert(res.result.hcursor.get[Long]("last_paid").get == 1601331924)
+    logger.info(s"Result:\n$res")
+    res.result.hcursor.get[Long]("last_paid").get shouldBe 1601331924
   }
 
   // TODO fix it
@@ -44,11 +47,11 @@ class NetModuleTest extends AnyFlatSpec with TestBase {
     val query = fromFields(
       Seq(
         "last_paid" -> fromFields(
-          Seq("in" -> fromValues(List(1601332024, 1601331924, 1601332491, 1601332679).map(fromLong(_))))
+          Seq("in" -> fromValues(List(1601332024L, 1601331924L, 1601332491L, 1601332679L).map(fromLong)))
         )
       )
     )
-    println(s"Query:\n${query.spaces2}")
+    logger.info(s"Query:\n${query.spaces2}")
     val res = netModule
       .queryCollection(
         "accounts",
@@ -58,8 +61,8 @@ class NetModuleTest extends AnyFlatSpec with TestBase {
         2L.some
       )
       .get
-    println(s"Result:\n$res")
-    assert(res.result.size == 2)
+    logger.info(s"Result:\n$res")
+    res.result.size shouldBe 2
   }
 
   it should "return the event" in {
@@ -72,20 +75,20 @@ class NetModuleTest extends AnyFlatSpec with TestBase {
         e => eventsAcc = e :: eventsAcc
       )
       .get
-    println("Handle: " + res.handle)
+    logger.info("Handle: " + res.handle)
     Thread.sleep(5000)
-    println(eventsAcc.map(_.dropNullValues.spaces2).mkString("\n"))
+    logger.info(eventsAcc.map(_.dropNullValues.spaces2).mkString("\n"))
     netModule.unsubscribe(res.handle).get
-    println("Unsubscribe successfully")
+    logger.info("Unsubscribe successfully")
     // TODO find more accurate criteria
-    assert(eventsAcc.nonEmpty || eventsAcc.isEmpty)
+    assert(true)
   }
 
   it should "observe the collection" in {
     var eventsAcc: List[Json] = Nil
     val query =
       parse("""{"balance_delta":{"gt":"0x5f5e100"}}""").getOrElse(Json.Null)
-    println(s"Query:\n${query.spaces2}")
+    logger.info(s"Query:\n${query.spaces2}")
 
     val res = netModule
       .subscribeCollection(
@@ -95,13 +98,14 @@ class NetModuleTest extends AnyFlatSpec with TestBase {
         e => eventsAcc = e :: eventsAcc
       )
       .get
-    println("Handle: " + res.handle)
+    logger.info("Handle: " + res.handle)
     netModule.suspend()
     Thread.sleep(5000)
     netModule.resume()
-    println(eventsAcc.map(_.dropNullValues.spaces2).mkString("\n"))
+    logger.info(eventsAcc.map(_.dropNullValues.spaces2).mkString("\n"))
     netModule.unsubscribe(res.handle).get
-    println("Unsubscribe successfully")
+    logger.info("Unsubscribe successfully")
+    // TODO find more accurate criteria
     assert(true)
   }
 }

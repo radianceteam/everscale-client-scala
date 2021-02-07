@@ -276,7 +276,7 @@ package crypto {
   case class ResultOfSigningBoxSign(signature: String)
   case class ResultOfTonCrc16(crc: Long)
   case class ResultOfVerifySignature(unsigned: String)
-  case class SigningBoxHandle(value: BigInt)
+  case class SigningBoxHandle(value: BigInt) extends AnyVal
 }
 package crypto {
   /**
@@ -575,7 +575,7 @@ package abi {
   }
   case class AbiEvent(name: String, inputs: List[AbiParam], id: Option[Option[String]])
   case class AbiFunction(name: String, inputs: List[AbiParam], outputs: List[AbiParam], id: Option[Option[String]])
-  case class AbiHandle(value: BigInt)
+  case class AbiHandle(value: BigInt) extends AnyVal
   case class AbiParam(name: String, `type`: String, components: Option[List[AbiParam]])
   case class CallSet(function_name: String, header: Option[FunctionHeader], input: Option[Value])
   case class DecodedMessageBody(body_type: MessageBodyType, name: String, value: Option[Value], header: Option[FunctionHeader])
@@ -1314,7 +1314,7 @@ package debot {
     }
   }
   /** [UNSTABLE](UNSTABLE.md) Handle of registered in SDK debot */
-  case class DebotHandle(value: BigInt)
+  case class DebotHandle(value: BigInt) extends AnyVal
   object ParamsOfAppDebotBrowserADT {
     /**
      * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks

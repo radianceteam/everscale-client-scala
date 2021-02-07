@@ -4,15 +4,20 @@ import com.radiance.jvm.abi.{AbiADT, _}
 import com.radiance.jvm.crypto.{CryptoModule, KeyPair}
 import com.radiance.jvm.debot.DebotModule
 import org.scalatest.flatspec.AnyFlatSpec
-import Utils._
+import com.radiance.jvm.Utils._
 import cats.implicits._
 import com.radiance.jvm.processing.ProcessingModule
+import com.typesafe.scalalogging.Logger
 import io.circe.parser._
 import io.circe.syntax._
 
 import java.nio.charset.Charset
+import scala.annotation.nowarn
 
+@nowarn
 class DebotModuleTest extends AnyFlatSpec with TestBase {
+
+  private val logger = Logger[DebotModuleTest]
 
   override def init(): Unit = {
     super.init()
@@ -61,10 +66,11 @@ class DebotModuleTest extends AnyFlatSpec with TestBase {
 
   behavior.of("DebotModule")
 
+  // TODO implement it
   it should "be executed correctly" ignore {
     val (debotAddr, targetAddr, keys) = initDebot
     val res = debotModule.start(debotAddr, null).get
-    println(res)
+    logger.info(res.toString)
 
     assert(true)
   }

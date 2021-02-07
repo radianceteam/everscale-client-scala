@@ -114,6 +114,11 @@ object CodeGenerator extends App {
             val elm = CASECLASSDEF(RootClass.newClass(name)).withParams(params).tree
             commentOpt.map(elm.withDoc(_)).getOrElse(elm) :: acc
 
+          case ScalaValueClassType(name, _, _, fields) =>
+            val params = fields.map { f => PARAM(f.name, toType(f.typ, usedModules)): ValDef }
+            val elm = CASECLASSDEF(RootClass.newClass(name)).withParents("AnyVal").withParams(params).tree
+            commentOpt.map(elm.withDoc(_)).getOrElse(elm) :: acc
+
           case EnumScalaType(traitName, _, _, list) =>
             val valueCheck: mutable.Set[Option[String]] = mutable.Set()
 
@@ -158,6 +163,11 @@ object CodeGenerator extends App {
                 subCommentOpt.map(elm.withDoc(_)).getOrElse(elm)
 
               case ScalaCaseClassType(name, _, _, fields) =>
+                val params = fields.map { f => PARAM(f.name, toType(f.typ, usedModules)): ValDef }
+                val elm = CASECLASSDEF(RootClass.newClass(name)).withParams(params).withParents(traitName).tree
+                commentOpt.map(elm.withDoc(_)).getOrElse(elm)
+
+              case ScalaValueClassType(name, _, _, fields) =>
                 val params = fields.map { f => PARAM(f.name, toType(f.typ, usedModules)): ValDef }
                 val elm = CASECLASSDEF(RootClass.newClass(name)).withParams(params).withParents(traitName).tree
                 commentOpt.map(elm.withDoc(_)).getOrElse(elm)

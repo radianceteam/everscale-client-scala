@@ -45,10 +45,11 @@ object DebotErrorCodeEnum {
   }
 }
 
-case class DebotHandle(value: BigInt)
+case class DebotHandle(value: BigInt) extends AnyVal
 
 object DebotHandle {
-  implicit val codec: Codec[DebotHandle] = derivation.deriveCodec[DebotHandle]
+  implicit val decoder: Decoder[DebotHandle] = Decoder.instance(c => c.value.as[BigInt].map(DebotHandle(_)))
+  implicit val encoder: Encoder[DebotHandle] = Encoder.instance(a => Json.fromBigInt(a.value))
 }
 
 object ParamsOfAppDebotBrowserADT {
@@ -135,7 +136,7 @@ object ResultOfAppDebotBrowserADT {
   case class ParamsOfExecute(debot_handle: DebotHandle, action: DebotAction)
 
   import com.radiance.jvm.DiscriminatorConfig._
-  implicit val encoder: Decoder[ResultOfAppDebotBrowser] =
-    extras.semiauto.deriveConfiguredDecoder[ResultOfAppDebotBrowser]
+  implicit val encoder: Encoder[ResultOfAppDebotBrowser] =
+    extras.semiauto.deriveConfiguredEncoder[ResultOfAppDebotBrowser]
 
 }

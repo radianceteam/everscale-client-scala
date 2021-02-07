@@ -60,6 +60,13 @@ object ScalaRepr {
     fields: List[FieldDescription]
   ) extends ScalaTypeDecl
 
+  case class ScalaValueClassType(
+                                 name: String,
+                                 summary: Option[String],
+                                 description: Option[String],
+                                 fields: List[FieldDescription]
+                               ) extends ScalaTypeDecl
+
   case class ScalaCaseObjectType(
     name: String,
     value: Option[String],
@@ -174,7 +181,7 @@ object ScalaRepr {
       td.ref_name
         .map {
           n =>
-            ScalaCaseClassType(
+            ScalaValueClassType(
               td.name,
               td.summary,
               td.description,
@@ -188,14 +195,21 @@ object ScalaRepr {
         .flatMap(nt => td.number_size.map(ns => (nt, ns)))
         .map {
           case (IntSubtype, 64) =>
-            ScalaCaseClassType(
+            ScalaValueClassType(
               td.name,
               td.summary,
               td.description,
               List(FieldDescription("value", ScalaLongType, None, None))
             )
+          case (IntSubtype, 32) =>
+            ScalaValueClassType(
+              td.name,
+              td.summary,
+              td.description,
+              List(FieldDescription("value", ScalaIntType, None, None))
+            )
           case _                =>
-            ScalaCaseClassType(
+            ScalaValueClassType(
               td.name,
               td.summary,
               td.description,
