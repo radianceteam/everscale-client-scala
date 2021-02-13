@@ -61,11 +61,11 @@ object ScalaRepr {
   ) extends ScalaTypeDecl
 
   case class ScalaValueClassType(
-                                 name: String,
-                                 summary: Option[String],
-                                 description: Option[String],
-                                 fields: List[FieldDescription]
-                               ) extends ScalaTypeDecl
+    name: String,
+    summary: Option[String],
+    description: Option[String],
+    fields: List[FieldDescription]
+  ) extends ScalaTypeDecl
 
   case class ScalaCaseObjectType(
     name: String,

@@ -1,6 +1,7 @@
 package com.radiance.jvm.abi
 
 import com.radiance.jvm._
+import com.radiance.jvm.boc._
 import com.radiance.jvm.crypto._
 import io.circe._
 import io.circe.derivation._
@@ -277,12 +278,28 @@ case class ParamsOfEncodeAccount(
   state_init: StateInitSourceADT.StateInitSource,
   balance: Option[BigInt],
   last_trans_lt: Option[BigInt],
-  last_paid: Option[Long]
+  last_paid: Option[Long],
+  boc_cache: Option[BocCacheTypeADT.BocCacheType]
 )
 
 object ParamsOfEncodeAccount {
   implicit val encoder: Encoder[ParamsOfEncodeAccount] =
     deriveEncoder[ParamsOfEncodeAccount]
+}
+
+case class ParamsOfEncodeInternalMessage(
+  abi: AbiADT.Abi,
+  address: Option[String],
+  deploy_set: Option[DeploySet],
+  call_set: Option[CallSet],
+  value: String,
+  bounce: Option[Boolean],
+  enable_ihr: Option[Boolean]
+)
+
+object ParamsOfEncodeInternalMessage {
+  implicit val encoder: Encoder[ParamsOfEncodeInternalMessage] =
+    deriveEncoder[ParamsOfEncodeInternalMessage]
 }
 
 case class ParamsOfEncodeMessage(
@@ -331,6 +348,17 @@ case class ResultOfEncodeAccount(account: String, id: String)
 object ResultOfEncodeAccount {
   implicit val decoder: Decoder[ResultOfEncodeAccount] =
     deriveDecoder[ResultOfEncodeAccount]
+}
+
+case class ResultOfEncodeInternalMessage(
+  message: String,
+  address: String,
+  message_id: String
+)
+
+object ResultOfEncodeInternalMessage {
+  implicit val decoder: Decoder[ResultOfEncodeInternalMessage] =
+    deriveDecoder[ResultOfEncodeInternalMessage]
 }
 
 case class ResultOfEncodeMessage(
