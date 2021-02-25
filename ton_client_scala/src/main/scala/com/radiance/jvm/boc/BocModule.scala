@@ -7,6 +7,49 @@ import scala.concurrent.Future
 class BocModule(private val ctx: Context) {
 
   /**
+   * Get BOC from cache
+   * @param boc_ref
+   *   boc_ref
+   */
+  def cacheGet(boc_ref: String): Future[Either[Throwable, ResultOfBocCacheGet]] = {
+    ctx.execAsync[ParamsOfBocCacheGet, ResultOfBocCacheGet](
+      "boc.cache_get",
+      ParamsOfBocCacheGet(boc_ref)
+    )
+  }
+
+  /**
+   * Save BOC into cache
+   * @param boc
+   *   boc
+   * @param cache_type
+   *   cache_type
+   */
+  def cacheSet(
+    boc: String,
+    cache_type: BocCacheTypeADT.BocCacheType
+  ): Future[Either[Throwable, ResultOfBocCacheSet]] = {
+    ctx.execAsync[ParamsOfBocCacheSet, ResultOfBocCacheSet](
+      "boc.cache_set",
+      ParamsOfBocCacheSet(boc, cache_type)
+    )
+  }
+
+  /**
+   * Unpin BOCs with specified pin. BOCs which don't have another pins will be removed from cache
+   * @param pin
+   *   pin
+   * @param boc_ref
+   *   If it is provided then only referenced BOC is unpinned
+   */
+  def cacheUnpin(pin: String, boc_ref: Option[String]): Future[Either[Throwable, Unit]] = {
+    ctx.execAsync[ParamsOfBocCacheUnpin, Unit](
+      "boc.cache_unpin",
+      ParamsOfBocCacheUnpin(pin, boc_ref)
+    )
+  }
+
+  /**
    * @param block_boc
    *   Key block BOC encoded as base64
    */

@@ -1,7 +1,8 @@
 package com.radiance.jvm.tvm
 
-import com.radiance.jvm.{Context, Value}
+import com.radiance.jvm._
 import com.radiance.jvm.abi._
+import com.radiance.jvm.boc._
 
 import scala.concurrent.Future
 
@@ -18,13 +19,19 @@ class TvmModule(private val ctx: Context) {
    *   Contract ABI for decoding output messages
    * @param skip_transaction_check
    *   Skip transaction check flag
+   * @param boc_cache
+   *   The BOC intself returned if no cache type provided
+   * @param return_updated_account
+   *   Empty string is returned if the flag is `false`
    */
   def runExecutor(
     message: String,
     account: AccountForExecutorADT.AccountForExecutor,
     execution_options: Option[ExecutionOptions],
     abi: Option[AbiADT.Abi],
-    skip_transaction_check: Option[Boolean]
+    skip_transaction_check: Option[Boolean],
+    boc_cache: Option[BocCacheTypeADT.BocCacheType],
+    return_updated_account: Option[Boolean]
   ): Future[Either[Throwable, ResultOfRunExecutor]] = {
     ctx.execAsync[ParamsOfRunExecutor, ResultOfRunExecutor](
       "tvm.run_executor",
@@ -33,7 +40,9 @@ class TvmModule(private val ctx: Context) {
         account,
         execution_options,
         abi,
-        skip_transaction_check
+        skip_transaction_check,
+        boc_cache,
+        return_updated_account
       )
     )
   }
@@ -70,16 +79,22 @@ class TvmModule(private val ctx: Context) {
    *   Execution options.
    * @param abi
    *   Contract ABI for dedcoding output messages
+   * @param boc_cache
+   *   The BOC intself returned if no cache type provided
+   * @param return_updated_account
+   *   Empty string is returned if the flag is `false`
    */
   def runTvm(
     message: String,
     account: String,
     execution_options: Option[ExecutionOptions],
-    abi: Option[AbiADT.Abi]
+    abi: Option[AbiADT.Abi],
+    boc_cache: Option[BocCacheTypeADT.BocCacheType],
+    return_updated_account: Option[Boolean]
   ): Future[Either[Throwable, ResultOfRunTvm]] = {
     ctx.execAsync[ParamsOfRunTvm, ResultOfRunTvm](
       "tvm.run_tvm",
-      ParamsOfRunTvm(message, account, execution_options, abi)
+      ParamsOfRunTvm(message, account, execution_options, abi, boc_cache, return_updated_account)
     )
   }
 

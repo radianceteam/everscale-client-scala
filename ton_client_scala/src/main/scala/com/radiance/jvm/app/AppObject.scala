@@ -1,5 +1,6 @@
 package com.radiance.jvm.app
 
+import com.radiance.jvm.client._
 import io.circe._
 import io.circe.parser._
 import io.circe.syntax._

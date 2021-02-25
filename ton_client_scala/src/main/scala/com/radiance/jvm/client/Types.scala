@@ -3,6 +3,7 @@ package com.radiance.jvm.client
 import com.radiance.jvm._
 import io.circe._
 import io.circe.derivation._
+import io.circe.generic.extras
 
 case class AbiConfig(
   workchain: Option[Int],
@@ -12,6 +13,25 @@ case class AbiConfig(
 
 object AbiConfig {
   implicit val encoder: Encoder[AbiConfig] = deriveEncoder[AbiConfig]
+}
+
+object AppRequestResultADT {
+
+  sealed trait AppRequestResult
+
+  case class Error(text: String) extends AppRequestResult
+
+  case class Ok(result: Value) extends AppRequestResult
+
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[AppRequestResult] =
+    extras.semiauto.deriveConfiguredEncoder[AppRequestResult]
+}
+
+case class BocConfig(cache_max_size: Option[Long])
+
+object BocConfig {
+  implicit val encoder: Encoder[BocConfig] = deriveEncoder[BocConfig]
 }
 
 case class BuildInfoDependency(name: String, git_commit: String)
@@ -24,7 +44,8 @@ object BuildInfoDependency {
 case class ClientConfig(
   network: Option[NetworkConfig],
   crypto: Option[CryptoConfig] = None,
-  abi: Option[AbiConfig] = None
+  abi: Option[AbiConfig] = None,
+  boc: Option[BocConfig] = None
 )
 
 object ClientConfig {
@@ -203,6 +224,22 @@ case class NetworkConfig(
 
 object NetworkConfig {
   implicit val encoder: Encoder[NetworkConfig] = deriveEncoder[NetworkConfig]
+}
+
+case class ParamsOfAppRequest(app_request_id: Long, request_data: Value)
+
+object ParamsOfAppRequest {
+  implicit val decoder: Decoder[ParamsOfAppRequest] = deriveDecoder[ParamsOfAppRequest]
+}
+
+case class ParamsOfResolveAppRequest(
+  app_request_id: Long,
+  result: AppRequestResultADT.AppRequestResult
+)
+
+object ParamsOfResolveAppRequest {
+  implicit val encoder: Encoder[ParamsOfResolveAppRequest] =
+    deriveEncoder[ParamsOfResolveAppRequest]
 }
 
 case class ResultOfBuildInfo(

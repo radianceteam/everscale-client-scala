@@ -2,6 +2,7 @@ package com.radiance.jvm.tvm
 
 import com.radiance.jvm._
 import com.radiance.jvm.abi._
+import com.radiance.jvm.boc._
 import com.radiance.jvm.processing._
 import io.circe._
 import io.circe.derivation._
@@ -40,7 +41,9 @@ case class ParamsOfRunExecutor(
   account: AccountForExecutorADT.AccountForExecutor,
   execution_options: Option[ExecutionOptions],
   abi: Option[AbiADT.Abi],
-  skip_transaction_check: Option[Boolean]
+  skip_transaction_check: Option[Boolean],
+  boc_cache: Option[BocCacheTypeADT.BocCacheType],
+  return_updated_account: Option[Boolean]
 )
 
 object ParamsOfRunExecutor {
@@ -64,7 +67,9 @@ case class ParamsOfRunTvm(
   message: String,
   account: String,
   execution_options: Option[ExecutionOptions],
-  abi: Option[AbiADT.Abi]
+  abi: Option[AbiADT.Abi],
+  boc_cache: Option[BocCacheTypeADT.BocCacheType],
+  return_updated_account: Option[Boolean]
 )
 
 object ParamsOfRunTvm {

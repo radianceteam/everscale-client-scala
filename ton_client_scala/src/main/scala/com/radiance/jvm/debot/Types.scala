@@ -1,4 +1,5 @@
 package com.radiance.jvm.debot
+
 import com.radiance.jvm.crypto._
 import io.circe._
 import io.circe.generic.extras
@@ -17,7 +18,6 @@ object DebotAction {
 }
 
 object DebotErrorCodeEnum {
-
   sealed trait DebotErrorCode {
     val code: String
   }
@@ -25,21 +25,39 @@ object DebotErrorCodeEnum {
   case object DebotExecutionFailed extends DebotErrorCode {
     override val code: String = "803"
   }
+
+  case object DebotExternaCallFailed extends DebotErrorCode {
+    override val code: String = "810"
+  }
+
   case object DebotFetchFailed extends DebotErrorCode {
     override val code: String = "802"
   }
+
+  case object DebotGetMethodFailed extends DebotErrorCode {
+    override val code: String = "808"
+  }
+
   case object DebotInvalidAbi extends DebotErrorCode {
     override val code: String = "807"
   }
+
   case object DebotInvalidFunctionId extends DebotErrorCode {
     override val code: String = "806"
   }
+
   case object DebotInvalidHandle extends DebotErrorCode {
     override val code: String = "804"
   }
+
   case object DebotInvalidJsonParams extends DebotErrorCode {
     override val code: String = "805"
   }
+
+  case object DebotInvalidMsg extends DebotErrorCode {
+    override val code: String = "809"
+  }
+
   case object DebotStartFailed extends DebotErrorCode {
     override val code: String = "801"
   }

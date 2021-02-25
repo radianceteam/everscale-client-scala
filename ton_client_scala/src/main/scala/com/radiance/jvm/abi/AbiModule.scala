@@ -1,6 +1,7 @@
 package com.radiance.jvm.abi
 
 import com.radiance.jvm.Context
+import com.radiance.jvm.boc._
 
 import scala.concurrent.Future
 
@@ -103,18 +104,66 @@ class AbiModule(ctx: Context) {
    *   Initial value for the `last_trans_lt`.
    * @param last_paid
    *   Initial value for the `last_paid`.
+   * @param boc_cache
+   *   The BOC intself returned if no cache type provided
    */
   def encodeAccount(
     state_init: StateInitSourceADT.StateInitSource,
     balance: Option[BigInt],
     last_trans_lt: Option[BigInt],
-    last_paid: Option[Long]
+    last_paid: Option[Long],
+    boc_cache: Option[BocCacheTypeADT.BocCacheType]
   ): Future[Either[Throwable, ResultOfEncodeAccount]] = {
     ctx.execAsync[ParamsOfEncodeAccount, ResultOfEncodeAccount](
       "abi.encode_account",
-      ParamsOfEncodeAccount(state_init, balance, last_trans_lt, last_paid)
+      ParamsOfEncodeAccount(state_init, balance, last_trans_lt, last_paid, boc_cache)
     )
   }
+
+  /**
+   * Encodes an internal ABI-compatible message Allows to encode deploy and function call messages.
+   *
+   * Use cases include messages of any possible type:
+   *   - deploy with initial function call (i.e. `constructor` or any other function that is used for some kind of
+   *     initialization);
+   *   - deploy without initial function call;
+   *   - simple function call
+   *
+   * There is an optional public key can be provided in deploy set in order to substitute one in TVM file.
+   *
+   * Public key resolving priority:
+   *   1. Public key from deploy set. 2. Public key, specified in TVM file.
+   * @param abi
+   *   abi
+   * @param address
+   *   Must be specified in case of non-deploy message.
+   * @param deploy_set
+   *   Must be specified in case of deploy message.
+   * @param call_set
+   *   Must be specified in case of non-deploy message.
+   *
+   * In case of deploy message it is optional and contains parameters of the functions that will to be called upon
+   * deploy transaction.
+   * @param value
+   *   value
+   * @param bounce
+   *   Default is true.
+   * @param enable_ihr
+   *   Default is false.
+   */
+  def encodeInternalMessage(
+    abi: AbiADT.Abi,
+    address: Option[String],
+    deploy_set: Option[DeploySet],
+    call_set: Option[CallSet],
+    value: String,
+    bounce: Option[Boolean],
+    enable_ihr: Option[Boolean]
+  ): Future[Either[Throwable, ResultOfEncodeInternalMessage]] =
+    ctx.execAsync[ParamsOfEncodeInternalMessage, ResultOfEncodeInternalMessage](
+      "abi.encode_internal_message",
+      ParamsOfEncodeInternalMessage(abi, address, deploy_set, call_set, value, bounce, enable_ihr)
+    )
 
   /**
    * Encodes an ABI-compatible message. Allows to encode deploy and function call messages, both signed and unsigned.
