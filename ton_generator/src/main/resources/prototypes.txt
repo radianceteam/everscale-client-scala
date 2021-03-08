@@ -382,7 +382,7 @@ package crypto {
   def modularPower(base: String, exponent: String, modulus: String): Future[Either[Throwable, ResultOfModularPower]]
   /**
    * Public key authenticated encryption
-   * Encrypt and authenticate a message using the senders secret key, the recievers public
+   * Encrypt and authenticate a message using the senders secret key, the receivers public
    * key, and a nonce.
    * @param decrypted decrypted
    * @param nonce nonce
@@ -398,7 +398,7 @@ package crypto {
    */
   def naclBoxKeypairFromSecretKey(secret: String): Future[Either[Throwable, KeyPair]]
   /**
-   * Decrypt and verify the cipher text using the recievers secret key, the senders public key, and the nonce.
+   * Decrypt and verify the cipher text using the receivers secret key, the senders public key, and the nonce.
    * @param encrypted Encoded with `base64`.
    * @param nonce nonce
    * @param their_public their_public
@@ -552,6 +552,9 @@ package abi {
     case object InvalidAbi extends AbiErrorCode {
       override val code: String = "311"
     }
+    case object InvalidFunctionId extends AbiErrorCode {
+      override val code: String = "312"
+    }
     case object InvalidJson extends AbiErrorCode {
       override val code: String = "303"
     }
@@ -615,7 +618,7 @@ package abi {
   case class ParamsOfDecodeMessage(abi: Abi, message: String)
   case class ParamsOfDecodeMessageBody(abi: Abi, body: String, is_internal: Boolean)
   case class ParamsOfEncodeAccount(state_init: StateInitSource, balance: Option[BigInt], last_trans_lt: Option[BigInt], last_paid: Option[Long], boc_cache: Option[BocCacheType])
-  case class ParamsOfEncodeInternalMessage(abi: Abi, address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], value: String, bounce: Option[Boolean], enable_ihr: Option[Boolean])
+  case class ParamsOfEncodeInternalMessage(abi: Option[Abi], address: Option[String], src_address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], value: String, bounce: Option[Boolean], enable_ihr: Option[Boolean])
   case class ParamsOfEncodeMessage(abi: Abi, address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], signer: Signer, processing_try_index: Option[Long])
   case class ParamsOfEncodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long])
   case class ResultOfAttachSignature(message: String, message_id: String)
@@ -681,7 +684,7 @@ package abi {
    * @param balance balance
    * @param last_trans_lt last_trans_lt
    * @param last_paid last_paid
-   * @param boc_cache The BOC intself returned if no cache type provided
+   * @param boc_cache The BOC itself returned if no cache type provided
    */
   def encodeAccount(state_init: StateInitSource, balance: Option[BigInt], last_trans_lt: Option[BigInt], last_paid: Option[Long], boc_cache: Option[BocCacheType]): Future[Either[Throwable, ResultOfEncodeAccount]]
   /**
@@ -700,8 +703,9 @@ package abi {
    * Public key resolving priority:
    * 1. Public key from deploy set.
    * 2. Public key, specified in TVM file.
-   * @param abi abi
+   * @param abi Can be None if both deploy_set and call_set are None.
    * @param address Must be specified in case of non-deploy message.
+   * @param src_address src_address
    * @param deploy_set Must be specified in case of deploy message.
    * @param call_set Must be specified in case of non-deploy message.
    *
@@ -711,7 +715,7 @@ package abi {
    * @param bounce Default is true.
    * @param enable_ihr Default is false.
    */
-  def encodeInternalMessage(abi: Abi, address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], value: String, bounce: Option[Boolean], enable_ihr: Option[Boolean]): Future[Either[Throwable, ResultOfEncodeInternalMessage]]
+  def encodeInternalMessage(abi: Option[Abi], address: Option[String], src_address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], value: String, bounce: Option[Boolean], enable_ihr: Option[Boolean]): Future[Either[Throwable, ResultOfEncodeInternalMessage]]
   /**
    * Encodes an ABI-compatible message
    * Allows to encode deploy and function call messages,
@@ -817,9 +821,22 @@ package boc {
       override val code: String = "202"
     }
   }
+  object BuilderOpADT {
+    /** Cell builder operation. */
+    sealed trait BuilderOp
+    /** Cell builder operation. */
+    case class BitString(value: String) extends BuilderOp
+    /** Cell builder operation. */
+    case class Cell(builder: List[BuilderOp]) extends BuilderOp
+    /** Cell builder operation. */
+    case class CellBoc(boc: String) extends BuilderOp
+    /** Cell builder operation. */
+    case class Integer(size: Long, value: Value) extends BuilderOp
+  }
   case class ParamsOfBocCacheGet(boc_ref: String)
   case class ParamsOfBocCacheSet(boc: String, cache_type: BocCacheType)
   case class ParamsOfBocCacheUnpin(pin: String, boc_ref: Option[String])
+  case class ParamsOfEncodeBoc(builder: List[BuilderOp], boc_cache: Option[BocCacheType])
   case class ParamsOfGetBlockchainConfig(block_boc: String)
   case class ParamsOfGetBocHash(boc: String)
   case class ParamsOfGetCodeFromTvc(tvc: String)
@@ -827,6 +844,7 @@ package boc {
   case class ParamsOfParseShardstate(boc: String, id: String, workchain_id: Int)
   case class ResultOfBocCacheGet(boc: Option[String])
   case class ResultOfBocCacheSet(boc_ref: String)
+  case class ResultOfEncodeBoc(boc: String)
   case class ResultOfGetBlockchainConfig(config_boc: String)
   case class ResultOfGetBocHash(hash: String)
   case class ResultOfGetCodeFromTvc(code: String)
@@ -851,7 +869,16 @@ package boc {
    * @param boc_ref If it is provided then only referenced BOC is unpinned
    */
   def cacheUnpin(pin: String, boc_ref: Option[String]): Future[Either[Throwable, Unit]]
-  /** @param block_boc block_boc */
+  /**
+   * Encodes BOC from builder operations.
+   * @param builder builder
+   * @param boc_cache boc_cache
+   */
+  def encodeBoc(builder: List[BuilderOp], boc_cache: Option[BocCacheType]): Future[Either[Throwable, ResultOfEncodeBoc]]
+  /**
+   * Extract blockchain configuration from key block and also from zerostate.
+   * @param block_boc block_boc
+   */
   def getBlockchainConfig(block_boc: String): Future[Either[Throwable, ResultOfGetBlockchainConfig]]
   /**
    * Calculates BOC root hash
@@ -1071,7 +1098,7 @@ package tvm {
   }
   case class ExecutionOptions(blockchain_config: Option[String], block_time: Option[Long], block_lt: Option[BigInt], transaction_lt: Option[BigInt])
   case class ParamsOfRunExecutor(message: String, account: AccountForExecutor, execution_options: Option[ExecutionOptions], abi: Option[Abi], skip_transaction_check: Option[Boolean], boc_cache: Option[BocCacheType], return_updated_account: Option[Boolean])
-  case class ParamsOfRunGet(account: String, function_name: String, input: Option[Value], execution_options: Option[ExecutionOptions])
+  case class ParamsOfRunGet(account: String, function_name: String, input: Option[Value], execution_options: Option[ExecutionOptions], tuple_list_as_array: Option[Boolean])
   case class ParamsOfRunTvm(message: String, account: String, execution_options: Option[ExecutionOptions], abi: Option[Abi], boc_cache: Option[BocCacheType], return_updated_account: Option[Boolean])
   case class ResultOfRunExecutor(transaction: Value, out_messages: List[String], decoded: Option[DecodedOutput], account: String, fees: TransactionFees)
   case class ResultOfRunGet(output: Value)
@@ -1131,19 +1158,19 @@ package tvm {
    * Performs all the phases of contract execution on Transaction Executor -
    * the same component that is used on Validator Nodes.
    *
-   * Can be used for contract debug, to find out the reason of message unsuccessful
-   * delivery - as Validators just throw away failed transactions, here you can catch it.
+   * Can be used for contract debugginh, to find out the reason why message was not delivered successfully
+   *  - because Validators just throw away the failed external inbound messages, here you can catch them.
    *
    * Another use case is to estimate fees for message execution. Set  `AccountForExecutor::Account.unlimited_balance`
    * to `true` so that emulation will not depend on the actual balance.
    *
-   * One more use case - you can procude the sequence of operations,
+   * One more use case - you can produce the sequence of operations,
    * thus emulating the multiple contract calls locally.
    * And so on.
    *
-   * To get the account boc (bag of cells) - use `net.query` method to download it from graphql api
-   * (field `boc` of `account`) or generate it with `abi.encode_account method`.
-   * To get the message boc - use `abi.encode_message` or prepare it any other way, for instance, with Fift script.
+   * To get the account BOC (bag of cells) - use `net.query` method to download it from GraphQL API
+   * (field `boc` of `account`) or generate it with `abi.encode_account` method.
+   * To get the message BOC - use `abi.encode_message` or prepare it any other way, for instance, with FIFT script.
    *
    * If you need this emulation to be as precise as possible then specify `ParamsOfRunExecutor` parameter.
    * If you need to see the aborted transaction as a result, not as an error, set `skip_transaction_check` to `true`.
@@ -1152,38 +1179,42 @@ package tvm {
    * @param execution_options execution_options
    * @param abi abi
    * @param skip_transaction_check skip_transaction_check
-   * @param boc_cache The BOC intself returned if no cache type provided
+   * @param boc_cache The BOC itself returned if no cache type provided
    * @param return_updated_account Empty string is returned if the flag is `false`
    */
   def runExecutor(message: String, account: AccountForExecutor, execution_options: Option[ExecutionOptions], abi: Option[Abi], skip_transaction_check: Option[Boolean], boc_cache: Option[BocCacheType], return_updated_account: Option[Boolean]): Future[Either[Throwable, ResultOfRunExecutor]]
   /**
-   * Executes a getmethod of FIFT contract that fulfills the smc-guidelines https://test.ton.org/smc-guidelines.txt
+   * Executes a get-method of FIFT contract that fulfills the smc-guidelines https://test.ton.org/smc-guidelines.txt
    * and returns the result data from TVM's stack
    * @param account account
    * @param function_name function_name
    * @param input input
    * @param execution_options execution_options
+   * @param tuple_list_as_array Default is `false`. Input parameters may use any of lists representations
+   * If you receive this error on Web: "Runtime error. Unreachable code should not be executed...",
+   * set this flag to true.
+   * This may happen, for example, when elector contract contains too many participants
    */
-  def runGet(account: String, function_name: String, input: Option[Value], execution_options: Option[ExecutionOptions]): Future[Either[Throwable, ResultOfRunGet]]
+  def runGet(account: String, function_name: String, input: Option[Value], execution_options: Option[ExecutionOptions], tuple_list_as_array: Option[Boolean]): Future[Either[Throwable, ResultOfRunGet]]
   /**
-   * Executes get methods of ABI-compatible contracts
+   * Executes get-methods of ABI-compatible contracts
    * Performs only a part of compute phase of transaction execution
    * that is used to run get-methods of ABI-compatible contracts.
    *
-   * If you try to run get methods with `run_executor` you will get an error, because it checks ACCEPT and exits
-   * if there is none, which is actually true for get methods.
+   * If you try to run get-methods with `run_executor` you will get an error, because it checks ACCEPT and exits
+   * if there is none, which is actually true for get-methods.
    *
-   *  To get the account boc (bag of cells) - use `net.query` method to download it from graphql api
+   *  To get the account BOC (bag of cells) - use `net.query` method to download it from GraphQL API
    * (field `boc` of `account`) or generate it with `abi.encode_account method`.
-   * To get the message boc - use `abi.encode_message` or prepare it any other way, for instance, with Fift script.
+   * To get the message BOC - use `abi.encode_message` or prepare it any other way, for instance, with FIFT script.
    *
    * Attention! Updated account state is produces as well, but only
-   * `account_state.storage.state.data`  part of the boc is updated.
+   * `account_state.storage.state.data`  part of the BOC is updated.
    * @param message Must be encoded as base64.
    * @param account Must be encoded as base64.
    * @param execution_options execution_options
    * @param abi abi
-   * @param boc_cache The BOC intself returned if no cache type provided
+   * @param boc_cache The BOC itself returned if no cache type provided
    * @param return_updated_account Empty string is returned if the flag is `false`
    */
   def runTvm(message: String, account: String, execution_options: Option[ExecutionOptions], abi: Option[Abi], boc_cache: Option[BocCacheType], return_updated_account: Option[Boolean]): Future[Either[Throwable, ResultOfRunTvm]]
@@ -1327,9 +1358,46 @@ package net {
   def setEndpoints(endpoints: List[String]): Future[Either[Throwable, Unit]]
   /**
    * Creates a subscription
-   * Triggers for each insert/update of data
-   * that satisfies the `filter` conditions.
+   * Triggers for each insert/update of data that satisfies
+   * the `filter` conditions.
    * The projection fields are limited to `result` fields.
+   *
+   * The subscription is a persistent communication channel between
+   * client and Free TON Network.
+   * All changes in the blockchain will be reflected in realtime.
+   * Changes means inserts and updates of the blockchain entities.
+   *
+   * ### Important Notes on Subscriptions
+   *
+   * Unfortunately sometimes the connection with the network brakes down.
+   * In this situation the library attempts to reconnect to the network.
+   * This reconnection sequence can take significant time.
+   * All of this time the client is disconnected from the network.
+   *
+   * Bad news is that all blockchain changes that happened while
+   * the client was disconnected are lost.
+   *
+   * Good news is that the client report errors to the callback when
+   * it loses and resumes connection.
+   *
+   * So, if the lost changes are important to the application then
+   * the application must handle these error reports.
+   *
+   * Library reports errors with `responseType` == 101
+   * and the error object passed via `params`.
+   *
+   * When the library has successfully reconnected
+   * the application receives callback with
+   * `responseType` == 101 and `params.code` == 614 (NetworkModuleResumed).
+   *
+   * Application can use several ways to handle this situation:
+   * - If application monitors changes for the single blockchain
+   * object (for example specific account):  application
+   * can perform a query for this object and handle actual data as a
+   * regular data from the subscription.
+   * - If application monitors sequence of some blockchain objects
+   * (for example transactions of the specific account): application must
+   * refresh all cached (or visible to user) lists where this sequences presents.
    * @param collection collection
    * @param filter filter
    * @param result result
@@ -1368,7 +1436,7 @@ package debot {
     case object DebotExecutionFailed extends DebotErrorCode {
       override val code: String = "803"
     }
-    case object DebotExternaCallFailed extends DebotErrorCode {
+    case object DebotExternalCallFailed extends DebotErrorCode {
       override val code: String = "810"
     }
     case object DebotFetchFailed extends DebotErrorCode {
@@ -1447,11 +1515,11 @@ package debot {
   /** [UNSTABLE](UNSTABLE.md) Parameters to fetch debot. */
   case class ParamsOfFetch(address: String)
   /** [UNSTABLE](UNSTABLE.md) Parameters of `send` function. */
-  case class ParamsOfSend(debot_handle: DebotHandle, source: String, func_id: Long, params: String)
+  case class ParamsOfSend(debot_handle: DebotHandle, message: String)
   /** [UNSTABLE](UNSTABLE.md) Parameters to start debot. */
   case class ParamsOfStart(address: String)
   /** [UNSTABLE](UNSTABLE.md) Structure for storing debot handle returned from `start` and `fetch` functions. */
-  case class RegisteredDebot(debot_handle: DebotHandle)
+  case class RegisteredDebot(debot_handle: DebotHandle, debot_abi: String)
   object ResultOfAppDebotBrowserADT {
     /** [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks. */
     sealed trait ResultOfAppDebotBrowser
@@ -1490,17 +1558,16 @@ package debot {
    * [UNSTABLE](UNSTABLE.md) Destroys debot handle.
    * Removes handle from Client Context and drops debot engine referenced by that handle.
    * @param debot_handle debot_handle
+   * @param debot_abi debot_abi
    */
-  def remove(debot_handle: DebotHandle): Future[Either[Throwable, Unit]]
+  def remove(debot_handle: DebotHandle, debot_abi: String): Future[Either[Throwable, Unit]]
   /**
    * [UNSTABLE](UNSTABLE.md) Sends message to Debot.
    * Used by Debot Browser to send response on Dinterface call or from other Debots.
    * @param debot_handle debot_handle
-   * @param source source
-   * @param func_id func_id
-   * @param params params
+   * @param message message
    */
-  def send(debot_handle: DebotHandle, source: String, func_id: Long, params: String): Future[Either[Throwable, Unit]]
+  def send(debot_handle: DebotHandle, message: String): Future[Either[Throwable, Unit]]
   /**
    * [UNSTABLE](UNSTABLE.md) Starts an instance of debot.
    * Downloads debot smart contract from blockchain and switches it to

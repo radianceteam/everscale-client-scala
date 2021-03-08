@@ -105,7 +105,7 @@ class AbiModule(ctx: Context) {
    * @param last_paid
    *   Initial value for the `last_paid`.
    * @param boc_cache
-   *   The BOC intself returned if no cache type provided
+   *   The BOC itself returned if no cache type provided
    */
   def encodeAccount(
     state_init: StateInitSourceADT.StateInitSource,
@@ -134,9 +134,11 @@ class AbiModule(ctx: Context) {
    * Public key resolving priority:
    *   1. Public key from deploy set. 2. Public key, specified in TVM file.
    * @param abi
-   *   abi
+   *   Can be None if both deploy_set and call_set are None.
    * @param address
    *   Must be specified in case of non-deploy message.
+   * @param src_address
+   *   src_address
    * @param deploy_set
    *   Must be specified in case of deploy message.
    * @param call_set
@@ -152,8 +154,9 @@ class AbiModule(ctx: Context) {
    *   Default is false.
    */
   def encodeInternalMessage(
-    abi: AbiADT.Abi,
+    abi: Option[AbiADT.Abi],
     address: Option[String],
+    src_address: Option[String],
     deploy_set: Option[DeploySet],
     call_set: Option[CallSet],
     value: String,
@@ -162,7 +165,7 @@ class AbiModule(ctx: Context) {
   ): Future[Either[Throwable, ResultOfEncodeInternalMessage]] =
     ctx.execAsync[ParamsOfEncodeInternalMessage, ResultOfEncodeInternalMessage](
       "abi.encode_internal_message",
-      ParamsOfEncodeInternalMessage(abi, address, deploy_set, call_set, value, bounce, enable_ihr)
+      ParamsOfEncodeInternalMessage(abi, address, src_address, deploy_set, call_set, value, bounce, enable_ihr)
     )
 
   /**

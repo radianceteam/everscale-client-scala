@@ -443,11 +443,11 @@ To extract required fields from response you can use circe [hcursor](https://cir
 
 Before running tests you need to run local TONOS Startup Edition (SE) with command:
 
-```sudo docker run -t -d -p 6453:80 -e USER_AGREEMENT=yes tonlabs/local-node```
+```sudo docker run -t -d -p 80:80 -e USER_AGREEMENT=yes tonlabs/local-node```
 
 If you want to change port mapping you need to change content of file TestBase.scala:
 
-```protected val host = "http://localhost:6453"``` 
+```protected val host = "http://localhost"``` 
 
 To run all junit tests execute in sbt console under the project __ton_client_scala__:
 

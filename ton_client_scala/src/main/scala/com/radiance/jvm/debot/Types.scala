@@ -26,7 +26,7 @@ object DebotErrorCodeEnum {
     override val code: String = "803"
   }
 
-  case object DebotExternaCallFailed extends DebotErrorCode {
+  case object DebotExternalCallFailed extends DebotErrorCode {
     override val code: String = "810"
   }
 
@@ -128,7 +128,7 @@ object ParamsOfStart {
   implicit val encoder: Encoder[ParamsOfStart] = derivation.deriveEncoder[ParamsOfStart]
 }
 
-case class RegisteredDebot(debot_handle: DebotHandle)
+case class RegisteredDebot(debot_handle: DebotHandle, debot_abi: String)
 
 object RegisteredDebot {
   implicit val codec: Codec[RegisteredDebot] = derivation.deriveCodec[RegisteredDebot]
@@ -149,7 +149,7 @@ object ResultOfAppDebotBrowserADT {
   /**
    * [UNSTABLE](UNSTABLE.md) Parameters of `send` function.
    */
-  case class ParamsOfSend(debot_handle: DebotHandle, source: String, func_id: Long, params: String)
+  case class ParamsOfSend(debot_handle: DebotHandle, message: String)
 
   case class ParamsOfExecute(debot_handle: DebotHandle, action: DebotAction)
 

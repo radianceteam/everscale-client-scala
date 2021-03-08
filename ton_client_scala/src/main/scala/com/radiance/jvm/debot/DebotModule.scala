@@ -3,6 +3,7 @@ package com.radiance.jvm.debot
 import com.radiance.jvm._
 import com.radiance.jvm.app.AppObject
 
+import scala.annotation.nowarn
 import scala.concurrent.Future
 
 class DebotModule(private val ctx: Context) {
@@ -59,12 +60,15 @@ class DebotModule(private val ctx: Context) {
   }
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Destroys debot handle. Removes handle from Client Context and drops debot engine referenced
-   * by that handle.
+   * TODO sdvornik fix additional param [UNSTABLE](UNSTABLE.md) Destroys debot handle. Removes handle from Client
+   * Context and drops debot engine referenced by that handle.
    * @param debot_handle
    *   debot_handle
+   * @param debot_abi
+   *   debot_abi
    */
-  def remove(debot_handle: DebotHandle): Future[Either[Throwable, Unit]] = {
+  @nowarn
+  def remove(debot_handle: DebotHandle, debot_abi: String): Future[Either[Throwable, Unit]] = {
     ctx.unregisterAppObject(debot_handle.value.toInt, "debot.remove")
   }
 
@@ -73,23 +77,14 @@ class DebotModule(private val ctx: Context) {
    * other Debots.
    * @param debot_handle
    *   debot_handle
-   * @param source
-   *   source
-   * @param func_id
-   *   func_id
-   * @param params
-   *   params
+   * @param message
+   *   message
    */
-  def send(
-    debot_handle: DebotHandle,
-    source: String,
-    func_id: Long,
-    params: String
-  ): Future[Either[Throwable, Unit]] = {
+  def send(debot_handle: DebotHandle, message: String): Future[Either[Throwable, Unit]] = {
     ctx.executeWithAppObject[ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser](
       "debot.execute",
       ResultOfAppDebotBrowserADT
-        .ParamsOfSend(debot_handle, source, func_id, params)
+        .ParamsOfSend(debot_handle, message)
         .asInstanceOf[ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser],
       debot_handle.value.toInt
     )

@@ -14,7 +14,7 @@ import scala.collection.mutable
 object CodeGenerator extends App {
 
   import scala.io.Source
-  val jsonString: String = Source.fromResource("api-1.8.0.json").getLines.mkString("")
+  val jsonString: String = Source.fromResource("api.json").getLines.mkString("")
 
   val rootRes = parse(jsonString).map(_.as[ApiDescription.Root])
   val root = rootRes.fold(

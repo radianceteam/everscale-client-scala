@@ -51,6 +51,38 @@ object BocErrorCodeEnum {
   }
 }
 
+object BuilderOpADT {
+
+  /**
+   * Cell builder operation.
+   */
+  sealed trait BuilderOp
+
+  /**
+   * Cell builder operation.
+   */
+  case class BitString(value: String) extends BuilderOp
+
+  /**
+   * Cell builder operation.
+   */
+  case class Cell(builder: List[BuilderOp]) extends BuilderOp
+
+  /**
+   * Cell builder operation.
+   */
+  case class CellBoc(boc: String) extends BuilderOp
+
+  /**
+   * Cell builder operation.
+   */
+  case class Integer(size: Long, value: Value) extends BuilderOp
+
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[BuilderOp] =
+    extras.semiauto.deriveConfiguredEncoder[BuilderOp]
+}
+
 case class ParamsOfBocCacheGet(boc_ref: String)
 
 object ParamsOfBocCacheGet {
@@ -70,6 +102,13 @@ case class ParamsOfBocCacheUnpin(pin: String, boc_ref: Option[String])
 object ParamsOfBocCacheUnpin {
   implicit val encoder: Encoder[ParamsOfBocCacheUnpin] =
     deriveEncoder[ParamsOfBocCacheUnpin]
+}
+
+case class ParamsOfEncodeBoc(builder: List[BuilderOpADT.BuilderOp], boc_cache: Option[BocCacheTypeADT.BocCacheType])
+
+object ParamsOfEncodeBoc {
+  implicit val encoder: Encoder[ParamsOfEncodeBoc] =
+    deriveEncoder[ParamsOfEncodeBoc]
 }
 
 case class ParamsOfGetBlockchainConfig(block_boc: String)
@@ -117,6 +156,13 @@ case class ResultOfBocCacheSet(boc_ref: String)
 object ResultOfBocCacheSet {
   implicit val decoder: Decoder[ResultOfBocCacheSet] =
     deriveDecoder[ResultOfBocCacheSet]
+}
+
+case class ResultOfEncodeBoc(boc: String)
+
+object ResultOfEncodeBoc {
+  implicit val decoder: Decoder[ResultOfEncodeBoc] =
+    deriveDecoder[ResultOfEncodeBoc]
 }
 
 case class ResultOfGetBlockchainConfig(config_boc: String)

@@ -21,7 +21,7 @@ import com.radiance.jvm.utils.UtilsModule
 
 trait TestBase extends BeforeAndAfter with TestUtils { this: AnyFlatSpec =>
 
-  protected val host = "http://localhost:6453"
+  protected val host = "http://localhost:80"
 
   protected implicit val ec: ExecutionContext = ExecutionContext.global
 
