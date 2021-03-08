@@ -8,6 +8,7 @@ val pathToTonClientHeaderNative = "native/include"
 
 lazy val pathToExternalDll = SettingKey[File]("pathToExternalDll")
 lazy val pathToBridgeDll = SettingKey[File]("pathToBridgeDll")
+lazy val pathToTestResources = SettingKey[File]("pathToTestResources")
 
 lazy val buildDependentLib = taskKey[Unit]("Build dependent libraries.")
 lazy val buildBridge = taskKey[Unit]("Build bridge library.")
@@ -29,16 +30,15 @@ lazy val ton_client_scala = project
       "org.scalatest"              %% "scalatest-shouldmatchers" % "3.2.3"    % Test,
       "org.typelevel"              %% "cats-core"                % "2.3.0-M2" % Test
     ),
-    pathToExternalDll := baseDirectory.in(`TON-SDK`).value.getAbsoluteFile / "ton_client" / "client" / "build",
+    // pathToExternalDll := baseDirectory.in(`TON-SDK`).value.getAbsoluteFile / "ton_client" / "build",
+    pathToTestResources := baseDirectory.in(`TON-SDK`).value.getAbsoluteFile / "ton_client" / "src" / "tests" / "contracts",
     pathToBridgeDll := baseDirectory.in(native).value.getAbsoluteFile / "build",
-    Compile / unmanagedResourceDirectories ++= Seq(pathToBridgeDll.value, pathToExternalDll.value),
-    Test / unmanagedResourceDirectories += pathToBridgeDll.value,
+    Test / unmanagedResourceDirectories ++= Seq(pathToBridgeDll.value, pathToTestResources.value),
     includeFilter in unmanagedResources in Compile := "*.dll" || "*.dll.a" || "*.dll.lib" || "*.so",
     includeFilter in unmanagedResources in Test := "*",
     test in assembly := {},
     scalacOptions := Seq(
       "-Xfatal-warnings",
-      // Feature options
       "-encoding",
       "utf-8",
       "-explaintypes",
@@ -48,7 +48,6 @@ lazy val ton_client_scala = project
       "-language:higherKinds",
       "-language:implicitConversions",
       "-Ymacro-annotations",
-      // Linting options
       "-unchecked",
       "-Xcheckinit",
       "-Xlint:adapted-args",

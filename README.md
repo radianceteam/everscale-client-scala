@@ -3,12 +3,12 @@
 **Community links:**
 
 [![Chat on Telegram](https://img.shields.io/badge/chat-on%20telegram-9cf.svg)](https://t.me/RADIANCE_TON_SDK)
-[![SDK version](https://img.shields.io/badge/TON%20SDK%20version-1.6.3-green)](https://github.com/tonlabs/TON-SDK/tree/1.6.3)
+[![SDK version](https://img.shields.io/badge/TON%20SDK%20version-1.10.0-green)](https://github.com/tonlabs/TON-SDK/tree/1.10.0)
 
 **Scala TON Client** is a simple scala binding to the [TON SDK](https://github.com/tonlabs/TON-SDK). 
 
 Features:
-* All methods of the TON SDK v1.6.3 are implemented
+* All methods of the TON SDK v1.10.0 are implemented
 * Interaction with the TON SDK through synchronous an asynchronous calls
 * The every method contains inline-doc
 * The automatic download of the TON SDK library for the current environment
