@@ -6,7 +6,6 @@ val pathToCmakeLinux = """/usr/bin/cmake"""
 val pathToTonClientHeaderSdk = "TON-SDK/ton_client"
 val pathToTonClientHeaderNative = "native/include"
 
-lazy val pathToExternalDll = SettingKey[File]("pathToExternalDll")
 lazy val pathToBridgeDll = SettingKey[File]("pathToBridgeDll")
 lazy val pathToTestResources = SettingKey[File]("pathToTestResources")
 
@@ -104,7 +103,7 @@ lazy val ton_generator = project
 lazy val buildDllImpl = Def.task {
   OperationSystem.define match {
     case Windows =>
-      Process("cmd /C chcp 65001") !
+      Process("cmd /C chcp 65001").!
     case _       => ()
   }
 
@@ -135,7 +134,7 @@ lazy val buildBridgeImpl = Def.task {
       val cmakeBuildCommand = s""""$pathToCmakeWin" --build $pathToBuildDir --target all"""
       Process(cmakeBuildCommand, new File("native")).!
     case Linux   =>
-      Process("mkdir -p build", pathToParent) !
+      Process("mkdir -p build", pathToParent).!
       val cmakeLoadCommand = s"""$pathToCmakeLinux -DCMAKE_BUILD_TYPE=Release $pathToParent -B$pathToBuildDir"""
       Process(cmakeLoadCommand).!
       val cmakeCommand = s"""$pathToCmakeLinux --build $pathToBuildDir --target all -- -j 6"""
