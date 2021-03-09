@@ -29,8 +29,10 @@ lazy val ton_client_scala = project
       "org.scalatest"              %% "scalatest-shouldmatchers" % "3.2.3"    % Test,
       "org.typelevel"              %% "cats-core"                % "2.3.0-M2" % Test
     ),
-    // pathToExternalDll := baseDirectory.in(`TON-SDK`).value.getAbsoluteFile / "ton_client" / "build",
-    pathToTestResources := baseDirectory.in(`TON-SDK`).value.getAbsoluteFile / "ton_client" / "src" / "tests" / "contracts",
+    pathToTestResources := baseDirectory
+      .in(`TON-SDK`)
+      .value
+      .getAbsoluteFile / "ton_client" / "src" / "tests" / "contracts",
     pathToBridgeDll := baseDirectory.in(native).value.getAbsoluteFile / "build",
     Test / unmanagedResourceDirectories ++= Seq(pathToBridgeDll.value, pathToTestResources.value),
     includeFilter in unmanagedResources in Compile := "*.dll" || "*.dll.a" || "*.dll.lib" || "*.so",
