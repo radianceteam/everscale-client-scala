@@ -3,12 +3,12 @@
 **Community links:**
 
 [![Chat on Telegram](https://img.shields.io/badge/chat-on%20telegram-9cf.svg)](https://t.me/RADIANCE_TON_SDK)
-[![SDK version](https://img.shields.io/badge/TON%20SDK%20version-1.6.3-green)](https://github.com/tonlabs/TON-SDK/tree/1.6.3)
+[![SDK version](https://img.shields.io/badge/TON%20SDK%20version-1.10.0-green)](https://github.com/tonlabs/TON-SDK/tree/1.10.0)
 
 **Scala TON Client** is a simple scala binding to the [TON SDK](https://github.com/tonlabs/TON-SDK). 
 
 Features:
-* All methods of the TON SDK v1.6.3 are implemented
+* All methods of the TON SDK v1.10.0 are implemented
 * Interaction with the TON SDK through synchronous an asynchronous calls
 * The every method contains inline-doc
 * The automatic download of the TON SDK library for the current environment
@@ -443,11 +443,11 @@ To extract required fields from response you can use circe [hcursor](https://cir
 
 Before running tests you need to run local TONOS Startup Edition (SE) with command:
 
-```sudo docker run -t -d -p 6453:80 -e USER_AGREEMENT=yes tonlabs/local-node```
+```sudo docker run -t -d -p 80:80 -e USER_AGREEMENT=yes tonlabs/local-node```
 
 If you want to change port mapping you need to change content of file TestBase.scala:
 
-```protected val host = "http://localhost:6453"``` 
+```protected val host = "http://localhost"``` 
 
 To run all junit tests execute in sbt console under the project __ton_client_scala__:
 

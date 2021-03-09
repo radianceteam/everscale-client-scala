@@ -50,8 +50,26 @@ class BocModule(private val ctx: Context) {
   }
 
   /**
+   * Encodes BOC from builder operations.
+   * @param builder
+   *   builder
+   * @param boc_cache
+   *   boc_cache
+   */
+  def encodeBoc(
+    builder: List[BuilderOpADT.BuilderOp],
+    boc_cache: Option[BocCacheTypeADT.BocCacheType]
+  ): Future[Either[Throwable, ResultOfEncodeBoc]] = {
+    ctx.execAsync[ParamsOfEncodeBoc, ResultOfEncodeBoc](
+      "boc.encode_boc",
+      ParamsOfEncodeBoc(builder, boc_cache)
+    )
+  }
+
+  /**
+   * Extract blockchain configuration from key block and also from zerostate.
    * @param block_boc
-   *   Key block BOC encoded as base64
+   *   block_boc
    */
   def getBlockchainConfig(
     block_boc: String

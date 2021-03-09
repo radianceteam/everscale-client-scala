@@ -277,7 +277,7 @@ class CryptoModule(private val ctx: Context) {
   /**
    * Public key authenticated encryption
    *
-   * Encrypt and authenticate a message using the senders secret key, the recievers public key, and a nonce.
+   * Encrypt and authenticate a message using the senders secret key, the receivers public key, and a nonce.
    * @param decrypted
    *   Data that must be encrypted encoded in `base64`.
    * @param nonce
@@ -314,7 +314,7 @@ class CryptoModule(private val ctx: Context) {
       )
 
   /**
-   * Decrypt and verify the cipher text using the recievers secret key, the senders public key, and the nonce.@param
+   * Decrypt and verify the cipher text using the receivers secret key, the senders public key, and the nonce.@param
    * encrypted Data that must be decrypted. Encoded with `base64`.
    * @param encrypted
    *   text

@@ -55,7 +55,8 @@ case class ParamsOfRunGet(
   account: String,
   function_name: String,
   input: Option[Value],
-  execution_options: Option[ExecutionOptions]
+  execution_options: Option[ExecutionOptions],
+  tuple_list_as_array: Option[Boolean]
 )
 
 object ParamsOfRunGet {

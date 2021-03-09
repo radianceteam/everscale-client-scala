@@ -5,9 +5,9 @@ sealed trait Version {
 }
 
 case object V1 extends Version {
-  override val name: String = "v1"
+  override val name: String = "abi_v1"
 }
 
 case object V2 extends Version {
-  override val name: String = "v2"
+  override val name: String = "abi_v2"
 }

@@ -49,55 +49,45 @@ object AbiData {
 }
 
 object AbiErrorCodeEnum {
-
   sealed trait AbiErrorCode {
     val code: String
   }
-
-  case object RequiredAddressMissingForEncodeMessage extends AbiErrorCode {
-    override val code: String = "301"
-  }
-
-  case object RequiredCallSetMissingForEncodeMessage extends AbiErrorCode {
-    override val code: String = "302"
-  }
-
-  case object InvalidJson extends AbiErrorCode {
-    override val code: String = "303"
-  }
-
-  case object InvalidMessage extends AbiErrorCode {
-    override val code: String = "304"
-  }
-
-  case object EncodeDeployMessageFailed extends AbiErrorCode {
-    override val code: String = "305"
-  }
-
-  case object EncodeRunMessageFailed extends AbiErrorCode {
-    override val code: String = "306"
-  }
-
   case object AttachSignatureFailed extends AbiErrorCode {
     override val code: String = "307"
   }
-
-  case object InvalidTvcImage extends AbiErrorCode {
-    override val code: String = "308"
+  case object EncodeDeployMessageFailed extends AbiErrorCode {
+    override val code: String = "305"
   }
-
-  case object RequiredPublicKeyMissingForFunctionHeader extends AbiErrorCode {
-    override val code: String = "309"
+  case object EncodeRunMessageFailed extends AbiErrorCode {
+    override val code: String = "306"
   }
-
-  case object InvalidSigner extends AbiErrorCode {
-    override val code: String = "310"
-  }
-
   case object InvalidAbi extends AbiErrorCode {
     override val code: String = "311"
   }
-
+  case object InvalidFunctionId extends AbiErrorCode {
+    override val code: String = "312"
+  }
+  case object InvalidJson extends AbiErrorCode {
+    override val code: String = "303"
+  }
+  case object InvalidMessage extends AbiErrorCode {
+    override val code: String = "304"
+  }
+  case object InvalidSigner extends AbiErrorCode {
+    override val code: String = "310"
+  }
+  case object InvalidTvcImage extends AbiErrorCode {
+    override val code: String = "308"
+  }
+  case object RequiredAddressMissingForEncodeMessage extends AbiErrorCode {
+    override val code: String = "301"
+  }
+  case object RequiredCallSetMissingForEncodeMessage extends AbiErrorCode {
+    override val code: String = "302"
+  }
+  case object RequiredPublicKeyMissingForFunctionHeader extends AbiErrorCode {
+    override val code: String = "309"
+  }
 }
 
 case class AbiEvent(
@@ -167,7 +157,7 @@ case class DeploySet(
 )
 
 object DeploySet {
-  implicit val encoder: Encoder[DeploySet] = deriveEncoder[DeploySet]
+  implicit val codec: Codec[DeploySet] = deriveCodec[DeploySet]
 }
 
 /**
@@ -288,8 +278,9 @@ object ParamsOfEncodeAccount {
 }
 
 case class ParamsOfEncodeInternalMessage(
-  abi: AbiADT.Abi,
+  abi: Option[AbiADT.Abi],
   address: Option[String],
+  src_address: Option[String],
   deploy_set: Option[DeploySet],
   call_set: Option[CallSet],
   value: String,

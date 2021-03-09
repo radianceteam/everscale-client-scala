@@ -6,8 +6,8 @@ val pathToCmakeLinux = """/usr/bin/cmake"""
 val pathToTonClientHeaderSdk = "TON-SDK/ton_client"
 val pathToTonClientHeaderNative = "native/include"
 
-lazy val pathToExternalDll = SettingKey[File]("pathToExternalDll")
 lazy val pathToBridgeDll = SettingKey[File]("pathToBridgeDll")
+lazy val pathToTestResources = SettingKey[File]("pathToTestResources")
 
 lazy val buildDependentLib = taskKey[Unit]("Build dependent libraries.")
 lazy val buildBridge = taskKey[Unit]("Build bridge library.")
@@ -29,16 +29,17 @@ lazy val ton_client_scala = project
       "org.scalatest"              %% "scalatest-shouldmatchers" % "3.2.3"    % Test,
       "org.typelevel"              %% "cats-core"                % "2.3.0-M2" % Test
     ),
-    pathToExternalDll := baseDirectory.in(`TON-SDK`).value.getAbsoluteFile / "ton_client" / "client" / "build",
+    pathToTestResources := baseDirectory
+      .in(`TON-SDK`)
+      .value
+      .getAbsoluteFile / "ton_client" / "src" / "tests" / "contracts",
     pathToBridgeDll := baseDirectory.in(native).value.getAbsoluteFile / "build",
-    Compile / unmanagedResourceDirectories ++= Seq(pathToBridgeDll.value, pathToExternalDll.value),
-    Test / unmanagedResourceDirectories += pathToBridgeDll.value,
+    Test / unmanagedResourceDirectories ++= Seq(pathToBridgeDll.value, pathToTestResources.value),
     includeFilter in unmanagedResources in Compile := "*.dll" || "*.dll.a" || "*.dll.lib" || "*.so",
     includeFilter in unmanagedResources in Test := "*",
     test in assembly := {},
     scalacOptions := Seq(
       "-Xfatal-warnings",
-      // Feature options
       "-encoding",
       "utf-8",
       "-explaintypes",
@@ -48,7 +49,6 @@ lazy val ton_client_scala = project
       "-language:higherKinds",
       "-language:implicitConversions",
       "-Ymacro-annotations",
-      // Linting options
       "-unchecked",
       "-Xcheckinit",
       "-Xlint:adapted-args",
@@ -105,7 +105,7 @@ lazy val ton_generator = project
 lazy val buildDllImpl = Def.task {
   OperationSystem.define match {
     case Windows =>
-      Process("cmd /C chcp 65001") !
+      Process("cmd /C chcp 65001").!
     case _       => ()
   }
 
@@ -136,7 +136,7 @@ lazy val buildBridgeImpl = Def.task {
       val cmakeBuildCommand = s""""$pathToCmakeWin" --build $pathToBuildDir --target all"""
       Process(cmakeBuildCommand, new File("native")).!
     case Linux   =>
-      Process("mkdir -p build", pathToParent) !
+      Process("mkdir -p build", pathToParent).!
       val cmakeLoadCommand = s"""$pathToCmakeLinux -DCMAKE_BUILD_TYPE=Release $pathToParent -B$pathToBuildDir"""
       Process(cmakeLoadCommand).!
       val cmakeCommand = s"""$pathToCmakeLinux --build $pathToBuildDir --target all -- -j 6"""
