@@ -5,6 +5,20 @@ import com.radiance.jvm.Context
 class UtilsModule(private val ctx: Context) {
 
   /**
+   * Calculates storage fee for an account over a specified time period
+   * @param account
+   *   account
+   * @param period
+   *   period
+   */
+  def calcStorageFee(account: String, period: Long): Either[Throwable, ResultOfCalcStorageFee] = {
+    ctx.execSync[ParamsOfCalcStorageFee, ResultOfCalcStorageFee](
+      "utils.calc_storage_fee",
+      ParamsOfCalcStorageFee(account, period)
+    )
+  }
+
+  /**
    * Converts address from any TON format to any TON format
    * @param address
    *   Account address in any TON format.
