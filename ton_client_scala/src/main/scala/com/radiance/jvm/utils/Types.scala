@@ -19,6 +19,13 @@ object AddressStringFormatADT {
     extras.semiauto.deriveConfiguredEncoder[AddressStringFormat]
 }
 
+case class ParamsOfCalcStorageFee(account: String, period: Long)
+
+object ParamsOfCalcStorageFee {
+  implicit val encoder: Encoder[ParamsOfCalcStorageFee] =
+    deriveEncoder[ParamsOfCalcStorageFee]
+}
+
 case class ParamsOfConvertAddress(
   address: String,
   output_format: AddressStringFormatADT.AddressStringFormat
@@ -27,6 +34,13 @@ case class ParamsOfConvertAddress(
 object ParamsOfConvertAddress {
   implicit val encoder: Encoder[ParamsOfConvertAddress] =
     deriveEncoder[ParamsOfConvertAddress]
+}
+
+case class ResultOfCalcStorageFee(fee: String)
+
+object ResultOfCalcStorageFee {
+  implicit val decoder: Decoder[ResultOfCalcStorageFee] =
+    deriveDecoder[ResultOfCalcStorageFee]
 }
 
 case class ResultOfConvertAddress(address: String)

@@ -1076,10 +1076,18 @@ package utils {
     case class Base64(url: Boolean, test: Boolean, bounce: Boolean) extends AddressStringFormat
     case object Hex extends AddressStringFormat
   }
+  case class ParamsOfCalcStorageFee(account: String, period: Long)
   case class ParamsOfConvertAddress(address: String, output_format: AddressStringFormat)
+  case class ResultOfCalcStorageFee(fee: String)
   case class ResultOfConvertAddress(address: String)
 }
 package utils {
+  /**
+   * Calculates storage fee for an account over a specified time period
+   * @param account account
+   * @param period period
+   */
+  def calcStorageFee(account: String, period: Long): Future[Either[Throwable, ResultOfCalcStorageFee]]
   /**
    * Converts address from any TON format to any TON format
    * @param address address
