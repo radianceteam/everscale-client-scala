@@ -1,9 +1,9 @@
 package com.radiance.jvm.debot
 
 import com.radiance.jvm._
-import com.radiance.jvm.app.AppObject
+import com.radiance.jvm.debot.ParamsOfAppDebotBrowserADT.ParamsOfAppDebotBrowser
+import com.radiance.jvm.debot.ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser
 
-import scala.annotation.nowarn
 import scala.concurrent.Future
 
 class DebotModule(private val ctx: Context) {
@@ -18,21 +18,18 @@ class DebotModule(private val ctx: Context) {
    * @param action
    *   action
    */
-  def execute(
-    debot_handle: DebotHandle,
-    action: DebotAction
-  ): Future[Either[Throwable, Unit]] = {
-    ctx.executeWithAppObject[ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser](
-      "debot.execute",
-      ResultOfAppDebotBrowserADT
-        .ParamsOfExecute(debot_handle, action)
-        .asInstanceOf[ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser],
-      debot_handle.value.toInt
-    )
-  }
+  def execute(debot_handle: DebotHandle, action: DebotAction): Future[Either[Throwable, Unit]] = ???
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Fetches debot from blockchain. Downloads debot smart contract (code and data) from
+   * [UNSTABLE](UNSTABLE.md) Fetches DeBot metadata from blockchain. Downloads DeBot from blockchain and creates and
+   * fetches its metadata.
+   * @param address
+   *   address
+   */
+  def fetch(address: String): Future[Either[Throwable, ResultOfFetch]] = ???
+
+  /**
+   * [UNSTABLE](UNSTABLE.md) Creates and instance of DeBot. Downloads debot smart contract (code and data) from
    * blockchain and creates an instance of Debot Engine for it.
    *
    * # Remarks It does not switch debot to context 0. Browser Callbacks are not called.
@@ -41,36 +38,18 @@ class DebotModule(private val ctx: Context) {
    * @param app_object
    *   app_object
    */
-  def fetch(
+  def init(
     address: String,
-    app_object: AppObject[
-      ParamsOfAppDebotBrowserADT.ParamsOfAppDebotBrowser,
-      ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser
-    ]
-  ): Future[Either[Throwable, RegisteredDebot]] = {
-    ctx.registerAppObject[
-      RegisteredDebot,
-      ParamsOfAppDebotBrowserADT.ParamsOfAppDebotBrowser,
-      ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser
-    ](
-      "debot.fetch",
-      s"""{"address":"$address"}""",
-      app_object
-    )
-  }
+    app_object: ParamsOfAppDebotBrowser => ResultOfAppDebotBrowser
+  ): Future[Either[Throwable, RegisteredDebot]] = ???
 
   /**
-   * TODO sdvornik fix additional param [UNSTABLE](UNSTABLE.md) Destroys debot handle. Removes handle from Client
-   * Context and drops debot engine referenced by that handle.
+   * [UNSTABLE](UNSTABLE.md) Destroys debot handle. Removes handle from Client Context and drops debot engine referenced
+   * by that handle.
    * @param debot_handle
    *   debot_handle
-   * @param debot_abi
-   *   debot_abi
    */
-  @nowarn
-  def remove(debot_handle: DebotHandle, debot_abi: String): Future[Either[Throwable, Unit]] = {
-    ctx.unregisterAppObject(debot_handle.value.toInt, "debot.remove")
-  }
+  def remove(debot_handle: DebotHandle): Future[Either[Throwable, Unit]] = ???
 
   /**
    * [UNSTABLE](UNSTABLE.md) Sends message to Debot. Used by Debot Browser to send response on Dinterface call or from
@@ -80,43 +59,20 @@ class DebotModule(private val ctx: Context) {
    * @param message
    *   message
    */
-  def send(debot_handle: DebotHandle, message: String): Future[Either[Throwable, Unit]] = {
-    ctx.executeWithAppObject[ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser](
-      "debot.execute",
-      ResultOfAppDebotBrowserADT
-        .ParamsOfSend(debot_handle, message)
-        .asInstanceOf[ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser],
-      debot_handle.value.toInt
-    )
-  }
+  def send(debot_handle: DebotHandle, message: String): Future[Either[Throwable, Unit]] = ???
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Starts an instance of debot. Downloads debot smart contract from blockchain and switches it
-   * to context zero. Returns a debot handle which can be used later in `execute` function. This function must be used
-   * by Debot Browser to start a dialog with debot. While the function is executing, several Browser Callbacks can be
-   * called, since the debot tries to display all actions from the context 0 to the user.
+   * [UNSTABLE](UNSTABLE.md) Starts the DeBot. Downloads debot smart contract from blockchain and switches it to context
+   * zero.
    *
-   * # Remarks `start` is equivalent to `fetch` + switch to context 0.
-   * @param address
-   *   address
-   * @param app_object
-   *   app_object
+   * This function must be used by Debot Browser to start a dialog with debot. While the function is executing, several
+   * Browser Callbacks can be called, since the debot tries to display all actions from the context 0 to the user.
+   *
+   * When the debot starts SDK registers `BrowserCallbacks` AppObject. Therefore when `debote.remove` is called the
+   * debot is being deleted and the callback is called with `finish`=`true` which indicates that it will never be used
+   * again.
+   * @param debot_handle
+   *   debot_handle
    */
-  def start(
-    address: String,
-    app_object: AppObject[
-      ParamsOfAppDebotBrowserADT.ParamsOfAppDebotBrowser,
-      ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser
-    ]
-  ): Future[Either[Throwable, RegisteredDebot]] = {
-    ctx.registerAppObject[
-      RegisteredDebot,
-      ParamsOfAppDebotBrowserADT.ParamsOfAppDebotBrowser,
-      ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser
-    ](
-      "debot.start",
-      s"""{"address":"$address"}""",
-      app_object
-    )
-  }
+  def start(debot_handle: DebotHandle): Future[Either[Throwable, Unit]] = ???
 }
