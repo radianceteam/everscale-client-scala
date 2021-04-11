@@ -19,6 +19,20 @@ class UtilsModule(private val ctx: Context) {
   }
 
   /**
+   * Compresses data using Zstandard algorithm
+   * @param uncompressed
+   *   Must be encoded as base64.
+   * @param level
+   *   level
+   */
+  def compressZstd(uncompressed: String, level: Option[Int]): Either[Throwable, ResultOfCompressZstd] = {
+    ctx.execSync[ParamsOfCompressZstd, ResultOfCompressZstd](
+      "utils.compress_zstd",
+      ParamsOfCompressZstd(uncompressed, level)
+    )
+  }
+
+  /**
    * Converts address from any TON format to any TON format
    * @param address
    *   Account address in any TON format.
@@ -33,4 +47,16 @@ class UtilsModule(private val ctx: Context) {
       "utils.convert_address",
       ParamsOfConvertAddress(address, output_format)
     )
+
+  /**
+   * Decompresses data using Zstandard algorithm
+   * @param compressed
+   *   Must be encoded as base64.
+   */
+  def decompressZstd(compressed: String): Either[Throwable, ResultOfDecompressZstd] =
+    ctx.execSync[ParamsOfDecompressZstd, ResultOfDecompressZstd](
+      "utils.decompress_zstd",
+      ParamsOfDecompressZstd(compressed)
+    )
+
 }
