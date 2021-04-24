@@ -112,6 +112,8 @@ class ProcessingModule(private val ctx: Context) {
    * You must provide the same value as the `send_message` has returned.
    * @param send_events
    *   Flag that enables/disables intermediate events
+   * @param sending_endpoints
+   *   You must provide the same value as the `send_message` has returned.
    * @param callback
    *   Callback io.circe.Json => Unit
    */
@@ -120,11 +122,12 @@ class ProcessingModule(private val ctx: Context) {
     message: String,
     shard_block_id: String,
     send_events: Boolean,
+    sending_endpoints: Option[List[String]],
     callback: Request
   ): Future[Either[Throwable, ResultOfProcessMessage]] = {
     ctx.execAsyncWithCallback[ParamsOfWaitForTransaction, ResultOfProcessMessage](
       "processing.wait_for_transaction",
-      ParamsOfWaitForTransaction(abi, message, shard_block_id, send_events),
+      ParamsOfWaitForTransaction(abi, message, shard_block_id, send_events, sending_endpoints),
       callback
     )
   }

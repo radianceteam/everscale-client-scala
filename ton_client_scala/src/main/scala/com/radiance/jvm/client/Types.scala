@@ -219,6 +219,7 @@ case class NetworkConfig(
   message_processing_timeout: Option[Long] = None,
   wait_for_timeout: Option[Long] = None,
   out_of_sync_threshold: Option[Long] = None,
+  sending_endpoint_count: Option[Long] = None,
   access_key: Option[String] = None
 )
 

@@ -115,7 +115,7 @@ package client {
   }
   /** Crypto config. */
   case class CryptoConfig(mnemonic_dictionary: Option[Long], mnemonic_word_count: Option[Long], hdkey_derivation_path: Option[String])
-  case class NetworkConfig(server_address: Option[String], endpoints: Option[List[String]], network_retries_count: Option[Int], max_reconnect_timeout: Option[Long], reconnect_timeout: Option[Long], message_retries_count: Option[Int], message_processing_timeout: Option[Long], wait_for_timeout: Option[Long], out_of_sync_threshold: Option[Long], access_key: Option[String])
+  case class NetworkConfig(server_address: Option[String], endpoints: Option[List[String]], network_retries_count: Option[Int], max_reconnect_timeout: Option[Long], reconnect_timeout: Option[Long], message_retries_count: Option[Int], message_processing_timeout: Option[Long], wait_for_timeout: Option[Long], out_of_sync_threshold: Option[Long], sending_endpoint_count: Option[Long], access_key: Option[String])
   case class ParamsOfAppRequest(app_request_id: Long, request_data: Value)
   case class ParamsOfResolveAppRequest(app_request_id: Long, result: AppRequestResult)
   case class ResultOfBuildInfo(build_number: Long, dependencies: List[BuildInfoDependency])
@@ -927,7 +927,7 @@ package processing {
   case class DecodedOutput(out_messages: List[Option[DecodedMessageBody]], output: Option[Value])
   case class ParamsOfProcessMessage(message_encode_params: ParamsOfEncodeMessage, send_events: Boolean)
   case class ParamsOfSendMessage(message: String, abi: Option[Abi], send_events: Boolean)
-  case class ParamsOfWaitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Boolean)
+  case class ParamsOfWaitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Boolean, sending_endpoints: Option[List[String]])
   object ProcessingErrorCodeEnum {
     sealed trait ProcessingErrorCode {
       val code: String
@@ -988,7 +988,7 @@ package processing {
     case class WillSend(shard_block_id: String, message_id: String, message: String) extends ProcessingEvent
   }
   case class ResultOfProcessMessage(transaction: Value, out_messages: List[String], decoded: Option[DecodedOutput], fees: TransactionFees)
-  case class ResultOfSendMessage(shard_block_id: String)
+  case class ResultOfSendMessage(shard_block_id: String, sending_endpoints: List[String])
 }
 package processing {
   /**
@@ -1065,9 +1065,10 @@ package processing {
    * @param message Encoded with `base64`.
    * @param shard_block_id You must provide the same value as the `send_message` has returned.
    * @param send_events send_events
+   * @param sending_endpoints You must provide the same value as the `send_message` has returned.
    * @param callback callback
    */
-  def waitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Boolean, callback: Request): Future[Either[Throwable, ResultOfProcessMessage]]
+  def waitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Boolean, sending_endpoints: Option[List[String]], callback: Request): Future[Either[Throwable, ResultOfProcessMessage]]
 }
 package utils {
   object AddressStringFormatADT {
@@ -1311,10 +1312,12 @@ package net {
   case class ParamsOfFindLastShardBlock(address: String)
   case class ParamsOfQuery(query: String, variables: Option[Value])
   case class ParamsOfQueryCollection(collection: String, filter: Option[Value], result: String, order: Option[List[OrderBy]], limit: Option[Long])
+  case class ParamsOfQueryCounterparties(account: String, result: String, first: Option[Long], after: Option[String])
   object ParamsOfQueryOperationADT {
     sealed trait ParamsOfQueryOperation
     case class AggregateCollection(value: ParamsOfAggregateCollection) extends ParamsOfQueryOperation
     case class QueryCollection(value: ParamsOfQueryCollection) extends ParamsOfQueryOperation
+    case class QueryCounterparties(value: ParamsOfQueryCounterparties) extends ParamsOfQueryOperation
     case class WaitForCollection(value: ParamsOfWaitForCollection) extends ParamsOfQueryOperation
   }
   case class ParamsOfSubscribeCollection(collection: String, filter: Option[Value], result: String)
@@ -1372,6 +1375,17 @@ package net {
    * @param limit limit
    */
   def queryCollection(collection: String, filter: Option[Value], result: String, order: Option[List[OrderBy]], limit: Option[Long]): Future[Either[Throwable, ResultOfQueryCollection]]
+  /**
+   * Allows to query and paginate through the list of accounts that the specified account has interacted with, sorted by the time of the last internal message between accounts
+   * *Attention* this query retrieves data from 'Counterparties' service which is not supported in
+   * the opensource version of DApp Server (and will not be supported) as well as in TON OS SE (will be supported in SE in future),
+   * but is always accessible via [TON OS Devnet/Mainnet Clouds](https://docs.ton.dev/86757ecb2/p/85c869-networks)
+   * @param account account
+   * @param result result
+   * @param first first
+   * @param after after
+   */
+  def queryCounterparties(account: String, result: String, first: Option[Long], after: Option[String]): Future[Either[Throwable, ResultOfQueryCollection]]
   /** Resumes network module to enable network activity */
   def resume(): Future[Either[Throwable, Unit]]
   /**
