@@ -39,7 +39,8 @@ case class ParamsOfWaitForTransaction(
   abi: Option[AbiADT.Abi],
   message: String,
   shard_block_id: String,
-  send_events: Boolean
+  send_events: Boolean,
+  sending_endpoints: Option[List[String]]
 )
 
 object ParamsOfWaitForTransaction {
@@ -119,7 +120,10 @@ object ResultOfProcessMessage {
     deriveDecoder[ResultOfProcessMessage]
 }
 
-case class ResultOfSendMessage(shard_block_id: String)
+case class ResultOfSendMessage(
+  shard_block_id: String,
+  sending_endpoints: List[String]
+)
 
 object ResultOfSendMessage {
   implicit val decoder: Decoder[ResultOfSendMessage] =

@@ -18,6 +18,7 @@ object Configuration {
       60000L.some, // message_processing_timeout: Option[Long]
       60000L.some, // wait_for_timeout:           Option[Long]
       30000L.some, // out_of_sync_threshold:      Option[Long]
+      1L.some, // sending_endpoint_count:    Option[Long]
       "".some // access_key:                 Option[String]
     )
 

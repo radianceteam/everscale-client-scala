@@ -147,6 +147,18 @@ object ParamsOfQueryCollection {
     deriveEncoder[ParamsOfQueryCollection]
 }
 
+case class ParamsOfQueryCounterparties(
+  account: String,
+  result: String,
+  first: Option[Long],
+  after: Option[String]
+)
+
+object ParamsOfQueryCounterparties {
+  implicit val encoder: Encoder[ParamsOfQueryCounterparties] =
+    deriveEncoder[ParamsOfQueryCounterparties]
+}
+
 object ParamsOfQueryOperationADT {
 
   sealed trait ParamsOfQueryOperation
@@ -154,6 +166,8 @@ object ParamsOfQueryOperationADT {
   case class AggregateCollection(value: ParamsOfAggregateCollection) extends ParamsOfQueryOperation
 
   case class QueryCollection(value: ParamsOfQueryCollection) extends ParamsOfQueryOperation
+
+  case class QueryCounterparties(value: ParamsOfQueryCounterparties) extends ParamsOfQueryOperation
 
   case class WaitForCollection(value: ParamsOfWaitForCollection) extends ParamsOfQueryOperation
 
