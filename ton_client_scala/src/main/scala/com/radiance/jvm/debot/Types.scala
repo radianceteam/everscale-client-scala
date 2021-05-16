@@ -103,7 +103,7 @@ case class DebotInfo(
   name: Option[String],
   version: Option[String],
   publisher: Option[String],
-  key: Option[String],
+  caption: Option[String],
   author: Option[String],
   support: Option[String],
   hello: Option[String],

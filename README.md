@@ -3,12 +3,12 @@
 **Community links:**
 
 [![Chat on Telegram](https://img.shields.io/badge/chat-on%20telegram-9cf.svg)](https://t.me/RADIANCE_TON_SDK)
-[![SDK version](https://img.shields.io/badge/TON%20SDK%20version-1.13.0-green)](https://github.com/tonlabs/TON-SDK/tree/1.12.0)
+[![SDK version](https://img.shields.io/badge/TON%20SDK%20version-1.14.1-green)](https://github.com/tonlabs/TON-SDK/tree/1.12.0)
 
 **Scala TON Client** is a simple scala binding to the [TON SDK](https://github.com/tonlabs/TON-SDK). 
 
 Features:
-* All methods of the TON SDK v 1.13.0 are implemented except debot functionality
+* All methods of the TON SDK v 1.14.1 are implemented except debot functionality
 * Interaction with the TON SDK through synchronous an asynchronous calls
 * The every method contains inline-doc
 * The automatic download of the TON SDK library for the current environment
@@ -162,7 +162,7 @@ Or you can use simpler configuration:
     val ctx: Context = Context(clientConfig)
 ```
 
-More details you can find [here](https://github.com/tonlabs/TON-SDK/blob/1.13.0/docs/mod_client.md#ClientConfig). 
+More details you can find [here](https://github.com/tonlabs/TON-SDK/blob/1.14.1/docs/mod_client.md#ClientConfig). 
 
 ## Basic usage
 In subpackages of __com.radiance.jvm__ you can find modules that encapsulate definite functionality of Scala TON Client:
