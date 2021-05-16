@@ -1516,7 +1516,7 @@ package debot {
   /** [UNSTABLE](UNSTABLE.md) Handle of registered in SDK debot */
   case class DebotHandle(value: BigInt) extends AnyVal
   /** [UNSTABLE](UNSTABLE.md) Describes DeBot metadata. */
-  case class DebotInfo(name: Option[String], version: Option[String], publisher: Option[String], key: Option[String], author: Option[String], support: Option[String], hello: Option[String], language: Option[String], dabi: Option[String], icon: Option[String], interfaces: List[String])
+  case class DebotInfo(name: Option[String], version: Option[String], publisher: Option[String], caption: Option[String], author: Option[String], support: Option[String], hello: Option[String], language: Option[String], dabi: Option[String], icon: Option[String], interfaces: List[String])
   object ParamsOfAppDebotBrowserADT {
     /**
      * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
