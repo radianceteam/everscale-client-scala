@@ -3,12 +3,12 @@
 **Community links:**
 
 [![Chat on Telegram](https://img.shields.io/badge/chat-on%20telegram-9cf.svg)](https://t.me/RADIANCE_TON_SDK)
-[![SDK version](https://img.shields.io/badge/TON%20SDK%20version-1.14.1-green)](https://github.com/tonlabs/TON-SDK/tree/1.12.0)
+[![SDK version](https://img.shields.io/badge/TON%20SDK%20version-1.15.0-green)](https://github.com/tonlabs/TON-SDK/tree/1.15.0)
 
 **Scala TON Client** is a simple scala binding to the [TON SDK](https://github.com/tonlabs/TON-SDK). 
 
 Features:
-* All methods of the TON SDK v 1.14.1 are implemented except debot functionality
+* All methods of the TON SDK v 1.15.0 are implemented except debot functionality
 * Interaction with the TON SDK through synchronous an asynchronous calls
 * The every method contains inline-doc
 * The automatic download of the TON SDK library for the current environment
@@ -115,18 +115,20 @@ Simple Context instantiation:
     import scala.concurrent.ExecutionContext
 
     val networkConfig: NetworkConfig = NetworkConfig(
-      "net.ton.dev".some, // server_address:             Option[String]
-      None,               // endpoints:                  Option[List[String]]
-      5.some,             // network_retries_count:      Option[Int]
-      30000L.some,        // max_reconnect_timeout:      Option[Long]
-      30000L.some,        // reconnect_timeout:          Option[Long]
-      5.some,             // message_retries_count:      Option[Int]
-      60000L.some,        // message_processing_timeout: Option[Long]
-      60000L.some,        // wait_for_timeout:           Option[Long]
-      30000L.some,        // out_of_sync_threshold:      Option[Long]
-      1L.some,            // sending_endpoint_count:     Option[Long]    
-      "".some             // access_key:                 Option[String]
-    )
+      "net.ton.dev".some,     // server_address:             Option[String]
+      None,                   // endpoints:                  Option[List[String]]
+      5.some,                 // network_retries_count:      Option[Int]
+      30000L.some,            // max_reconnect_timeout:      Option[Long]
+      30000L.some,            // reconnect_timeout:          Option[Long]
+      5.some,                 // message_retries_count:      Option[Int]
+      60000L.some,            // message_processing_timeout: Option[Long]
+      60000L.some,            // wait_for_timeout:           Option[Long]
+      30000L.some,            // out_of_sync_threshold:      Option[Long]
+      1L.some,                // sending_endpoint_count:     Option[Long]
+      5000L.some,             // latency_detection_interval: Option[Long]
+      5000L.some,             // max_latency:                Option[Long]
+      "".some                 // access_key:                 Option[String]
+)
 
     val cryptoConfig: CryptoConfig = CryptoConfig(
       1L.some,                                // mnemonic_dictionary:        Option[Long]
@@ -162,7 +164,7 @@ Or you can use simpler configuration:
     val ctx: Context = Context(clientConfig)
 ```
 
-More details you can find [here](https://github.com/tonlabs/TON-SDK/blob/1.14.1/docs/mod_client.md#ClientConfig). 
+More details you can find [here](https://github.com/tonlabs/TON-SDK/blob/1.15.0/docs/mod_client.md#ClientConfig). 
 
 ## Basic usage
 In subpackages of __com.radiance.jvm__ you can find modules that encapsulate definite functionality of Scala TON Client:

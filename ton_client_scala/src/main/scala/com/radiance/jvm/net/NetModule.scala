@@ -60,6 +60,11 @@ class NetModule(private val ctx: Context) {
     )
   }
 
+  /** Requests the list of alternative endpoints from server */
+  def getEndpoints(): Future[Either[Throwable, ResultOfGetEndpoints]] = {
+    ctx.execAsync[Unit, ResultOfGetEndpoints]("net.fetch_endpoints", ())
+  }
+
   /**
    * @param query
    *   query

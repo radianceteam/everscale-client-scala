@@ -19,6 +19,8 @@ object Configuration {
       60000L.some, // wait_for_timeout:           Option[Long]
       30000L.some, // out_of_sync_threshold:      Option[Long]
       1L.some, // sending_endpoint_count:    Option[Long]
+      5000L.some, // latency_detection_interval: Option[Long]
+      5000L.some, // max_latency: Option[Long]
       "".some // access_key:                 Option[String]
     )
 
