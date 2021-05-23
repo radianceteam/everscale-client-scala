@@ -219,6 +219,13 @@ object ResultOfFindLastShardBlock {
     deriveDecoder[ResultOfFindLastShardBlock]
 }
 
+case class ResultOfGetEndpoints(query: String, endpoints: List[String])
+
+object ResultOfGetEndpoints {
+  implicit val decoder: Decoder[ResultOfGetEndpoints] =
+    deriveDecoder[ResultOfGetEndpoints]
+}
+
 case class ResultOfQuery(result: Value)
 
 object ResultOfQuery {

@@ -210,18 +210,21 @@ object CryptoConfig {
 }
 
 case class NetworkConfig(
-  server_address: Option[String],
-  endpoints: Option[List[String]] = None,
-  network_retries_count: Option[Int] = None,
-  max_reconnect_timeout: Option[Long] = None,
-  reconnect_timeout: Option[Long] = None,
-  message_retries_count: Option[Int] = None,
-  message_processing_timeout: Option[Long] = None,
-  wait_for_timeout: Option[Long] = None,
-  out_of_sync_threshold: Option[Long] = None,
-  sending_endpoint_count: Option[Long] = None,
-  access_key: Option[String] = None
-)
+                          server_address: Option[String],
+                          endpoints: Option[List[String]] = None,
+                          network_retries_count: Option[Int] = None,
+                          max_reconnect_timeout: Option[Long] = None,
+                          reconnect_timeout: Option[Long] = None,
+                          message_retries_count: Option[Int] = None,
+                          message_processing_timeout: Option[Long] = None,
+                          wait_for_timeout: Option[Long] = None,
+                          out_of_sync_threshold: Option[Long] = None,
+                          sending_endpoint_count: Option[Long] = None,
+                          latency_detection_interval: Option[Long] = None,
+                          max_latency: Option[Long] = None,
+                          access_key: Option[String] = None
+                        )
+
 
 object NetworkConfig {
   implicit val encoder: Encoder[NetworkConfig] = deriveEncoder[NetworkConfig]
