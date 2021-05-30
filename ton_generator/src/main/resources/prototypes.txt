@@ -535,7 +535,7 @@ package abi {
     case class Serialized(value: AbiContract) extends Abi
   }
   case class AbiContract(`ABI version`: Option[Long], abi_version: Option[Long], header: Option[List[String]], functions: Option[List[AbiFunction]], events: Option[List[AbiEvent]], data: Option[List[AbiData]])
-  case class AbiData(key: BigInt, name: String, `type`: String, components: Option[List[AbiParam]])
+  case class AbiData(key: Long, name: String, `type`: String, components: Option[List[AbiParam]])
   object AbiErrorCodeEnum {
     sealed trait AbiErrorCode {
       val code: String
@@ -1271,6 +1271,7 @@ package net {
   }
   case class EndpointsSet(endpoints: List[String])
   case class FieldAggregation(field: String, fn: AggregationFn)
+  case class MessageNode(id: String, src_transaction_id: Option[String], dst_transaction_id: Option[String], src: Option[String], dst: Option[String], value: Option[String], bounce: Boolean, decoded_body: Option[DecodedMessageBody])
   object NetErrorCodeEnum {
     sealed trait NetErrorCode {
       val code: String
@@ -1332,6 +1333,7 @@ package net {
     case class QueryCounterparties(value: ParamsOfQueryCounterparties) extends ParamsOfQueryOperation
     case class WaitForCollection(value: ParamsOfWaitForCollection) extends ParamsOfQueryOperation
   }
+  case class ParamsOfQueryTransactionTree(in_msg: String, abi_registry: Option[List[Abi]])
   case class ParamsOfSubscribeCollection(collection: String, filter: Option[Value], result: String)
   case class ParamsOfWaitForCollection(collection: String, filter: Option[Value], result: String, timeout: Option[Long])
   case class ResultOfAggregateCollection(values: Value)
@@ -1340,6 +1342,7 @@ package net {
   case class ResultOfGetEndpoints(query: String, endpoints: List[String])
   case class ResultOfQuery(result: Value)
   case class ResultOfQueryCollection(result: List[Value])
+  case class ResultOfQueryTransactionTree(messages: List[MessageNode], transactions: List[TransactionNode])
   case class ResultOfSubscribeCollection(handle: Long)
   case class ResultOfWaitForCollection(result: Value)
   object SortDirectionEnum {
@@ -1347,6 +1350,7 @@ package net {
     case object ASC extends SortDirection
     case object DESC extends SortDirection
   }
+  case class TransactionNode(id: String, in_msg: String, out_msgs: List[String], account_addr: String, total_fees: String, aborted: Boolean, exit_code: Option[Long])
 }
 package net {
   /**
@@ -1401,6 +1405,26 @@ package net {
    * @param after after
    */
   def queryCounterparties(account: String, result: String, first: Option[Long], after: Option[String]): Future[Either[Throwable, ResultOfQueryCollection]]
+  /**
+   * Returns transactions tree for specific message.
+   * Performs recursive retrieval of the transactions tree produced by the specific message:
+   * in_msg -> dst_transaction -> out_messages -> dst_transaction -> ...
+   *
+   * All retrieved messages and transactions will be included
+   * into `result.messages` and `result.transactions` respectively.
+   *
+   * The retrieval process will stop when the retrieved transaction count is more than 50.
+   *
+   * It is guaranteed that each message in `result.messages` has the corresponding transaction
+   * in the `result.transactions`.
+   *
+   * But there are no guaranties that all messages from transactions `out_msgs` are
+   * presented in `result.messages`.
+   * So the application have to continue retrieval for missing messages if it requires.
+   * @param in_msg in_msg
+   * @param abi_registry abi_registry
+   */
+  def queryTransactionTree(in_msg: String, abi_registry: Option[List[Abi]]): Future[Either[Throwable, ResultOfQueryTransactionTree]]
   /** Resumes network module to enable network activity */
   def resume(): Future[Either[Throwable, Unit]]
   /**

@@ -1,6 +1,7 @@
 package com.radiance.jvm.net
 
 import com.radiance.jvm._
+import com.radiance.jvm.abi.{AbiADT, DecodedMessageBody}
 import io.circe._
 import io.circe.derivation._
 import io.circe.generic.extras
@@ -48,6 +49,21 @@ case class FieldAggregation(field: String, fn: AggregationFnEnum.AggregationFn)
 
 object FieldAggregation {
   implicit val encoder: Encoder[FieldAggregation] = deriveEncoder[FieldAggregation]
+}
+
+case class MessageNode(
+  id: String,
+  src_transaction_id: Option[String],
+  dst_transaction_id: Option[String],
+  src: Option[String],
+  dst: Option[String],
+  value: Option[String],
+  bounce: Boolean,
+  decoded_body: Option[DecodedMessageBody]
+)
+
+object MessageNode {
+  implicit val decoder: Decoder[MessageNode] = deriveDecoder[MessageNode]
 }
 
 sealed trait NetErrorCode {
@@ -176,6 +192,16 @@ object ParamsOfQueryOperationADT {
     extras.semiauto.deriveConfiguredEncoder[ParamsOfQueryOperation]
 }
 
+case class ParamsOfQueryTransactionTree(
+  in_msg: String,
+  abi_registry: Option[List[AbiADT.Abi]]
+)
+
+object ParamsOfQueryTransactionTree {
+  implicit val encoder: Encoder[ParamsOfQueryTransactionTree] =
+    deriveEncoder[ParamsOfQueryTransactionTree]
+}
+
 case class ParamsOfSubscribeCollection(
   collection: String,
   filter: Option[Value],
@@ -239,6 +265,13 @@ object ResultOfQueryCollection {
     deriveDecoder[ResultOfQueryCollection]
 }
 
+case class ResultOfQueryTransactionTree(messages: List[MessageNode], transactions: List[TransactionNode])
+
+object ResultOfQueryTransactionTree {
+  implicit val decoder: Decoder[ResultOfQueryTransactionTree] =
+    deriveDecoder[ResultOfQueryTransactionTree]
+}
+
 case class ResultOfSubscribeCollection(handle: Long)
 
 object ResultOfSubscribeCollection {
@@ -263,4 +296,19 @@ object SortDirectionEnum {
 
   implicit val encoder: Encoder[SortDirection] =
     extras.semiauto.deriveEnumerationEncoder[SortDirection]
+}
+
+case class TransactionNode(
+  id: String,
+  in_msg: String,
+  out_msgs: List[String],
+  account_addr: String,
+  total_fees: String,
+  aborted: Boolean,
+  exit_code: Option[Long]
+)
+
+object TransactionNode {
+  implicit val decoder: Decoder[TransactionNode] =
+    deriveDecoder[TransactionNode]
 }

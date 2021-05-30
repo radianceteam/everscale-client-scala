@@ -1,6 +1,7 @@
 package com.radiance.jvm.debot
 
 import com.radiance.jvm._
+import com.radiance.jvm.app.AppObject
 import com.radiance.jvm.debot.ParamsOfAppDebotBrowserADT.ParamsOfAppDebotBrowser
 import com.radiance.jvm.debot.ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser
 
@@ -40,8 +41,10 @@ class DebotModule(private val ctx: Context) {
    */
   def init(
     address: String,
-    app_object: ParamsOfAppDebotBrowser => ResultOfAppDebotBrowser
-  ): Future[Either[Throwable, RegisteredDebot]] = ???
+    app_object: AppObject[ParamsOfAppDebotBrowser, ResultOfAppDebotBrowser]
+  ): Future[Either[Throwable, RegisteredDebot]] = {
+    ???
+  }
 
   /**
    * [UNSTABLE](UNSTABLE.md) Destroys debot handle. Removes handle from Client Context and drops debot engine referenced

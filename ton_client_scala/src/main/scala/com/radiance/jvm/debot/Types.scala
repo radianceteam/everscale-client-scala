@@ -27,7 +27,15 @@ object DebotActivityADT {
   /**
    * [UNSTABLE](UNSTABLE.md) Describes the operation that the DeBot wants to perform.
    */
-  case class Transaction(msg: String, dst: String, out: List[Spending], fee: BigInt, setcode: Boolean, signkey: String, signing_box_handle: Long) extends DebotActivity
+  case class Transaction(
+    msg: String,
+    dst: String,
+    out: List[Spending],
+    fee: BigInt,
+    setcode: Boolean,
+    signkey: String,
+    signing_box_handle: Long
+  ) extends DebotActivity
 
   import com.radiance.jvm.DiscriminatorConfig._
   implicit val encoder: Encoder[DebotActivity] =
@@ -207,6 +215,7 @@ case class ParamsOfStart(debot_handle: DebotHandle)
  * [UNSTABLE](UNSTABLE.md) Structure for storing debot handle returned from `init` function.
  */
 case class RegisteredDebot(debot_handle: DebotHandle, debot_abi: String, info: DebotInfo)
+
 object ResultOfAppDebotBrowserADT {
 
   /**
