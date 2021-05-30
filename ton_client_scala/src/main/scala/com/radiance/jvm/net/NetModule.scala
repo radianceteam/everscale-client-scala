@@ -1,6 +1,8 @@
 package com.radiance.jvm.net
 
 import com.radiance.jvm._
+import com.radiance.jvm.abi.AbiADT
+
 import scala.concurrent.Future
 
 class NetModule(private val ctx: Context) {
@@ -60,7 +62,9 @@ class NetModule(private val ctx: Context) {
     )
   }
 
-  /** Requests the list of alternative endpoints from server */
+  /**
+   * Requests the list of alternative endpoints from server
+   */
   def getEndpoints(): Future[Either[Throwable, ResultOfGetEndpoints]] = {
     ctx.execAsync[Unit, ResultOfGetEndpoints]("net.fetch_endpoints", ())
   }
@@ -131,6 +135,38 @@ class NetModule(private val ctx: Context) {
     ctx.execAsync[ParamsOfQueryCounterparties, ResultOfQueryCollection](
       "net.query_counterparties",
       ParamsOfQueryCounterparties(account, result, first, after)
+    )
+  }
+
+  /**
+   * Returns transactions tree for specific message. Performs recursive retrieval of the transactions tree produced by
+   * the specific message: in_msg -> dst_transaction -> out_messages -> dst_transaction -> ...
+   *
+   * All retrieved messages and transactions will be included into `result.messages` and `result.transactions`
+   * respectively.
+   *
+   * The retrieval process will stop when the retrieved transaction count is more than 50.
+   *
+   * It is guaranteed that each message in `result.messages` has the corresponding transaction in the
+   * `result.transactions`.
+   *
+   * But there are no guaranties that all messages from transactions `out_msgs` are presented in `result.messages`. So
+   * the application have to continue retrieval for missing messages if it requires.
+   * @param in_msg
+   *   in_msg
+   * @param abi_registry
+   *   abi_registry
+   */
+  def queryTransactionTree(
+    in_msg: String,
+    abi_registry: Option[List[AbiADT.Abi]]
+  ): Future[Either[Throwable, ResultOfQueryTransactionTree]] = {
+    ctx.execAsync[ParamsOfQueryTransactionTree, ResultOfQueryTransactionTree](
+      "net.query_transaction_tree",
+      ParamsOfQueryTransactionTree(
+        in_msg,
+        abi_registry
+      )
     )
   }
 

@@ -38,7 +38,7 @@ object AbiContract {
 }
 
 case class AbiData(
-  key: BigInt,
+  key: Long,
   name: String,
   `type`: String,
   components: Option[List[AbiParam]]
