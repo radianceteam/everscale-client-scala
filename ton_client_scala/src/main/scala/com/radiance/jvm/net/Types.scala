@@ -194,7 +194,8 @@ object ParamsOfQueryOperationADT {
 
 case class ParamsOfQueryTransactionTree(
   in_msg: String,
-  abi_registry: Option[List[AbiADT.Abi]]
+  abi_registry: Option[List[AbiADT.Abi]],
+  timeout: Option[Long]
 )
 
 object ParamsOfQueryTransactionTree {

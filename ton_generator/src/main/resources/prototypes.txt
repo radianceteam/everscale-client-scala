@@ -293,7 +293,10 @@ package crypto {
    */
   def convertPublicKeyToTonSafeFormat(public_key: String): Future[Either[Throwable, ResultOfConvertPublicKeyToTonSafeFormat]]
   /**
-   * Performs prime factorization – decomposition of a composite number into a product of smaller prime integers (factors). See [https://en.wikipedia.org/wiki/Integer_factorization]
+   * Integer factorization
+   * Performs prime factorization – decomposition of a composite number
+   * into a product of smaller prime integers (factors).
+   * See [https://en.wikipedia.org/wiki/Integer_factorization]
    * @param composite composite
    */
   def factorize(composite: String): Future[Either[Throwable, ResultOfFactorize]]
@@ -341,7 +344,9 @@ package crypto {
    */
   def hdkeyXprvFromMnemonic(phrase: String, dictionary: Option[Long], word_count: Option[Long]): Future[Either[Throwable, ResultOfHDKeyXPrvFromMnemonic]]
   /**
-   * Validates the seed phrase, generates master key and then derives the key pair from the master key and the specified path
+   * Derives a key pair for signing from the seed phrase
+   * Validates the seed phrase, generates master key and then derives
+   * the key pair from the master key and the specified path
    * @param phrase phrase
    * @param path path
    * @param dictionary dictionary
@@ -362,7 +367,9 @@ package crypto {
    */
   def mnemonicFromRandom(dictionary: Option[Long], word_count: Option[Long]): Future[Either[Throwable, ResultOfMnemonicFromRandom]]
   /**
-   * The phrase supplied will be checked for word length and validated according to the checksum specified in BIP0039.
+   * Validates a mnemonic phrase
+   * The phrase supplied will be checked for word length and validated according to the checksum
+   * specified in BIP0039.
    * @param phrase phrase
    * @param dictionary dictionary
    * @param word_count word_count
@@ -374,7 +381,9 @@ package crypto {
    */
   def mnemonicWords(dictionary: Option[Long]): Future[Either[Throwable, ResultOfMnemonicWords]]
   /**
-   * Performs modular exponentiation for big integers (`base`^`exponent` mod `modulus`). See [https://en.wikipedia.org/wiki/Modular_exponentiation]
+   * Modular exponentiation
+   * Performs modular exponentiation for big integers (`base`^`exponent` mod `modulus`).
+   * See [https://en.wikipedia.org/wiki/Modular_exponentiation]
    * @param base base
    * @param exponent exponent
    * @param modulus modulus
@@ -466,7 +475,10 @@ package crypto {
    */
   def removeSigningBox(handle: SigningBoxHandle): Future[Either[Throwable, Unit]]
   /**
-   * Derives key from `password` and `key` using `scrypt` algorithm. See [https://en.wikipedia.org/wiki/Scrypt].
+   * Perform `scrypt` encryption
+   * Derives key from `password` and `key` using `scrypt` algorithm.
+   * See [https://en.wikipedia.org/wiki/Scrypt].
+   *
    * # Arguments
    * - `log_n` - The log2 of the Scrypt parameter `N`
    * - `r` - The Scrypt parameter `r`
@@ -1065,7 +1077,9 @@ package processing {
    * @param message Encoded with `base64`.
    * @param shard_block_id You must provide the same value as the `send_message` has returned.
    * @param send_events send_events
-   * @param sending_endpoints You must provide the same value as the `send_message` has returned.
+   * @param sending_endpoints Use this field to get more informative errors.
+   * Provide the same value as the `send_message` has returned.
+   * If the message was not delivered (expired), SDK will log the endpoint URLs, used for its sending.
    * @param callback callback
    */
   def waitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Boolean, sending_endpoints: Option[List[String]], callback: Request): Future[Either[Throwable, ResultOfProcessMessage]]
@@ -1333,7 +1347,7 @@ package net {
     case class QueryCounterparties(value: ParamsOfQueryCounterparties) extends ParamsOfQueryOperation
     case class WaitForCollection(value: ParamsOfWaitForCollection) extends ParamsOfQueryOperation
   }
-  case class ParamsOfQueryTransactionTree(in_msg: String, abi_registry: Option[List[Abi]])
+  case class ParamsOfQueryTransactionTree(in_msg: String, abi_registry: Option[List[Abi]], timeout: Option[Long])
   case class ParamsOfSubscribeCollection(collection: String, filter: Option[Value], result: String)
   case class ParamsOfWaitForCollection(collection: String, filter: Option[Value], result: String, timeout: Option[Long])
   case class ResultOfAggregateCollection(values: Value)
@@ -1423,8 +1437,12 @@ package net {
    * So the application have to continue retrieval for missing messages if it requires.
    * @param in_msg in_msg
    * @param abi_registry abi_registry
+   * @param timeout If some of the following messages and transactions are missing yet
+   * The maximum waiting time is regulated by this option.
+   *
+   * Default value is 60000 (1 min).
    */
-  def queryTransactionTree(in_msg: String, abi_registry: Option[List[Abi]]): Future[Either[Throwable, ResultOfQueryTransactionTree]]
+  def queryTransactionTree(in_msg: String, abi_registry: Option[List[Abi]], timeout: Option[Long]): Future[Either[Throwable, ResultOfQueryTransactionTree]]
   /** Resumes network module to enable network activity */
   def resume(): Future[Either[Throwable, Unit]]
   /**
