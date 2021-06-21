@@ -168,13 +168,13 @@ class CryptoModule(private val ctx: Context) {
    * Derives a key pair for signing from the seed phrase Validates the seed phrase, generates master key and then
    * derives the key pair from the master key and the specified path
    * @param phrase
-   *   Phrase
+   *   phrase
    * @param path
-   *   Derivation path, for instance "m/44'/396'/0'/0/0"
+   *   path
    * @param dictionary
-   *   Dictionary identifier
+   *   dictionary
    * @param word_count
-   *   Word count
+   *   word_count
    */
   def mnemonicDeriveSignKeys(
     phrase: String,
@@ -224,11 +224,11 @@ class CryptoModule(private val ctx: Context) {
    * Validates a mnemonic phrase The phrase supplied will be checked for word length and validated according to the
    * checksum specified in BIP0039.
    * @param phrase
-   *   Phrase
+   *   phrase
    * @param dictionary
-   *   Dictionary identifier
+   *   dictionary
    * @param word_count
-   *   Word count
+   *   word_count
    */
   def mnemonicVerify(
     phrase: String,
@@ -255,14 +255,14 @@ class CryptoModule(private val ctx: Context) {
       )
 
   /**
-   * Modular exponentiation Performs modular exponentiation for big integers (`base`^^`exponent` mod `modulus`). See
+   * Modular exponentiation Performs modular exponentiation for big integers (`base`^`exponent` mod `modulus`). See
    * [https://en.wikipedia.org/wiki/Modular_exponentiation]
    * @param base
-   *   `base` argument of calculation.
+   *   base
    * @param exponent
-   *   `exponent` argument of calculation.
+   *   exponent
    * @param modulus
-   *   `modulus` argument of calculation.
+   *   modulus
    */
   def modularPower(
     base: String,
@@ -494,17 +494,19 @@ class CryptoModule(private val ctx: Context) {
    *   - `p` must be greater than `0` and less than `4294967295` # Recommended values sufficient for most use-cases
    *   - `log_n = 15` (`n = 32768`)
    *   - `r = 8`
-   *   - `p = 1`@param password The password bytes to be hashed. Must be encoded with `base64`.
+   *   - `p = 1`
+   * @param password
+   *   password
    * @param salt
-   *   Salt bytes that modify the hash to protect against Rainbow table attacks. Must be encoded with `base64`.
+   *   salt
    * @param log_n
-   *   CPU/memory cost parameter
+   *   log_n
    * @param r
-   *   The block size parameter, which fine-tunes sequential memory read size and performance.
+   *   r
    * @param p
-   *   Parallelization parameter.
+   *   p
    * @param dk_len
-   *   Intended output length in octets of the derived key.
+   *   dk_len
    */
   def scrypt(
     password: String,

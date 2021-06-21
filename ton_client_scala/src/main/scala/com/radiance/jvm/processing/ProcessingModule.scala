@@ -81,7 +81,6 @@ class ProcessingModule(private val ctx: Context) {
 
   /**
    * Performs monitoring of the network for the result transaction of the external inbound message processing.
-   *
    * `send_events` enables intermediate events, such as `WillFetchNextBlock`, `FetchNextBlockFailed` that may be useful
    * for logging of new shard blocks creation during message processing.
    *
@@ -99,23 +98,20 @@ class ProcessingModule(private val ctx: Context) {
    *   - If maximum block gen time is reached and no result transaction is found, the processing will exit with an
    *     error.
    * @param abi
-   *   Optional ABI for decoding the transaction result.
-   *
-   * If it is specified, then the output messages' bodies will be decoded according to this ABI.
+   *   If it is specified, then the output messages' bodies will be decoded according to this ABI.
    *
    * The `abi_decoded` result field will be filled out.
    * @param message
-   *   Message BOC. Encoded with `base64`.
+   *   Encoded with `base64`.
    * @param shard_block_id
-   *   The last generated block id of the destination account shard before the message was sent.
-   *
-   * You must provide the same value as the `send_message` has returned.
-   * @param send_events
-   *   Flag that enables/disables intermediate events
-   * @param sending_endpoints
    *   You must provide the same value as the `send_message` has returned.
+   * @param send_events
+   *   send_events
+   * @param sending_endpoints
+   *   Use this field to get more informative errors. Provide the same value as the `send_message` has returned. If the
+   *   message was not delivered (expired), SDK will log the endpoint URLs, used for its sending.
    * @param callback
-   *   Callback io.circe.Json => Unit
+   *   callback
    */
   def waitForTransaction(
     abi: Option[AbiADT.Abi],

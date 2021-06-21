@@ -156,16 +156,23 @@ class NetModule(private val ctx: Context) {
    *   in_msg
    * @param abi_registry
    *   abi_registry
+   * @param timeout
+   *   If some of the following messages and transactions are missing yet The maximum waiting time is regulated by this
+   *   option.
+   *
+   * Default value is 60000 (1 min).
    */
   def queryTransactionTree(
     in_msg: String,
-    abi_registry: Option[List[AbiADT.Abi]]
+    abi_registry: Option[List[AbiADT.Abi]],
+    timeout: Option[Long]
   ): Future[Either[Throwable, ResultOfQueryTransactionTree]] = {
     ctx.execAsync[ParamsOfQueryTransactionTree, ResultOfQueryTransactionTree](
       "net.query_transaction_tree",
       ParamsOfQueryTransactionTree(
         in_msg,
-        abi_registry
+        abi_registry,
+        timeout
       )
     )
   }
