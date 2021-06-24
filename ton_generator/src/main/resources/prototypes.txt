@@ -159,6 +159,9 @@ package crypto {
     case object Bip39InvalidWordCount extends CryptoErrorCode {
       override val code: String = "118"
     }
+    case object EncryptionBoxNotRegistered extends CryptoErrorCode {
+      override val code: String = "123"
+    }
     case object InvalidBigInt extends CryptoErrorCode {
       override val code: String = "107"
     }
@@ -202,7 +205,20 @@ package crypto {
       override val code: String = "121"
     }
   }
+  case class EncryptionBoxHandle(value: BigInt) extends AnyVal
+  /** Encryption box information */
+  case class EncryptionBoxInfo(hdpath: Option[String], algorithm: Option[String], options: Option[Value], public: Option[Value])
   case class KeyPair(public: String, secret: String)
+  object ParamsOfAppEncryptionBoxADT {
+    /** Encryption box callbacks. */
+    sealed trait ParamsOfAppEncryptionBox
+    /** Encryption box callbacks. */
+    case class Decrypt(data: String) extends ParamsOfAppEncryptionBox
+    /** Encryption box callbacks. */
+    case class Encrypt(data: String) extends ParamsOfAppEncryptionBox
+    /** Get encryption box info */
+    case object GetInfo extends ParamsOfAppEncryptionBox
+  }
   object ParamsOfAppSigningBoxADT {
     /** Signing box callbacks. */
     sealed trait ParamsOfAppSigningBox
@@ -213,6 +229,9 @@ package crypto {
   }
   case class ParamsOfChaCha20(data: String, key: String, nonce: String)
   case class ParamsOfConvertPublicKeyToTonSafeFormat(public_key: String)
+  case class ParamsOfEncryptionBoxDecrypt(encryption_box: EncryptionBoxHandle, data: String)
+  case class ParamsOfEncryptionBoxEncrypt(encryption_box: EncryptionBoxHandle, data: String)
+  case class ParamsOfEncryptionBoxGetInfo(encryption_box: EncryptionBoxHandle)
   case class ParamsOfFactorize(composite: String)
   case class ParamsOfGenerateRandomBytes(length: Long)
   case class ParamsOfHDKeyDeriveFromXPrv(xprv: String, child_index: Long, hardened: Boolean)
@@ -241,7 +260,18 @@ package crypto {
   case class ParamsOfSigningBoxSign(signing_box: SigningBoxHandle, unsigned: String)
   case class ParamsOfTonCrc16(data: String)
   case class ParamsOfVerifySignature(signed: String, public: String)
+  case class RegisteredEncryptionBox(handle: EncryptionBoxHandle)
   case class RegisteredSigningBox(handle: SigningBoxHandle)
+  object ResultOfAppEncryptionBoxADT {
+    /** Returning values from signing box callbacks. */
+    sealed trait ResultOfAppEncryptionBox
+    /** Returning values from signing box callbacks. */
+    case class Decrypt(data: String) extends ResultOfAppEncryptionBox
+    /** Returning values from signing box callbacks. */
+    case class Encrypt(data: String) extends ResultOfAppEncryptionBox
+    /** Returning values from signing box callbacks. */
+    case class GetInfo(info: EncryptionBoxInfo) extends ResultOfAppEncryptionBox
+  }
   object ResultOfAppSigningBoxADT {
     /** Returning values from signing box callbacks. */
     sealed trait ResultOfAppSigningBox
@@ -252,6 +282,9 @@ package crypto {
   }
   case class ResultOfChaCha20(data: String)
   case class ResultOfConvertPublicKeyToTonSafeFormat(ton_public_key: String)
+  case class ResultOfEncryptionBoxDecrypt(data: String)
+  case class ResultOfEncryptionBoxEncrypt(data: String)
+  case class ResultOfEncryptionBoxGetInfo(info: EncryptionBoxInfo)
   case class ResultOfFactorize(factors: List[String])
   case class ResultOfGenerateRandomBytes(bytes: String)
   case class ResultOfHDKeyDeriveFromXPrv(xprv: String)
@@ -292,6 +325,23 @@ package crypto {
    * @param public_key public_key
    */
   def convertPublicKeyToTonSafeFormat(public_key: String): Future[Either[Throwable, ResultOfConvertPublicKeyToTonSafeFormat]]
+  /**
+   * Decrypts data using given encryption box
+   * @param encryption_box encryption_box
+   * @param data data
+   */
+  def encryptionBoxDecrypt(encryption_box: EncryptionBoxHandle, data: String): Future[Either[Throwable, ResultOfEncryptionBoxDecrypt]]
+  /**
+   * Encrypts data using given encryption box
+   * @param encryption_box encryption_box
+   * @param data data
+   */
+  def encryptionBoxEncrypt(encryption_box: EncryptionBoxHandle, data: String): Future[Either[Throwable, ResultOfEncryptionBoxEncrypt]]
+  /**
+   * Queries info from the given encryption box
+   * @param encryption_box encryption_box
+   */
+  def encryptionBoxGetInfo(encryption_box: EncryptionBoxHandle): Future[Either[Throwable, ResultOfEncryptionBoxGetInfo]]
   /**
    * Integer factorization
    * Performs prime factorization – decomposition of a composite number
@@ -465,10 +515,20 @@ package crypto {
    */
   def naclSignOpen(signed: String, public: String): Future[Either[Throwable, ResultOfNaclSignOpen]]
   /**
+   * Register an application implemented encryption box.
+   * @param app_object app_object
+   */
+  def registerEncryptionBox(app_object: ParamsOfAppEncryptionBox => ResultOfAppEncryptionBox): Future[Either[Throwable, RegisteredEncryptionBox]]
+  /**
    * Register an application implemented signing box.
    * @param app_object app_object
    */
   def registerSigningBox(app_object: ParamsOfAppSigningBox => ResultOfAppSigningBox): Future[Either[Throwable, RegisteredSigningBox]]
+  /**
+   * Removes encryption box from SDK
+   * @param handle handle
+   */
+  def removeEncryptionBox(handle: EncryptionBoxHandle): Future[Either[Throwable, Unit]]
   /**
    * Removes signing box from SDK.
    * @param handle handle

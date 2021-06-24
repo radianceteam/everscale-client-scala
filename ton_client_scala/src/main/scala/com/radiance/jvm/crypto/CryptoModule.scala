@@ -38,6 +38,54 @@ class CryptoModule(private val ctx: Context) {
     )
 
   /**
+   * Decrypts data using given encryption box
+   * @param encryption_box
+   *   encryption_box
+   * @param data
+   *   data
+   */
+  def encryptionBoxDecrypt(
+    encryption_box: EncryptionBoxHandle,
+    data: String
+  ): Either[Throwable, ResultOfEncryptionBoxDecrypt] = {
+    ctx.execSync[ParamsOfEncryptionBoxDecrypt, ResultOfEncryptionBoxDecrypt](
+      "crypto.encryption_box_decrypt",
+      ParamsOfEncryptionBoxDecrypt(encryption_box, data)
+    )
+  }
+
+  /**
+   * Encrypts data using given encryption box
+   * @param encryption_box
+   *   encryption_box
+   * @param data
+   *   data
+   */
+  def encryptionBoxEncrypt(
+    encryption_box: EncryptionBoxHandle,
+    data: String
+  ): Either[Throwable, ResultOfEncryptionBoxEncrypt] = {
+    ctx.execSync[ParamsOfEncryptionBoxEncrypt, ResultOfEncryptionBoxEncrypt](
+      "crypto.encryption_box_encrypt",
+      ParamsOfEncryptionBoxEncrypt(encryption_box, data)
+    )
+  }
+
+  /**
+   * Queries info from the given encryption box
+   * @param encryption_box
+   *   encryption_box
+   */
+  def encryptionBoxGetInfo(
+    encryption_box: EncryptionBoxHandle
+  ): Either[Throwable, ResultOfEncryptionBoxGetInfo] = {
+    ctx.execSync[ParamsOfEncryptionBoxGetInfo, ResultOfEncryptionBoxGetInfo](
+      "crypto.encryption_box_get_info",
+      ParamsOfEncryptionBoxGetInfo(encryption_box)
+    )
+  }
+
+  /**
    * Integer factorization Performs prime factorization – decomposition of a composite number into a product of smaller
    * prime integers (factors). See [https://en.wikipedia.org/wiki/Integer_factorization]
    * @param composite
@@ -452,6 +500,29 @@ class CryptoModule(private val ctx: Context) {
       )
 
   /**
+   * Register an application implemented encryption box.
+   * @param app_object
+   *   app_object
+   */
+  def registerEncryptionBox(
+    app_object: AppObject[
+      ParamsOfAppEncryptionBoxADT.ParamsOfAppEncryptionBox,
+      ResultOfAppEncryptionBoxADT.ResultOfAppEncryptionBox
+    ]
+  ): Future[Either[Throwable, RegisteredEncryptionBox]] = {
+    ctx
+      .registerAppObject[
+        RegisteredEncryptionBox,
+        ParamsOfAppEncryptionBoxADT.ParamsOfAppEncryptionBox,
+        ResultOfAppEncryptionBoxADT.ResultOfAppEncryptionBox
+      ](
+        "crypto.register_encryption_box",
+        "",
+        app_object
+      )
+  }
+
+  /**
    * @param app_object
    *   app_object
    */
@@ -471,6 +542,15 @@ class CryptoModule(private val ctx: Context) {
         "",
         app_object
       )
+  }
+
+  /**
+   * Removes encryption box from SDK
+   * @param handle
+   *   handle
+   */
+  def removeEncryptionBox(handle: EncryptionBoxHandle): Future[Either[Throwable, Unit]] = {
+    ctx.unregisterAppObject(handle.value.toInt, "crypto.remove_encryption_box")
   }
 
   /**
