@@ -1,5 +1,6 @@
 package com.radiance.jvm.crypto
 
+import com.radiance.jvm.Value
 import io.circe._
 import io.circe.derivation._
 import io.circe.generic.extras
@@ -32,6 +33,10 @@ object CryptoErrorCodeEnum {
 
   case object Bip39InvalidWordCount extends CryptoErrorCode {
     override val code: String = "118"
+  }
+
+  case object EncryptionBoxNotRegistered extends CryptoErrorCode {
+    override val code: String = "123"
   }
 
   case object InvalidBigInt extends CryptoErrorCode {
@@ -92,10 +97,59 @@ object CryptoErrorCodeEnum {
 
 }
 
+case class EncryptionBoxHandle(value: BigInt) extends AnyVal
+
+object EncryptionBoxHandle {
+  implicit val decoder: Decoder[EncryptionBoxHandle] =
+    Decoder.instance(c => c.value.as[BigInt].map(EncryptionBoxHandle(_)))
+  implicit val encoder: Encoder[EncryptionBoxHandle] = Encoder.instance(a => Json.fromBigInt(a.value))
+}
+
+/**
+ * Encryption box information
+ */
+case class EncryptionBoxInfo(
+  hdpath: Option[String],
+  algorithm: Option[String],
+  options: Option[Value],
+  public: Option[Value]
+)
+
+object EncryptionBoxInfo {
+  implicit val decoder: Decoder[EncryptionBoxInfo] =
+    deriveDecoder[EncryptionBoxInfo]
+
+  implicit val encoder: Encoder[EncryptionBoxInfo] =
+    deriveEncoder[EncryptionBoxInfo]
+}
+
 case class KeyPair(public: String, secret: String)
 
 object KeyPair {
   implicit val codec: Codec[KeyPair] = deriveCodec[KeyPair]
+}
+
+object ParamsOfAppEncryptionBoxADT {
+
+  /**
+   * Encryption box callbacks.
+   */
+  sealed trait ParamsOfAppEncryptionBox
+
+  /**
+   * Encryption box callbacks.
+   */
+  case class Decrypt(data: String) extends ParamsOfAppEncryptionBox
+
+  /**
+   * Encryption box callbacks.
+   */
+  case class Encrypt(data: String) extends ParamsOfAppEncryptionBox
+
+  /**
+   * Get encryption box info
+   */
+  case object GetInfo extends ParamsOfAppEncryptionBox
 }
 
 object ParamsOfAppSigningBoxADT {
@@ -123,6 +177,27 @@ case class ParamsOfConvertPublicKeyToTonSafeFormat(public_key: String)
 object ParamsOfConvertPublicKeyToTonSafeFormat {
   implicit val encoder: Encoder[ParamsOfConvertPublicKeyToTonSafeFormat] =
     deriveEncoder[ParamsOfConvertPublicKeyToTonSafeFormat]
+}
+
+case class ParamsOfEncryptionBoxDecrypt(encryption_box: EncryptionBoxHandle, data: String)
+
+object ParamsOfEncryptionBoxDecrypt {
+  implicit val encoder: Encoder[ParamsOfEncryptionBoxDecrypt] =
+    deriveEncoder[ParamsOfEncryptionBoxDecrypt]
+}
+
+case class ParamsOfEncryptionBoxEncrypt(encryption_box: EncryptionBoxHandle, data: String)
+
+object ParamsOfEncryptionBoxEncrypt {
+  implicit val encoder: Encoder[ParamsOfEncryptionBoxEncrypt] =
+    deriveEncoder[ParamsOfEncryptionBoxEncrypt]
+}
+
+case class ParamsOfEncryptionBoxGetInfo(encryption_box: EncryptionBoxHandle)
+
+object ParamsOfEncryptionBoxGetInfo {
+  implicit val encoder: Encoder[ParamsOfEncryptionBoxGetInfo] =
+    deriveEncoder[ParamsOfEncryptionBoxGetInfo]
 }
 
 case class ParamsOfFactorize(composite: String)
@@ -376,11 +451,45 @@ object ParamsOfVerifySignature {
     deriveEncoder[ParamsOfVerifySignature]
 }
 
+case class RegisteredEncryptionBox(handle: EncryptionBoxHandle)
+
+object RegisteredEncryptionBox {
+  implicit val codec: Codec[RegisteredEncryptionBox] =
+    deriveCodec[RegisteredEncryptionBox]
+}
+
 case class RegisteredSigningBox(handle: SigningBoxHandle)
 
 object RegisteredSigningBox {
   implicit val codec: Codec[RegisteredSigningBox] =
     deriveCodec[RegisteredSigningBox]
+}
+
+object ResultOfAppEncryptionBoxADT {
+
+  /**
+   * Returning values from signing box callbacks.
+   */
+  sealed trait ResultOfAppEncryptionBox
+
+  /**
+   * Returning values from signing box callbacks.
+   */
+  case class Decrypt(data: String) extends ResultOfAppEncryptionBox
+
+  /**
+   * Returning values from signing box callbacks.
+   */
+  case class Encrypt(data: String) extends ResultOfAppEncryptionBox
+
+  /**
+   * Returning values from signing box callbacks.
+   */
+  case class GetInfo(info: EncryptionBoxInfo) extends ResultOfAppEncryptionBox
+
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[ResultOfAppEncryptionBox] =
+    extras.semiauto.deriveConfiguredEncoder[ResultOfAppEncryptionBox]
 }
 
 object ResultOfAppSigningBoxADT {
@@ -409,6 +518,27 @@ case class ResultOfConvertPublicKeyToTonSafeFormat(ton_public_key: String)
 object ResultOfConvertPublicKeyToTonSafeFormat {
   implicit val decoder: Decoder[ResultOfConvertPublicKeyToTonSafeFormat] =
     deriveDecoder[ResultOfConvertPublicKeyToTonSafeFormat]
+}
+
+case class ResultOfEncryptionBoxDecrypt(data: String)
+
+object ResultOfEncryptionBoxDecrypt {
+  implicit val decoder: Decoder[ResultOfEncryptionBoxDecrypt] =
+    deriveDecoder[ResultOfEncryptionBoxDecrypt]
+}
+
+case class ResultOfEncryptionBoxEncrypt(data: String)
+
+object ResultOfEncryptionBoxEncrypt {
+  implicit val decoder: Decoder[ResultOfEncryptionBoxEncrypt] =
+    deriveDecoder[ResultOfEncryptionBoxEncrypt]
+}
+
+case class ResultOfEncryptionBoxGetInfo(info: EncryptionBoxInfo)
+
+object ResultOfEncryptionBoxGetInfo {
+  implicit val decoder: Decoder[ResultOfEncryptionBoxGetInfo] =
+    deriveDecoder[ResultOfEncryptionBoxGetInfo]
 }
 
 case class ResultOfFactorize(factors: List[String])
