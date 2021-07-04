@@ -137,11 +137,41 @@ object ParamsOfBatchQuery {
   implicit val encoder: Encoder[ParamsOfBatchQuery] = deriveEncoder[ParamsOfBatchQuery]
 }
 
+case class ParamsOfCreateBlockIterator(
+  start_time: Option[Long],
+  end_time: Option[Long],
+  shard_filter: Option[List[String]],
+  result: Option[String]
+)
+
+object ParamsOfCreateBlockIterator {
+  implicit val encoder: Encoder[ParamsOfCreateBlockIterator] = deriveEncoder[ParamsOfCreateBlockIterator]
+}
+
+case class ParamsOfCreateTransactionIterator(
+  start_time: Option[Long],
+  end_time: Option[Long],
+  shard_filter: Option[List[String]],
+  accounts_filter: Option[List[String]],
+  result: Option[String],
+  include_transfers: Option[Boolean]
+)
+
+object ParamsOfCreateTransactionIterator {
+  implicit val encoder: Encoder[ParamsOfCreateTransactionIterator] = deriveEncoder[ParamsOfCreateTransactionIterator]
+}
+
 case class ParamsOfFindLastShardBlock(address: String)
 
 object ParamsOfFindLastShardBlock {
   implicit val encoder: Encoder[ParamsOfFindLastShardBlock] =
     deriveEncoder[ParamsOfFindLastShardBlock]
+}
+
+case class ParamsOfIteratorNext(iterator: Long, limit: Option[Long], return_resume_state: Option[Boolean])
+
+object ParamsOfIteratorNext {
+  implicit val encoder: Encoder[ParamsOfIteratorNext] = deriveEncoder[ParamsOfIteratorNext]
 }
 
 case class ParamsOfQuery(query: String, variables: Option[Value])
@@ -199,8 +229,19 @@ case class ParamsOfQueryTransactionTree(
 )
 
 object ParamsOfQueryTransactionTree {
-  implicit val encoder: Encoder[ParamsOfQueryTransactionTree] =
-    deriveEncoder[ParamsOfQueryTransactionTree]
+  implicit val encoder: Encoder[ParamsOfQueryTransactionTree] = deriveEncoder[ParamsOfQueryTransactionTree]
+}
+
+case class ParamsOfResumeBlockIterator(resume_state: Value)
+
+object ParamsOfResumeBlockIterator {
+  implicit val encoder: Encoder[ParamsOfResumeBlockIterator] = deriveEncoder[ParamsOfResumeBlockIterator]
+}
+
+case class ParamsOfResumeTransactionIterator(resume_state: Value, accounts_filter: Option[List[String]])
+
+object ParamsOfResumeTransactionIterator {
+  implicit val encoder: Encoder[ParamsOfResumeTransactionIterator] = deriveEncoder[ParamsOfResumeTransactionIterator]
 }
 
 case class ParamsOfSubscribeCollection(
@@ -224,6 +265,13 @@ case class ParamsOfWaitForCollection(
 object ParamsOfWaitForCollection {
   implicit val encoder: Encoder[ParamsOfWaitForCollection] =
     deriveEncoder[ParamsOfWaitForCollection]
+}
+
+case class RegisteredIterator(handle: Long)
+
+object RegisteredIterator {
+  implicit val decoder: Decoder[RegisteredIterator] = deriveDecoder[RegisteredIterator]
+  implicit val encoder: Encoder[RegisteredIterator] = deriveEncoder[RegisteredIterator]
 }
 
 case class ResultOfAggregateCollection(values: Value)
@@ -251,6 +299,12 @@ case class ResultOfGetEndpoints(query: String, endpoints: List[String])
 object ResultOfGetEndpoints {
   implicit val decoder: Decoder[ResultOfGetEndpoints] =
     deriveDecoder[ResultOfGetEndpoints]
+}
+
+case class ResultOfIteratorNext(items: List[Value], has_more: Boolean, resume_state: Option[Value])
+
+object ResultOfIteratorNext {
+  implicit val decoder: Decoder[ResultOfIteratorNext] = deriveDecoder[ResultOfIteratorNext]
 }
 
 case class ResultOfQuery(result: Value)

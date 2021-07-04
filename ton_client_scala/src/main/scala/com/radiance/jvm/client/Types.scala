@@ -132,6 +132,10 @@ object ClientErrorCodeEnum {
     val code: String = "17"
   }
 
+  case object InvalidHandle extends ClientErrorCode {
+    override val code: String = "34"
+  }
+
   case object CannotSerializeResult extends ClientErrorCode {
     val code: String = "18"
   }
