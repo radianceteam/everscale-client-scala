@@ -42,6 +42,149 @@ class NetModule(private val ctx: Context) {
   }
 
   /**
+   * Creates block iterator. Block iterator uses robust iteration methods that guaranties that every block in the
+   * specified range isn't missed or iterated twice.
+   *
+   * Iterated range can be reduced with some filters:
+   *   - `start_time` – the bottom time range. Only blocks with `gen_utime` more or equal to this value is iterated. If
+   *     this parameter is omitted then there is no bottom time edge, so all blocks since zero state is iterated.
+   *   - `end_time` – the upper time range. Only blocks with `gen_utime` less then this value is iterated. If this
+   *     parameter is omitted then there is no upper time edge, so iterator never finishes.
+   *   - `shard_filter` – workchains and shard prefixes that reduce the set of interesting blocks. Block conforms to the
+   *     shard filter if it belongs to the filter workchain and the first bits of block's `shard` fields matches to the
+   *     shard prefix. Only blocks with suitable shard are iterated.
+   *
+   * Items iterated is a JSON objects with block data. The minimal set of returned fields is: ```text id gen_utime
+   * workchain_id shard after_split after_merge prev_ref { root_hash } prev_alt_ref { root_hash } ``` Application can
+   * request additional fields in the `result` parameter.
+   *
+   * Application should call the `remove_iterator` when iterator is no longer required.
+   * @param start_time
+   *   If the application specifies this parameter then the iteration includes blocks with `gen_utime` >= `start_time`.
+   *   Otherwise the iteration starts from zero state.
+   *
+   * Must be specified in seconds.
+   * @param end_time
+   *   If the application specifies this parameter then the iteration includes blocks with `gen_utime` < `end_time`.
+   *   Otherwise the iteration never stops.
+   *
+   * Must be specified in seconds.
+   * @param shard_filter
+   *   If the application specifies this parameter and it is not the empty array then the iteration will include items
+   *   related to accounts that belongs to the specified shard prefixes. Shard prefix must be represented as a string
+   *   "workchain:prefix". Where `workchain` is a signed integer and the `prefix` if a hexadecimal representation if the
+   *   64-bit unsigned integer with tagged shard prefix. For example: "0:3800000000000000".
+   * @param result
+   *   List of the fields that must be returned for iterated items. This field is the same as the `result` parameter of
+   *   the `query_collection` function. Note that iterated items can contains additional fields that are not requested
+   *   in the `result`.
+   */
+  def createBlockIterator(
+    start_time: Option[Long],
+    end_time: Option[Long],
+    shard_filter: Option[List[String]],
+    result: Option[String]
+  ): Future[Either[Throwable, RegisteredIterator]] = {
+    ctx.execAsync[ParamsOfCreateBlockIterator, RegisteredIterator](
+      "net.create_block_iterator",
+      ParamsOfCreateBlockIterator(
+        start_time,
+        end_time,
+        shard_filter,
+        result
+      )
+    )
+  }
+
+  /**
+   * Creates transaction iterator. Transaction iterator uses robust iteration methods that guaranty that every
+   * transaction in the specified range isn't missed or iterated twice.
+   *
+   * Iterated range can be reduced with some filters:
+   *   - `start_time` – the bottom time range. Only transactions with `now` more or equal to this value are iterated. If
+   *     this parameter is omitted then there is no bottom time edge, so all the transactions since zero state are
+   *     iterated.
+   *   - `end_time` – the upper time range. Only transactions with `now` less then this value are iterated. If this
+   *     parameter is omitted then there is no upper time edge, so iterator never finishes.
+   *   - `shard_filter` – workchains and shard prefixes that reduce the set of interesting accounts. Account address
+   *     conforms to the shard filter if it belongs to the filter workchain and the first bits of address match to the
+   *     shard prefix. Only transactions with suitable account addresses are iterated.
+   *   - `accounts_filter` – set of account addresses whose transactions must be iterated. Note that accounts filter can
+   *     conflict with shard filter so application must combine these filters carefully.
+   *
+   * Iterated item is a JSON objects with transaction data. The minimal set of returned fields is: ```text id
+   * account_addr now balance_delta(format:DEC) bounce { bounce_type } in_message { id value(format:DEC) msg_type src }
+   * out_messages { id value(format:DEC) msg_type dst } ``` Application can request an additional fields in the `result`
+   * parameter.
+   *
+   * Another parameter that affects on the returned fields is the `include_transfers`. When this parameter is `true` the
+   * iterator computes and adds `transfer` field containing list of the useful `TransactionTransfer` objects. Each
+   * transfer is calculated from the particular message related to the transaction and has the following structure:
+   *   - message – source message identifier.
+   *   - isBounced – indicates that the transaction is bounced, which means the value will be returned back to the
+   *     sender.
+   *   - isDeposit – indicates that this transfer is the deposit (true) or withdraw (false).
+   *   - counterparty – account address of the transfer source or destination depending on `isDeposit`.
+   *   - value – amount of nano tokens transferred. The value is represented as a decimal string because the actual
+   *     value can be more precise than the JSON number can represent. Application must use this string carefully –
+   *     conversion to number can follow to loose of precision.
+   *
+   * Application should call the `remove_iterator` when iterator is no longer required.
+   * @param start_time
+   *   If the application specifies this parameter then the iteration includes blocks with `gen_utime` >= `start_time`.
+   *   Otherwise the iteration starts from zero state.
+   *
+   * Must be specified in seconds.
+   * @param end_time
+   *   If the application specifies this parameter then the iteration includes blocks with `gen_utime` < `end_time`.
+   *   Otherwise the iteration never stops.
+   *
+   * Must be specified in seconds.
+   * @param shard_filter
+   *   If the application specifies this parameter and it is not an empty array then the iteration will include items
+   *   related to accounts that belongs to the specified shard prefixes. Shard prefix must be represented as a string
+   *   "workchain:prefix". Where `workchain` is a signed integer and the `prefix` if a hexadecimal representation if the
+   *   64-bit unsigned integer with tagged shard prefix. For example: "0:3800000000000000". Account address conforms to
+   *   the shard filter if it belongs to the filter workchain and the first bits of address match to the shard prefix.
+   *   Only transactions with suitable account addresses are iterated.
+   * @param accounts_filter
+   *   Application can specify the list of accounts for which it wants to iterate transactions.
+   *
+   * If this parameter is missing or an empty list then the library iterates transactions for all accounts that pass the
+   * shard filter.
+   *
+   * Note that the library doesn't detect conflicts between the account filter and the shard filter if both are
+   * specified. So it is an application responsibility to specify the correct filter combination.
+   * @param result
+   *   List of the fields that must be returned for iterated items. This field is the same as the `result` parameter of
+   *   the `query_collection` function. Note that iterated items can contain additional fields that are not requested in
+   *   the `result`.
+   * @param include_transfers
+   *   If this parameter is `true` then each transaction contains field `transfers` with list of transfer. See more
+   *   about this structure in function description.
+   */
+  def createTransactionIterator(
+    start_time: Option[Long],
+    end_time: Option[Long],
+    shard_filter: Option[List[String]],
+    accounts_filter: Option[List[String]],
+    result: Option[String],
+    include_transfers: Option[Boolean]
+  ): Future[Either[Throwable, RegisteredIterator]] = {
+    ctx.execAsync[ParamsOfCreateTransactionIterator, RegisteredIterator](
+      "net.create_transaction_iterator",
+      ParamsOfCreateTransactionIterator(
+        start_time,
+        end_time,
+        shard_filter,
+        accounts_filter,
+        result,
+        include_transfers
+      )
+    )
+  }
+
+  /**
    * Requests the list of alternative endpoints from server
    */
   def fetchEndpoints(): Future[Either[Throwable, EndpointsSet]] = {
@@ -67,6 +210,41 @@ class NetModule(private val ctx: Context) {
    */
   def getEndpoints(): Future[Either[Throwable, ResultOfGetEndpoints]] = {
     ctx.execAsync[Unit, ResultOfGetEndpoints]("net.fetch_endpoints", ())
+  }
+
+  /**
+   * Returns next available items. In addition to available items this function returns the `has_more` flag indicating
+   * that the iterator isn't reach the end of the iterated range yet.
+   *
+   * This function can return the empty list of available items but indicates that there are more items is available.
+   * This situation appears when the iterator doesn't reach iterated range but database doesn't contains available items
+   * yet.
+   *
+   * If application requests resume state in `return_resume_state` parameter then this function returns `resume_state`
+   * that can be used later to resume the iteration from the position after returned items.
+   *
+   * The structure of the items returned depends on the iterator used. See the description to the appropriated iterator
+   * creation function.
+   * @param iterator
+   *   iterator
+   * @param limit
+   *   If value is missing or is less than 1 the library uses 1.
+   * @param return_resume_state
+   *   return_resume_state
+   */
+  def iteratorNext(
+    iterator: Long,
+    limit: Option[Long],
+    return_resume_state: Option[Boolean]
+  ): Future[Either[Throwable, ResultOfIteratorNext]] = {
+    ctx.execAsync[ParamsOfIteratorNext, ResultOfIteratorNext](
+      "net.iterator_next",
+      ParamsOfIteratorNext(
+        iterator,
+        limit,
+        return_resume_state
+      )
+    )
   }
 
   /**
@@ -178,10 +356,71 @@ class NetModule(private val ctx: Context) {
   }
 
   /**
+   * Removes an iterator Frees all resources allocated in library to serve iterator.
+   *
+   * Application always should call the `remove_iterator` when iterator is no longer required.
+   * @param handle
+   *   Must be removed using `remove_iterator` when it is no more needed for the application.
+   */
+  def removeIterator(handle: Long): Future[Either[Throwable, Unit]] = {
+    ctx.execAsync[RegisteredIterator, Unit](
+      "net.remove_iterator",
+      RegisteredIterator(handle)
+    )
+  }
+
+  /**
    * Resumes network module to enable network activity
    */
   def resume(): Future[Either[Throwable, Unit]] = {
     ctx.execAsync[Unit, Unit]("net.resume", ())
+  }
+
+  /**
+   * Resumes block iterator. The iterator stays exactly at the same position where the `resume_state` was catched.
+   *
+   * Application should call the `remove_iterator` when iterator is no longer required.
+   * @param resume_state
+   *   Same as value returned from `iterator_next`.
+   */
+  def resumeBlockIterator(
+    resume_state: Value
+  ): Future[Either[Throwable, RegisteredIterator]] = {
+    ctx.execAsync[Value, RegisteredIterator](
+      "net.resume_block_iterator",
+      resume_state
+    )
+  }
+
+  /**
+   * Resumes transaction iterator. The iterator stays exactly at the same position where the `resume_state` was caught.
+   * Note that `resume_state` doesn't store the account filter. If the application requires to use the same account
+   * filter as it was when the iterator was created then the application must pass the account filter again in
+   * `accounts_filter` parameter.
+   *
+   * Application should call the `remove_iterator` when iterator is no longer required.
+   * @param resume_state
+   *   Same as value returned from `iterator_next`.
+   * @param accounts_filter
+   *   Application can specify the list of accounts for which it wants to iterate transactions.
+   *
+   * If this parameter is missing or an empty list then the library iterates transactions for all accounts that passes
+   * the shard filter.
+   *
+   * Note that the library doesn't detect conflicts between the account filter and the shard filter if both are
+   * specified. So it is the application's responsibility to specify the correct filter combination.
+   */
+  def resumeTransactionIterator(
+    resume_state: Value,
+    accounts_filter: Option[List[String]]
+  ): Future[Either[Throwable, RegisteredIterator]] = {
+    ctx.execAsync[ParamsOfResumeTransactionIterator, RegisteredIterator](
+      "net.resume_transaction_iterator",
+      ParamsOfResumeTransactionIterator(
+        resume_state,
+        accounts_filter
+      )
+    )
   }
 
   /**
