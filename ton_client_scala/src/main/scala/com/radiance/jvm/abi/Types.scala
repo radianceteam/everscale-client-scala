@@ -30,7 +30,8 @@ case class AbiContract(
   header: Option[List[String]],
   functions: Option[List[AbiFunction]],
   events: Option[List[AbiEvent]],
-  data: Option[List[AbiData]]
+  data: Option[List[AbiData]],
+  fields: Option[List[AbiParam]]
 )
 
 object AbiContract {
@@ -63,6 +64,9 @@ object AbiErrorCodeEnum {
   }
   case object InvalidAbi extends AbiErrorCode {
     override val code: String = "311"
+  }
+  case object InvalidData extends AbiErrorCode {
+    override val code: String = "313"
   }
   case object InvalidFunctionId extends AbiErrorCode {
     override val code: String = "312"
@@ -246,6 +250,13 @@ object ParamsOfAttachSignatureToMessageBody {
     deriveEncoder[ParamsOfAttachSignatureToMessageBody]
 }
 
+case class ParamsOfDecodeAccountData(abi: AbiADT.Abi, data: String)
+
+object ParamsOfDecodeAccountData {
+  implicit val encoder: Encoder[ParamsOfDecodeAccountData] =
+    deriveEncoder[ParamsOfDecodeAccountData]
+}
+
 case class ParamsOfDecodeMessage(abi: AbiADT.Abi, message: String)
 
 object ParamsOfDecodeMessage {
@@ -332,6 +343,13 @@ case class ResultOfAttachSignatureToMessageBody(body: String)
 object ResultOfAttachSignatureToMessageBody {
   implicit val decoder: Decoder[ResultOfAttachSignatureToMessageBody] =
     deriveDecoder[ResultOfAttachSignatureToMessageBody]
+}
+
+case class ResultOfDecodeData(data: Value)
+
+object ResultOfDecodeData {
+  implicit val decoder: Decoder[ResultOfDecodeData] =
+    deriveDecoder[ResultOfDecodeData]
 }
 
 case class ResultOfEncodeAccount(account: String, id: String)
