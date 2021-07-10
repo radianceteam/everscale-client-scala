@@ -55,6 +55,20 @@ class AbiModule(ctx: Context) {
   }
 
   /**
+   * Decodes account data using provided data BOC and ABI. Note: this feature requires ABI 2.1 or higher.
+   * @param abi
+   *   abi
+   * @param data
+   *   Must be encoded with base64
+   */
+  def decodeAccountData(abi: AbiADT.Abi, data: String): Future[Either[Throwable, ResultOfDecodeData]] = {
+    ctx.execAsync[ParamsOfDecodeAccountData, ResultOfDecodeData](
+      "abi.decode_account_data",
+      ParamsOfDecodeAccountData(abi, data)
+    )
+  }
+
+  /**
    * Decodes message body using provided message BOC and ABI.
    * @param abi
    *   contract ABI

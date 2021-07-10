@@ -609,7 +609,7 @@ package abi {
     case class Json(value: String) extends Abi
     case class Serialized(value: AbiContract) extends Abi
   }
-  case class AbiContract(`ABI version`: Option[Long], abi_version: Option[Long], header: Option[List[String]], functions: Option[List[AbiFunction]], events: Option[List[AbiEvent]], data: Option[List[AbiData]])
+  case class AbiContract(`ABI version`: Option[Long], abi_version: Option[Long], header: Option[List[String]], functions: Option[List[AbiFunction]], events: Option[List[AbiEvent]], data: Option[List[AbiData]], fields: Option[List[AbiParam]])
   case class AbiData(key: Long, name: String, `type`: String, components: Option[List[AbiParam]])
   object AbiErrorCodeEnum {
     sealed trait AbiErrorCode {
@@ -626,6 +626,9 @@ package abi {
     }
     case object InvalidAbi extends AbiErrorCode {
       override val code: String = "311"
+    }
+    case object InvalidData extends AbiErrorCode {
+      override val code: String = "313"
     }
     case object InvalidFunctionId extends AbiErrorCode {
       override val code: String = "312"
@@ -690,6 +693,7 @@ package abi {
   }
   case class ParamsOfAttachSignature(abi: Abi, public_key: String, message: String, signature: String)
   case class ParamsOfAttachSignatureToMessageBody(abi: Abi, public_key: String, message: String, signature: String)
+  case class ParamsOfDecodeAccountData(abi: Abi, data: String)
   case class ParamsOfDecodeMessage(abi: Abi, message: String)
   case class ParamsOfDecodeMessageBody(abi: Abi, body: String, is_internal: Boolean)
   case class ParamsOfEncodeAccount(state_init: StateInitSource, balance: Option[BigInt], last_trans_lt: Option[BigInt], last_paid: Option[Long], boc_cache: Option[BocCacheType])
@@ -698,6 +702,7 @@ package abi {
   case class ParamsOfEncodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long])
   case class ResultOfAttachSignature(message: String, message_id: String)
   case class ResultOfAttachSignatureToMessageBody(body: String)
+  case class ResultOfDecodeData(data: Value)
   case class ResultOfEncodeAccount(account: String, id: String)
   case class ResultOfEncodeInternalMessage(message: String, address: String, message_id: String)
   case class ResultOfEncodeMessage(message: String, data_to_sign: Option[String], address: String, message_id: String)
@@ -737,6 +742,13 @@ package abi {
    * @param signature Must be encoded with `hex`.
    */
   def attachSignatureToMessageBody(abi: Abi, public_key: String, message: String, signature: String): Future[Either[Throwable, ResultOfAttachSignatureToMessageBody]]
+  /**
+   * Decodes account data using provided data BOC and ABI.
+   * Note: this feature requires ABI 2.1 or higher.
+   * @param abi abi
+   * @param data Must be encoded with base64
+   */
+  def decodeAccountData(abi: Abi, data: String): Future[Either[Throwable, ResultOfDecodeData]]
   /**
    * Decodes message body using provided message BOC and ABI.
    * @param abi abi
@@ -1148,6 +1160,12 @@ package processing {
   def waitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Boolean, sending_endpoints: Option[List[String]], callback: Request): Future[Either[Throwable, ResultOfProcessMessage]]
 }
 package utils {
+  object AccountAddressTypeEnum {
+    sealed trait AccountAddressType
+    case object AccountId extends AccountAddressType
+    case object Base64 extends AccountAddressType
+    case object Hex extends AccountAddressType
+  }
   object AddressStringFormatADT {
     sealed trait AddressStringFormat
     case object AccountId extends AddressStringFormat
@@ -1158,10 +1176,12 @@ package utils {
   case class ParamsOfCompressZstd(uncompressed: String, level: Option[Int])
   case class ParamsOfConvertAddress(address: String, output_format: AddressStringFormat)
   case class ParamsOfDecompressZstd(compressed: String)
+  case class ParamsOfGetAddressType(address: String)
   case class ResultOfCalcStorageFee(fee: String)
   case class ResultOfCompressZstd(compressed: String)
   case class ResultOfConvertAddress(address: String)
   case class ResultOfDecompressZstd(decompressed: String)
+  case class ResultOfGetAddressType(address_type: AccountAddressType)
 }
 package utils {
   /**
@@ -1187,6 +1207,19 @@ package utils {
    * @param compressed Must be encoded as base64.
    */
   def decompressZstd(compressed: String): Future[Either[Throwable, ResultOfDecompressZstd]]
+  /**
+   * Validates and returns the type of any TON address.
+   * Address types are the following
+   *
+   * `0:919db8e740d50bf349df2eea03fa30c385d846b991ff5542e67098ee833fc7f7` - standart TON address most
+   * commonly used in all cases. Also called as hex addres
+   * `919db8e740d50bf349df2eea03fa30c385d846b991ff5542e67098ee833fc7f7` - account ID. A part of full
+   * address. Identifies account inside particular workchain
+   * `EQCRnbjnQNUL80nfLuoD+jDDhdhGuZH/VULmcJjugz/H9wam` - base64 address. Also called "user-friendly".
+   * Was used at the beginning of TON. Now it is supported for compatibility
+   * @param address address
+   */
+  def getAddressType(address: String): Future[Either[Throwable, ResultOfGetAddressType]]
 }
 package tvm {
   object AccountForExecutorADT {

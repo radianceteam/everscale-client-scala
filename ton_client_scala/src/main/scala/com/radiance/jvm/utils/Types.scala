@@ -4,6 +4,20 @@ import io.circe._
 import io.circe.derivation._
 import io.circe.generic.extras
 
+object AccountAddressTypeEnum {
+  sealed trait AccountAddressType
+
+  case object AccountId extends AccountAddressType
+
+  case object Base64 extends AccountAddressType
+
+  case object Hex extends AccountAddressType
+
+  implicit val decoder: Decoder[AccountAddressType] =
+    extras.semiauto.deriveEnumerationDecoder[AccountAddressType]
+
+}
+
 object AddressStringFormatADT {
 
   sealed trait AddressStringFormat
@@ -50,6 +64,13 @@ object ParamsOfDecompressZstd {
     deriveEncoder[ParamsOfDecompressZstd]
 }
 
+case class ParamsOfGetAddressType(address: String)
+
+object ParamsOfGetAddressType {
+  implicit val encoder: Encoder[ParamsOfGetAddressType] =
+    deriveEncoder[ParamsOfGetAddressType]
+}
+
 case class ResultOfCalcStorageFee(fee: String)
 
 object ResultOfCalcStorageFee {
@@ -76,4 +97,11 @@ case class ResultOfDecompressZstd(decompressed: String)
 object ResultOfDecompressZstd {
   implicit val decoder: Decoder[ResultOfDecompressZstd] =
     deriveDecoder[ResultOfDecompressZstd]
+}
+
+case class ResultOfGetAddressType(address_type: AccountAddressTypeEnum.AccountAddressType)
+
+object ResultOfGetAddressType {
+  implicit val decoder: Decoder[ResultOfGetAddressType] =
+    deriveDecoder[ResultOfGetAddressType]
 }
