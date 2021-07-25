@@ -27,6 +27,7 @@ object AbiADT {
 case class AbiContract(
   `ABI version`: Option[Long],
   abi_version: Option[Long],
+  version: Option[Option[String]],
   header: Option[List[String]],
   functions: Option[List[AbiFunction]],
   events: Option[List[AbiEvent]],

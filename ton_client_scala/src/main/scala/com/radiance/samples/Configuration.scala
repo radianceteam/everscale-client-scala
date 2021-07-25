@@ -9,7 +9,7 @@ object Configuration {
     import scala.concurrent.ExecutionContext
 
     val networkConfig: NetworkConfig = NetworkConfig(
-      "net.ton.dev".some, // server_address:             Option[String]
+      "net.ton.dev".some, // server_address: Option[String]
       None, // endpoints:                  Option[List[String]]
       5.some, // network_retries_count:      Option[Int]
       30000L.some, // max_reconnect_timeout:      Option[Long]
@@ -21,6 +21,7 @@ object Configuration {
       1L.some, // sending_endpoint_count:    Option[Long]
       5000L.some, // latency_detection_interval: Option[Long]
       5000L.some, // max_latency: Option[Long]
+      3000L.some, // query_timeout: Option[Long],
       "".some // access_key:                 Option[String]
     )
 

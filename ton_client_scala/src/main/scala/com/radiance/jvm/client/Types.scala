@@ -226,6 +226,7 @@ case class NetworkConfig(
   sending_endpoint_count: Option[Long] = None,
   latency_detection_interval: Option[Long] = None,
   max_latency: Option[Long] = None,
+  query_timeout: Option[Long] = None,
   access_key: Option[String] = None
 )
 

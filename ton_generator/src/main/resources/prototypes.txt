@@ -118,7 +118,7 @@ package client {
   }
   /** Crypto config. */
   case class CryptoConfig(mnemonic_dictionary: Option[Long], mnemonic_word_count: Option[Long], hdkey_derivation_path: Option[String])
-  case class NetworkConfig(server_address: Option[String], endpoints: Option[List[String]], network_retries_count: Option[Int], max_reconnect_timeout: Option[Long], reconnect_timeout: Option[Long], message_retries_count: Option[Int], message_processing_timeout: Option[Long], wait_for_timeout: Option[Long], out_of_sync_threshold: Option[Long], sending_endpoint_count: Option[Long], latency_detection_interval: Option[Long], max_latency: Option[Long], access_key: Option[String])
+  case class NetworkConfig(server_address: Option[String], endpoints: Option[List[String]], network_retries_count: Option[Int], max_reconnect_timeout: Option[Long], reconnect_timeout: Option[Long], message_retries_count: Option[Int], message_processing_timeout: Option[Long], wait_for_timeout: Option[Long], out_of_sync_threshold: Option[Long], sending_endpoint_count: Option[Long], latency_detection_interval: Option[Long], max_latency: Option[Long], query_timeout: Option[Long], access_key: Option[String])
   case class ParamsOfAppRequest(app_request_id: Long, request_data: Value)
   case class ParamsOfResolveAppRequest(app_request_id: Long, result: AppRequestResult)
   case class ResultOfBuildInfo(build_number: Long, dependencies: List[BuildInfoDependency])
@@ -504,6 +504,9 @@ package crypto {
   def naclSignDetachedVerify(unsigned: String, signature: String, public: String): Future[Either[Throwable, ResultOfNaclSignDetachedVerify]]
   /**
    * Generates a key pair for signing from the secret key
+   * **NOTE:** In the result the secret key is actually the concatenation
+   * of secret and public keys (128 symbols hex string) by design of [NaCL](http://nacl.cr.yp.to/sign.html).
+   * See also [the stackexchange question](https://crypto.stackexchange.com/questions/54353/).
    * @param secret secret
    */
   def naclSignKeypairFromSecretKey(secret: String): Future[Either[Throwable, KeyPair]]
@@ -609,7 +612,7 @@ package abi {
     case class Json(value: String) extends Abi
     case class Serialized(value: AbiContract) extends Abi
   }
-  case class AbiContract(`ABI version`: Option[Long], abi_version: Option[Long], header: Option[List[String]], functions: Option[List[AbiFunction]], events: Option[List[AbiEvent]], data: Option[List[AbiData]], fields: Option[List[AbiParam]])
+  case class AbiContract(`ABI version`: Option[Long], abi_version: Option[Long], version: Option[Option[String]], header: Option[List[String]], functions: Option[List[AbiFunction]], events: Option[List[AbiEvent]], data: Option[List[AbiData]], fields: Option[List[AbiParam]])
   case class AbiData(key: Long, name: String, `type`: String, components: Option[List[AbiParam]])
   object AbiErrorCodeEnum {
     sealed trait AbiErrorCode {
@@ -746,7 +749,7 @@ package abi {
    * Decodes account data using provided data BOC and ABI.
    * Note: this feature requires ABI 2.1 or higher.
    * @param abi abi
-   * @param data Must be encoded with base64
+   * @param data data
    */
   def decodeAccountData(abi: Abi, data: String): Future[Either[Throwable, ResultOfDecodeData]]
   /**

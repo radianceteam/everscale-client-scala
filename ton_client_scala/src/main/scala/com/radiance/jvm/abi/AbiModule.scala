@@ -59,7 +59,7 @@ class AbiModule(ctx: Context) {
    * @param abi
    *   abi
    * @param data
-   *   Must be encoded with base64
+   *   data
    */
   def decodeAccountData(abi: AbiADT.Abi, data: String): Future[Either[Throwable, ResultOfDecodeData]] = {
     ctx.execAsync[ParamsOfDecodeAccountData, ResultOfDecodeData](
