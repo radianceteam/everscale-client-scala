@@ -472,7 +472,11 @@ class CryptoModule(private val ctx: Context) {
   }
 
   /**
-   * Generates a key pair for signing from the secret key
+   * Generates a key pair for signing from the secret key **NOTE:** In the result the secret key is actually the
+   * concatenation of secret and public keys (128 symbols hex string) by design of
+   * [NaCL](http://nacl.cr.yp.to/sign.html). See also [the stackexchange
+   * question](https://crypto.stackexchange.com/questions/54353/).
+   *
    * @param secret
    *   Secret key - unprefixed 0-padded to 64 symbols hex string
    */
