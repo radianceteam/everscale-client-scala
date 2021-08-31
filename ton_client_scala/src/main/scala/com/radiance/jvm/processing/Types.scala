@@ -2,6 +2,8 @@ package com.radiance.jvm.processing
 
 import com.radiance.jvm._
 import com.radiance.jvm.abi._
+import com.radiance.jvm.client.ClientError
+
 import io.circe._
 import io.circe.derivation._
 
@@ -47,7 +49,6 @@ object ParamsOfWaitForTransaction {
   implicit val encoder: Encoder[ParamsOfWaitForTransaction] =
     deriveEncoder[ParamsOfWaitForTransaction]
 }
-
 object ProcessingErrorCodeEnum {
 
   sealed trait ProcessingErrorCode {
@@ -108,6 +109,26 @@ object ProcessingErrorCodeEnum {
 
 }
 
+object ProcessingEventADT {
+  sealed trait ProcessingEvent
+  case class DidSend(shard_block_id: String, message_id: String, message: String) extends ProcessingEvent
+  case class FetchFirstBlockFailed(error: ClientError) extends ProcessingEvent
+  case class FetchNextBlockFailed(shard_block_id: String, message_id: String, message: String, error: ClientError)
+      extends ProcessingEvent
+  case class MessageExpired(message_id: String, message: String, error: ClientError) extends ProcessingEvent
+  case class SendFailed(shard_block_id: String, message_id: String, message: String, error: ClientError)
+      extends ProcessingEvent
+
+  /**
+   * Notifies the application that the account's current shard block will be fetched from the network. This step is
+   * performed before the message sending so that sdk knows starting from which block it will search for the
+   * transaction. Fetched block will be used later in waiting phase.
+   */
+  case object WillFetchFirstBlock extends ProcessingEvent
+  case class WillFetchNextBlock(shard_block_id: String, message_id: String, message: String) extends ProcessingEvent
+  case class WillSend(shard_block_id: String, message_id: String, message: String) extends ProcessingEvent
+}
+
 case class ResultOfProcessMessage(
   transaction: Value,
   out_messages: List[String],
@@ -120,10 +141,7 @@ object ResultOfProcessMessage {
     deriveDecoder[ResultOfProcessMessage]
 }
 
-case class ResultOfSendMessage(
-  shard_block_id: String,
-  sending_endpoints: List[String]
-)
+case class ResultOfSendMessage(shard_block_id: String, sending_endpoints: List[String])
 
 object ResultOfSendMessage {
   implicit val decoder: Decoder[ResultOfSendMessage] =

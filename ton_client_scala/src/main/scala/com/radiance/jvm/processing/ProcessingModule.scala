@@ -8,63 +8,55 @@ import scala.concurrent.Future
 class ProcessingModule(private val ctx: Context) {
 
   /**
-   * Creates message, sends it to the network and monitors its processing.
-   *
-   * Creates ABI-compatible message, sends it to the network and monitors for the result transaction. Decodes the output
-   * messages' bodies.
+   * Creates message, sends it to the network and monitors its processing. Creates ABI-compatible message, sends it to
+   * the network and monitors for the result transaction. Decodes the output messages' bodies.
    *
    * If contract's ABI includes "expire" header, then SDK implements retries in case of unsuccessful message delivery
    * within the expiration timeout: SDK recreates the message, sends it and processes it again.
    *
    * The intermediate events, such as `WillFetchFirstBlock`, `WillSend`, `DidSend`, `WillFetchNextBlock`, etc - are
-   * switched on/off by `send_events` flag and logged into the supplied callback function. The retry configuration
-   * parameters are defined in config: <add correct config params here> pub const DEFAULT_EXPIRATION_RETRIES_LIMIT: i8 =
-   * 3; - max number of retries pub const DEFAULT_EXPIRATION_TIMEOUT: u32 = 40000; - message expiration timeout in ms.
-   * pub const DEFAULT_....expiration_timeout_grow_factor... = 1.5 - factor that increases the expiration timeout for
-   * each retry
+   * switched on/off by `send_events` flag and logged into the supplied callback function.
+   *
+   * The retry configuration parameters are defined in the client's `NetworkConfig` and `AbiConfig`.
    *
    * If contract's ABI does not include "expire" header then, if no transaction is found within the network timeout (see
    * config parameter ), exits with error.
    * @param message_encode_params
-   *   Parameters of encode message
+   *   message_encode_params
    * @param send_events
-   *   Flag for requesting events sending
-   * @param callback
-   *   Callback io.circe.Json => Unit
+   *   send_events
+   * @param request
+   *   request
    */
   def processMessage(
     message_encode_params: ParamsOfEncodeMessage,
     send_events: Boolean,
-    callback: Request
+    request: Request
   ): Future[Either[Throwable, ResultOfProcessMessage]] = {
     ctx.execAsyncWithCallback[ParamsOfProcessMessage, ResultOfProcessMessage](
       "processing.process_message",
       ParamsOfProcessMessage(message_encode_params, send_events),
-      callback
+      request
     )
   }
 
   /**
-   * Sends message to the network
-   *
    * Sends message to the network and returns the last generated shard block of the destination account before the
    * message was sent. It will be required later for message processing.
    * @param message
-   *   Message BOC.
+   *   message
    * @param abi
-   *   Optional message ABI.
-   *
-   * If this parameter is specified and the message has the `expire` header then expiration time will be checked against
-   * the current time to prevent unnecessary sending of already expired message.
+   *   If this parameter is specified and the message has the `expire` header then expiration time will be checked
+   *   against the current time to prevent unnecessary sending of already expired message.
    *
    * The `message already expired` error will be returned in this case.
    *
    * Note, that specifying `abi` for ABI compliant contracts is strongly recommended, so that proper processing strategy
    * can be chosen.
    * @param send_events
-   *   Flag for requesting events sending
+   *   send_events
    * @param callback
-   *   Callback io.circe.Json => Unit
+   *   callback
    */
   def sendMessage(
     message: String,
@@ -127,5 +119,4 @@ class ProcessingModule(private val ctx: Context) {
       callback
     )
   }
-
 }

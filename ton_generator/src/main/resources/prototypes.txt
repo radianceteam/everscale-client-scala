@@ -140,6 +140,16 @@ package client {
   def version(): Future[Either[Throwable, ResultOfVersion]]
 }
 package crypto {
+  case class AesInfo(mode: CipherMode, iv: Option[String])
+  case class AesParams(mode: CipherMode, key: String, iv: Option[String])
+  object CipherModeEnum {
+    sealed trait CipherMode
+    case object CBC extends CipherMode
+    case object CFB extends CipherMode
+    case object CTR extends CipherMode
+    case object ECB extends CipherMode
+    case object OFB extends CipherMode
+  }
   object CryptoErrorCodeEnum {
     sealed trait CryptoErrorCode {
       val code: String
@@ -162,6 +172,15 @@ package crypto {
     case object Bip39InvalidWordCount extends CryptoErrorCode {
       override val code: String = "118"
     }
+    case object CannotCreateCipher extends CryptoErrorCode {
+      override val code: String = "126"
+    }
+    case object DecryptDataError extends CryptoErrorCode {
+      override val code: String = "128"
+    }
+    case object EncryptDataError extends CryptoErrorCode {
+      override val code: String = "127"
+    }
     case object EncryptionBoxNotRegistered extends CryptoErrorCode {
       override val code: String = "123"
     }
@@ -170,6 +189,9 @@ package crypto {
     }
     case object InvalidFactorizeChallenge extends CryptoErrorCode {
       override val code: String = "106"
+    }
+    case object InvalidIvSize extends CryptoErrorCode {
+      override val code: String = "124"
     }
     case object InvalidKey extends CryptoErrorCode {
       override val code: String = "102"
@@ -185,6 +207,9 @@ package crypto {
     }
     case object InvalidSignature extends CryptoErrorCode {
       override val code: String = "122"
+    }
+    case object IvRequired extends CryptoErrorCode {
+      override val code: String = "129"
     }
     case object MnemonicFromEntropyFailed extends CryptoErrorCode {
       override val code: String = "120"
@@ -207,6 +232,13 @@ package crypto {
     case object SigningBoxNotRegistered extends CryptoErrorCode {
       override val code: String = "121"
     }
+    case object UnsupportedCipherMode extends CryptoErrorCode {
+      override val code: String = "125"
+    }
+  }
+  object EncryptionAlgorithmADT {
+    sealed trait EncryptionAlgorithm
+    case class AES(value: AesParams) extends EncryptionAlgorithm
   }
   case class EncryptionBoxHandle(value: BigInt) extends AnyVal
   /** Encryption box information */
@@ -232,6 +264,7 @@ package crypto {
   }
   case class ParamsOfChaCha20(data: String, key: String, nonce: String)
   case class ParamsOfConvertPublicKeyToTonSafeFormat(public_key: String)
+  case class ParamsOfCreateEncryptionBox(algorithm: EncryptionAlgorithm)
   case class ParamsOfEncryptionBoxDecrypt(encryption_box: EncryptionBoxHandle, data: String)
   case class ParamsOfEncryptionBoxEncrypt(encryption_box: EncryptionBoxHandle, data: String)
   case class ParamsOfEncryptionBoxGetInfo(encryption_box: EncryptionBoxHandle)
@@ -329,13 +362,22 @@ package crypto {
    */
   def convertPublicKeyToTonSafeFormat(public_key: String): Future[Either[Throwable, ResultOfConvertPublicKeyToTonSafeFormat]]
   /**
-   * Decrypts data using given encryption box
+   * Creates encryption box with specified algorithm
+   * @param algorithm algorithm
+   */
+  def createEncryptionBox(algorithm: EncryptionAlgorithm): Future[Either[Throwable, RegisteredEncryptionBox]]
+  /**
+   * Decrypts data using given encryption box Note.
+   * Block cipher algorithms pad data to cipher block size so encrypted data can be longer then original data. Client should store the original data size after encryption and use it after
+   * decryption to retrieve the original data from decrypted data.
    * @param encryption_box encryption_box
    * @param data data
    */
   def encryptionBoxDecrypt(encryption_box: EncryptionBoxHandle, data: String): Future[Either[Throwable, ResultOfEncryptionBoxDecrypt]]
   /**
-   * Encrypts data using given encryption box
+   * Encrypts data using given encryption box Note.
+   * Block cipher algorithms pad data to cipher block size so encrypted data can be longer then original data. Client should store the original data size after encryption and use it after
+   * decryption to retrieve the original data from decrypted data.
    * @param encryption_box encryption_box
    * @param data data
    */
@@ -1070,7 +1112,7 @@ package processing {
     case class MessageExpired(message_id: String, message: String, error: ClientError) extends ProcessingEvent
     case class SendFailed(shard_block_id: String, message_id: String, message: String, error: ClientError) extends ProcessingEvent
     /**
-     * Notifies the app that the current shard block will be fetched from the network.
+     * Notifies the application that the account's current shard block will be fetched from the network. This step is performed before the message sending so that sdk knows starting from which block it will search for the transaction.
      * Fetched block will be used later in waiting phase.
      */
     case object WillFetchFirstBlock extends ProcessingEvent
@@ -1320,7 +1362,7 @@ package tvm {
    *
    * If you need this emulation to be as precise as possible (for instance - emulate transaction
    * with particular lt in particular block or use particular blockchain config,
-   * in case you want to download it from a particular key block - then specify `ParamsOfRunExecutor` parameter.
+   * downloaded from a particular key block - then specify `execution_options` parameter.
    *
    * If you need to see the aborted transaction as a result, not as an error, set `skip_transaction_check` to `true`.
    * @param message Must be encoded as base64.
