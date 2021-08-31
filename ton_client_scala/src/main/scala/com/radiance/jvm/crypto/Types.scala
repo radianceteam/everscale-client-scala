@@ -1,9 +1,31 @@
 package com.radiance.jvm.crypto
 
 import com.radiance.jvm.Value
+import com.radiance.jvm.crypto.EncryptionAlgorithmADT.EncryptionAlgorithm
 import io.circe._
 import io.circe.derivation._
 import io.circe.generic.extras
+
+case class AesInfo(mode: CipherModeEnum.CipherMode, iv: Option[String])
+
+case class AesParams(mode: CipherModeEnum.CipherMode, key: String, iv: Option[String])
+
+object AesParams {
+  implicit val encoder: Encoder[AesParams] =
+    deriveEncoder[AesParams]
+}
+
+object CipherModeEnum {
+  sealed trait CipherMode
+  case object CBC extends CipherMode
+  case object CFB extends CipherMode
+  case object CTR extends CipherMode
+  case object ECB extends CipherMode
+  case object OFB extends CipherMode
+
+  implicit val encoder: Encoder[CipherMode] =
+    extras.semiauto.deriveEnumerationEncoder[CipherMode]
+}
 
 object CryptoErrorCodeEnum {
 
@@ -35,6 +57,16 @@ object CryptoErrorCodeEnum {
     override val code: String = "118"
   }
 
+  case object CannotCreateCipher extends CryptoErrorCode {
+    override val code: String = "126"
+  }
+  case object DecryptDataError extends CryptoErrorCode {
+    override val code: String = "128"
+  }
+  case object EncryptDataError extends CryptoErrorCode {
+    override val code: String = "127"
+  }
+
   case object EncryptionBoxNotRegistered extends CryptoErrorCode {
     override val code: String = "123"
   }
@@ -45,6 +77,10 @@ object CryptoErrorCodeEnum {
 
   case object InvalidFactorizeChallenge extends CryptoErrorCode {
     override val code: String = "106"
+  }
+
+  case object InvalidIvSize extends CryptoErrorCode {
+    override val code: String = "124"
   }
 
   case object InvalidKey extends CryptoErrorCode {
@@ -65,6 +101,10 @@ object CryptoErrorCodeEnum {
 
   case object InvalidSignature extends CryptoErrorCode {
     override val code: String = "122"
+  }
+
+  case object IvRequired extends CryptoErrorCode {
+    override val code: String = "129"
   }
 
   case object MnemonicFromEntropyFailed extends CryptoErrorCode {
@@ -95,6 +135,19 @@ object CryptoErrorCodeEnum {
     override val code: String = "121"
   }
 
+  case object UnsupportedCipherMode extends CryptoErrorCode {
+    override val code: String = "125"
+  }
+}
+
+object EncryptionAlgorithmADT {
+  sealed trait EncryptionAlgorithm
+
+  case class AES(value: AesParams) extends EncryptionAlgorithm
+
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[EncryptionAlgorithm] =
+    extras.semiauto.deriveConfiguredEncoder[EncryptionAlgorithm]
 }
 
 case class EncryptionBoxHandle(value: BigInt) extends AnyVal
@@ -180,6 +233,13 @@ object ParamsOfConvertPublicKeyToTonSafeFormat {
 }
 
 case class ParamsOfEncryptionBoxDecrypt(encryption_box: EncryptionBoxHandle, data: String)
+
+case class ParamsOfCreateEncryptionBox(algorithm: EncryptionAlgorithm)
+
+object ParamsOfCreateEncryptionBox {
+  implicit val encoder: Encoder[ParamsOfCreateEncryptionBox] =
+    deriveEncoder[ParamsOfCreateEncryptionBox]
+}
 
 object ParamsOfEncryptionBoxDecrypt {
   implicit val encoder: Encoder[ParamsOfEncryptionBoxDecrypt] =

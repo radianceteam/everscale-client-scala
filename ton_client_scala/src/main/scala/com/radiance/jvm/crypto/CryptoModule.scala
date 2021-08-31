@@ -2,6 +2,7 @@ package com.radiance.jvm.crypto
 
 import com.radiance.jvm.Context
 import com.radiance.jvm.app.AppObject
+import com.radiance.jvm.crypto.EncryptionAlgorithmADT.EncryptionAlgorithm
 
 import scala.concurrent.Future
 
@@ -38,7 +39,21 @@ class CryptoModule(private val ctx: Context) {
     )
 
   /**
-   * Decrypts data using given encryption box
+   * Creates encryption box with specified algorithm
+   * @param algorithm
+   *   algorithm
+   */
+  def createEncryptionBox(algorithm: EncryptionAlgorithm): Either[Throwable, RegisteredEncryptionBox] = {
+    ctx.execSync[ParamsOfCreateEncryptionBox, RegisteredEncryptionBox](
+      "crypto.create_encryption_box",
+      ParamsOfCreateEncryptionBox(algorithm)
+    )
+  }
+
+  /**
+   * Decrypts data using given encryption box Note. Block cipher algorithms pad data to cipher block size so encrypted
+   * data can be longer then original data. Client should store the original data size after encryption and use it after
+   * decryption to retrieve the original data from decrypted data.
    * @param encryption_box
    *   encryption_box
    * @param data
@@ -55,7 +70,9 @@ class CryptoModule(private val ctx: Context) {
   }
 
   /**
-   * Encrypts data using given encryption box
+   * Encrypts data using given encryption box Note. Block cipher algorithms pad data to cipher block size so encrypted
+   * data can be longer then original data. Client should store the original data size after encryption and use it after
+   * decryption to retrieve the original data from decrypted data.
    * @param encryption_box
    *   encryption_box
    * @param data
