@@ -1,5 +1,14 @@
 import scala.sys.process.Process
 
+val circeVersion = "0.14.1"
+val circeDerivationVersion = "0.13.0-M5"
+val catsCoreVersion = "2.6.1"
+val scalaTestVersion = "3.2.3"
+val javaParserVersion = "3.23.0"
+val treehuggerVersion = "0.4.4"
+val logbackClassicVersion = "1.2.6"
+val scalaLoggingVersion = "3.9.4"
+
 val currentBranch = "master"
 val pathToCmakeWin = """C:\Program Files\JetBrains\CLion 2020.2.4\bin\cmake\win\bin\cmake.exe"""
 val pathToCmakeLinux = """/usr/bin/cmake"""
@@ -19,15 +28,15 @@ lazy val ton_client_scala = project
     scalaVersion := "2.13.4",
     version := "1.6.0",
     libraryDependencies ++= Seq(
-      "io.circe"                   %% "circe-core"               % "0.14.0-M1",
-      "io.circe"                   %% "circe-derivation"         % "0.13.0-M4",
-      "io.circe"                   %% "circe-parser"             % "0.14.0-M1",
-      "io.circe"                   %% "circe-generic-extras"     % "0.13.0",
-      "ch.qos.logback"              % "logback-classic"          % "1.2.3",
-      "com.typesafe.scala-logging" %% "scala-logging"            % "3.9.2",
-      "org.scalatest"              %% "scalatest-flatspec"       % "3.2.3"    % Test,
-      "org.scalatest"              %% "scalatest-shouldmatchers" % "3.2.3"    % Test,
-      "org.typelevel"              %% "cats-core"                % "2.3.0-M2" % Test
+      "io.circe"                   %% "circe-core"               % circeVersion,
+      "io.circe"                   %% "circe-derivation"         % circeDerivationVersion,
+      "io.circe"                   %% "circe-parser"             % circeVersion,
+      "io.circe"                   %% "circe-generic-extras"     % circeVersion,
+      "ch.qos.logback"              % "logback-classic"          % logbackClassicVersion,
+      "com.typesafe.scala-logging" %% "scala-logging"            % scalaLoggingVersion,
+      "org.scalatest"              %% "scalatest-flatspec"       % scalaTestVersion % Test,
+      "org.scalatest"              %% "scalatest-shouldmatchers" % scalaTestVersion % Test,
+      "org.typelevel"              %% "cats-core"                % catsCoreVersion  % Test
     ),
     pathToTestResources := baseDirectory
       .in(`TON-SDK`)
@@ -92,13 +101,13 @@ lazy val `TON-SDK` = project
 lazy val ton_generator = project
   .settings(
     libraryDependencies ++= Seq(
-      "io.circe"             %% "circe-core"         % "0.14.0-M1",
-      "io.circe"             %% "circe-derivation"   % "0.13.0-M4",
-      "io.circe"             %% "circe-parser"       % "0.14.0-M1",
-      "org.typelevel"        %% "cats-core"          % "2.3.0-M2",
-      "com.github.javaparser" % "javaparser-core"    % "3.18.0",
-      "com.eed3si9n"         %% "treehugger"         % "0.4.4",
-      "org.scalatest"        %% "scalatest-flatspec" % "3.2.3" % Test
+      "io.circe"             %% "circe-core"         % circeVersion,
+      "io.circe"             %% "circe-derivation"   % circeDerivationVersion,
+      "io.circe"             %% "circe-parser"       % circeVersion,
+      "org.typelevel"        %% "cats-core"          % catsCoreVersion,
+      "com.github.javaparser" % "javaparser-core"    % javaParserVersion,
+      "com.eed3si9n"         %% "treehugger"         % treehuggerVersion,
+      "org.scalatest"        %% "scalatest-flatspec" % scalaTestVersion % Test
     )
   )
 
