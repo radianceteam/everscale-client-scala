@@ -50,7 +50,8 @@ class BocModule(private val ctx: Context) {
   }
 
   /**
-   * Encodes BOC from builder operations.
+   * Encodes bag of cells (BOC) with builder operations. This method provides the same functionality as Solidity
+   * TvmBuilder. Resulting BOC of this method can be passed into Solidity and C++ contracts as TvmCell type.
    * @param builder
    *   builder
    * @param boc_cache
