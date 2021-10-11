@@ -50,6 +50,23 @@ class BocModule(private val ctx: Context) {
   }
 
   /**
+   * Decodes tvc into code, data, libraries and special options.
+   * @param tvc
+   *   tvc
+   * @param boc_cache
+   *   boc_cache
+   */
+  def decodeTvc(
+    tvc: String,
+    boc_cache: Option[BocCacheTypeADT.BocCacheType]
+  ): Future[Either[Throwable, ResultOfDecodeTvc]] = {
+    ctx.execAsync[ParamsOfDecodeTvc, ResultOfDecodeTvc](
+      "boc.decode_tvc",
+      ParamsOfDecodeTvc(tvc, boc_cache)
+    )
+  }
+
+  /**
    * Encodes bag of cells (BOC) with builder operations. This method provides the same functionality as Solidity
    * TvmBuilder. Resulting BOC of this method can be passed into Solidity and C++ contracts as TvmCell type.
    * @param builder
@@ -64,6 +81,38 @@ class BocModule(private val ctx: Context) {
     ctx.execAsync[ParamsOfEncodeBoc, ResultOfEncodeBoc](
       "boc.encode_boc",
       ParamsOfEncodeBoc(builder, boc_cache)
+    )
+  }
+
+  /**
+   * Encodes tvc from code, data, libraries ans special options (see input params)
+   * @param code
+   *   code
+   * @param data
+   *   data
+   * @param library
+   *   library
+   * @param tick
+   *   Specifies the contract ability to handle tick transactions
+   * @param tock
+   *   Specifies the contract ability to handle tock transactions
+   * @param split_depth
+   *   split_depth
+   * @param boc_cache
+   *   boc_cache
+   */
+  def encodeTvc(
+    code: Option[String],
+    data: Option[String],
+    library: Option[String],
+    tick: Option[Boolean],
+    tock: Option[Boolean],
+    split_depth: Option[Long],
+    boc_cache: Option[BocCacheTypeADT.BocCacheType]
+  ): Future[Either[Throwable, ResultOfEncodeTvc]] = {
+    ctx.execAsync[ParamsOfEncodeTvc, ResultOfEncodeTvc](
+      "boc.encode_tvc",
+      ParamsOfEncodeTvc(code, data, library, tick, tock, split_depth, boc_cache)
     )
   }
 
@@ -99,6 +148,32 @@ class BocModule(private val ctx: Context) {
     tvc: String
   ): Future[Either[Throwable, ResultOfGetCodeFromTvc]] = {
     ctx.execAsync[ParamsOfGetCodeFromTvc, ResultOfGetCodeFromTvc]("boc.get_code_from_tvc", ParamsOfGetCodeFromTvc(tvc))
+  }
+
+  /**
+   * Returns the contract code's salt if it is present.
+   * @param code
+   *   code
+   * @param boc_cache
+   *   boc_cache
+   */
+  def getCodeSalt(
+    code: String,
+    boc_cache: Option[BocCacheTypeADT.BocCacheType]
+  ): Future[Either[Throwable, ResultOfGetCodeSalt]] = {
+    ctx.execAsync[ParamsOfGetCodeSalt, ResultOfGetCodeSalt]("boc.get_code_salt", ParamsOfGetCodeSalt(code, boc_cache))
+  }
+
+  /**
+   * Returns the compiler version used to compile the code.
+   * @param code
+   *   code
+   */
+  def getCompilerVersion(code: String): Future[Either[Throwable, ResultOfGetCompilerVersion]] = {
+    ctx.execAsync[ParamsOfGetCompilerVersion, ResultOfGetCompilerVersion](
+      "boc.get_code_salt",
+      ParamsOfGetCompilerVersion(code)
+    )
   }
 
   /**
@@ -167,6 +242,26 @@ class BocModule(private val ctx: Context) {
     boc: String
   ): Future[Either[Throwable, ResultOfParse]] = {
     ctx.execAsync[ParamsOfParse, ResultOfParse]("boc.parse_transaction", ParamsOfParse(boc))
+  }
+
+  /**
+   * Sets new salt to contract code. Returns the new contract code with salt.
+   * @param code
+   *   code
+   * @param salt
+   *   BOC encoded as base64 or BOC handle
+   * @param boc_cache
+   *   boc_cache
+   */
+  def setCodeSalt(
+    code: String,
+    salt: String,
+    boc_cache: Option[BocCacheTypeADT.BocCacheType]
+  ): Future[Either[Throwable, ResultOfSetCodeSalt]] = {
+    ctx.execAsync[ParamsOfSetCodeSalt, ResultOfSetCodeSalt](
+      "boc.set_code_salt",
+      ParamsOfSetCodeSalt(code, salt, boc_cache)
+    )
   }
 
 }
