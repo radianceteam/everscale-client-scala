@@ -3,6 +3,7 @@ package com.radiance.jvm.abi
 import com.radiance.jvm._
 import com.radiance.jvm.boc._
 import com.radiance.jvm.crypto._
+import io.circe.Decoder.Result
 import io.circe._
 import io.circe.derivation._
 import io.circe.generic.extras
@@ -20,8 +21,8 @@ object AbiADT {
   case class Serialized(value: AbiContract) extends Abi
 
   import com.radiance.jvm.DiscriminatorConfig._
-  implicit val encoder: Encoder[Abi] =
-    extras.semiauto.deriveConfiguredEncoder[Abi]
+  implicit val codec: Codec[Abi] =
+    extras.semiauto.deriveConfiguredCodec[Abi]
 }
 
 case class AbiContract(
@@ -36,7 +37,7 @@ case class AbiContract(
 )
 
 object AbiContract {
-  implicit val encoder: Encoder[AbiContract] = deriveCodec[AbiContract]
+  implicit val codec: Codec[AbiContract] = deriveCodec[AbiContract]
 }
 
 case class AbiData(
@@ -59,6 +60,9 @@ object AbiErrorCodeEnum {
   }
   case object EncodeDeployMessageFailed extends AbiErrorCode {
     override val code: String = "305"
+  }
+  case object EncodeInitialDataFailed extends AbiErrorCode {
+    override val code: String = "314"
   }
   case object EncodeRunMessageFailed extends AbiErrorCode {
     override val code: String = "306"
@@ -119,7 +123,10 @@ object AbiFunction {
 case class AbiHandle(value: BigInt) extends AnyVal
 
 object AbiHandle {
-  implicit val encoder: Encoder[AbiHandle] = Encoder.instance(h => Json.fromBigInt(h.value))
+  implicit val codec: Codec[AbiHandle] = new Codec[AbiHandle]() {
+    override def apply(c: HCursor): Result[AbiHandle] = c.value.as[BigInt].map(AbiHandle(_))
+    override def apply(a: AbiHandle): Value = Json.fromBigInt(a.value)
+  }
 }
 
 case class AbiParam(
@@ -258,6 +265,13 @@ object ParamsOfDecodeAccountData {
     deriveEncoder[ParamsOfDecodeAccountData]
 }
 
+case class ParamsOfDecodeInitialData(abi: Option[AbiADT.Abi], data: String)
+
+object ParamsOfDecodeInitialData {
+  implicit val encoder: Encoder[ParamsOfDecodeInitialData] =
+    deriveEncoder[ParamsOfDecodeInitialData]
+}
+
 case class ParamsOfDecodeMessage(abi: AbiADT.Abi, message: String)
 
 object ParamsOfDecodeMessage {
@@ -332,6 +346,19 @@ object ParamsOfEncodeMessageBody {
     deriveEncoder[ParamsOfEncodeMessageBody]
 }
 
+case class ParamsOfUpdateInitialData(
+  abi: Option[AbiADT.Abi],
+  data: String,
+  initial_data: Option[Value],
+  initial_pubkey: Option[String],
+  boc_cache: Option[BocCacheTypeADT.BocCacheType]
+)
+
+object ParamsOfUpdateInitialData {
+  implicit val encoder: Encoder[ParamsOfUpdateInitialData] =
+    deriveEncoder[ParamsOfUpdateInitialData]
+}
+
 case class ResultOfAttachSignature(message: String, message_id: String)
 
 object ResultOfAttachSignature {
@@ -351,6 +378,13 @@ case class ResultOfDecodeData(data: Value)
 object ResultOfDecodeData {
   implicit val decoder: Decoder[ResultOfDecodeData] =
     deriveDecoder[ResultOfDecodeData]
+}
+
+case class ResultOfDecodeInitialData(initial_data: Option[Value], initial_pubkey: String)
+
+object ResultOfDecodeInitialData {
+  implicit val decoder: Decoder[ResultOfDecodeInitialData] =
+    deriveDecoder[ResultOfDecodeInitialData]
 }
 
 case class ResultOfEncodeAccount(account: String, id: String)
@@ -391,6 +425,13 @@ case class ResultOfEncodeMessageBody(
 object ResultOfEncodeMessageBody {
   implicit val decoder: Decoder[ResultOfEncodeMessageBody] =
     deriveDecoder[ResultOfEncodeMessageBody]
+}
+
+case class ResultOfUpdateInitialData(data: String)
+
+object ResultOfUpdateInitialData {
+  implicit val decoder: Decoder[ResultOfUpdateInitialData] =
+    deriveDecoder[ResultOfUpdateInitialData]
 }
 
 object SignerADT {

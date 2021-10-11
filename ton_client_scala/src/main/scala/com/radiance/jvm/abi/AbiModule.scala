@@ -1,6 +1,6 @@
 package com.radiance.jvm.abi
 
-import com.radiance.jvm.Context
+import com.radiance.jvm.{Context, Value}
 import com.radiance.jvm.boc._
 
 import scala.concurrent.Future
@@ -65,6 +65,22 @@ class AbiModule(ctx: Context) {
     ctx.execAsync[ParamsOfDecodeAccountData, ResultOfDecodeData](
       "abi.decode_account_data",
       ParamsOfDecodeAccountData(abi, data)
+    )
+  }
+
+  /**
+   * Decodes initial values of a contract's static variables and owner's public key from account initial data This
+   * operation is applicable only for initial account data (before deploy). If the contract is already deployed, its
+   * data doesn't contain this data section any more.
+   * @param abi
+   *   Initial data is decoded if this parameter is provided
+   * @param data
+   *   data
+   */
+  def decodeInitialData(abi: Option[AbiADT.Abi], data: String): Future[Either[Throwable, ResultOfDecodeInitialData]] = {
+    ctx.execAsync[ParamsOfDecodeInitialData, ResultOfDecodeInitialData](
+      "abi.decode_initial_data",
+      ParamsOfDecodeInitialData(abi, data)
     )
   }
 
@@ -297,4 +313,39 @@ class AbiModule(ctx: Context) {
       )
     )
   }
+
+  /**
+   * Updates initial account data with initial values for the contract's static variables and owner's public key. This
+   * operation is applicable only for initial account data (before deploy). If the contract is already deployed, its
+   * data doesn't contain this data section any more.
+   * @param abi
+   *   abi
+   * @param data
+   *   data
+   * @param initial_data
+   *   `abi` parameter should be provided to set initial data
+   * @param initial_pubkey
+   *   initial_pubkey
+   * @param boc_cache
+   *   boc_cache
+   */
+  def updateInitialData(
+    abi: Option[AbiADT.Abi],
+    data: String,
+    initial_data: Option[Value],
+    initial_pubkey: Option[String],
+    boc_cache: Option[BocCacheTypeADT.BocCacheType]
+  ): Future[Either[Throwable, ResultOfUpdateInitialData]] = {
+    ctx.execAsync[ParamsOfUpdateInitialData, ResultOfUpdateInitialData](
+      "abi.update_initial_data",
+      ParamsOfUpdateInitialData(
+        abi,
+        data,
+        initial_data,
+        initial_pubkey,
+        boc_cache
+      )
+    )
+  }
+
 }

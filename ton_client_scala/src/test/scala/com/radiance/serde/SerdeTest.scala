@@ -7,7 +7,7 @@ import io.circe.syntax._
 import io.circe.parser._
 import org.scalatest.matchers.should.Matchers._
 import com.radiance.TestUtils
-import com.radiance.jvm.abi.MessageBodyTypeEnum
+import com.radiance.jvm.abi.{AbiHandle, MessageBodyTypeEnum}
 import com.radiance.jvm.debot.ParamsOfAppDebotBrowserADT
 import com.radiance.jvm.net.AggregationFnEnum
 
@@ -93,5 +93,14 @@ class SerdeTest extends AnyFlatSpec with TestUtils {
     b shouldBe MessageBodyTypeEnum.Output
     c shouldBe MessageBodyTypeEnum.InternalOutput
     d shouldBe MessageBodyTypeEnum.Event
+  }
+
+  "AbiHandle" should "serialize and deserialize correctly" in {
+    val handle: AbiHandle = AbiHandle(1)
+    val json = handle.asJson.noSpaces
+    val handleRestored = parse(json).flatMap(_.as[AbiHandle]).get
+    println(handleRestored)
+    json shouldBe "1"
+    handleRestored shouldBe AbiHandle(1)
   }
 }

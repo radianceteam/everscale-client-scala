@@ -13,8 +13,8 @@ object BocCacheTypeADT {
   case object Unpinned extends BocCacheType
 
   import com.radiance.jvm.DiscriminatorConfig._
-  implicit val encoder: Encoder[BocCacheType] =
-    extras.semiauto.deriveConfiguredEncoder[BocCacheType]
+  implicit val codec: Codec[BocCacheType] =
+    extras.semiauto.deriveConfiguredCodec[BocCacheType]
 }
 
 object BocErrorCodeEnum {
@@ -104,11 +104,33 @@ object ParamsOfBocCacheUnpin {
     deriveEncoder[ParamsOfBocCacheUnpin]
 }
 
+case class ParamsOfDecodeTvc(tvc: String, boc_cache: Option[BocCacheTypeADT.BocCacheType])
+
+object ParamsOfDecodeTvc {
+  implicit val encoder: Encoder[ParamsOfDecodeTvc] =
+    deriveEncoder[ParamsOfDecodeTvc]
+}
+
 case class ParamsOfEncodeBoc(builder: List[BuilderOpADT.BuilderOp], boc_cache: Option[BocCacheTypeADT.BocCacheType])
 
 object ParamsOfEncodeBoc {
   implicit val encoder: Encoder[ParamsOfEncodeBoc] =
     deriveEncoder[ParamsOfEncodeBoc]
+}
+
+case class ParamsOfEncodeTvc(
+  code: Option[String],
+  data: Option[String],
+  library: Option[String],
+  tick: Option[Boolean],
+  tock: Option[Boolean],
+  split_depth: Option[Long],
+  boc_cache: Option[BocCacheTypeADT.BocCacheType]
+)
+
+object ParamsOfEncodeTvc {
+  implicit val encoder: Encoder[ParamsOfEncodeTvc] =
+    deriveEncoder[ParamsOfEncodeTvc]
 }
 
 case class ParamsOfGetBlockchainConfig(block_boc: String)
@@ -132,6 +154,20 @@ object ParamsOfGetCodeFromTvc {
     deriveEncoder[ParamsOfGetCodeFromTvc]
 }
 
+case class ParamsOfGetCodeSalt(code: String, boc_cache: Option[BocCacheTypeADT.BocCacheType])
+
+object ParamsOfGetCodeSalt {
+  implicit val encoder: Encoder[ParamsOfGetCodeSalt] =
+    deriveEncoder[ParamsOfGetCodeSalt]
+}
+
+case class ParamsOfGetCompilerVersion(code: String)
+
+object ParamsOfGetCompilerVersion {
+  implicit val encoder: Encoder[ParamsOfGetCompilerVersion] =
+    deriveEncoder[ParamsOfGetCompilerVersion]
+}
+
 case class ParamsOfParse(boc: String)
 
 object ParamsOfParse {
@@ -144,6 +180,14 @@ object ParamsOfParseShardstate {
   implicit val encoder: Encoder[ParamsOfParseShardstate] =
     deriveEncoder[ParamsOfParseShardstate]
 }
+
+case class ParamsOfSetCodeSalt(code: String, salt: String, boc_cache: Option[BocCacheTypeADT.BocCacheType])
+
+object ParamsOfSetCodeSalt {
+  implicit val encoder: Encoder[ParamsOfSetCodeSalt] =
+    deriveEncoder[ParamsOfSetCodeSalt]
+}
+
 case class ResultOfBocCacheGet(boc: Option[String])
 
 object ResultOfBocCacheGet {
@@ -158,11 +202,32 @@ object ResultOfBocCacheSet {
     deriveDecoder[ResultOfBocCacheSet]
 }
 
+case class ResultOfDecodeTvc(
+  code: Option[String],
+  data: Option[String],
+  library: Option[String],
+  tick: Option[Boolean],
+  tock: Option[Boolean],
+  split_depth: Option[Long]
+)
+
+object ResultOfDecodeTvc {
+  implicit val decoder: Decoder[ResultOfDecodeTvc] =
+    deriveDecoder[ResultOfDecodeTvc]
+}
+
 case class ResultOfEncodeBoc(boc: String)
 
 object ResultOfEncodeBoc {
   implicit val decoder: Decoder[ResultOfEncodeBoc] =
     deriveDecoder[ResultOfEncodeBoc]
+}
+
+case class ResultOfEncodeTvc(tvc: String)
+
+object ResultOfEncodeTvc {
+  implicit val decoder: Decoder[ResultOfEncodeTvc] =
+    deriveDecoder[ResultOfEncodeTvc]
 }
 
 case class ResultOfGetBlockchainConfig(config_boc: String)
@@ -186,8 +251,29 @@ object ResultOfGetCodeFromTvc {
     deriveDecoder[ResultOfGetCodeFromTvc]
 }
 
+case class ResultOfGetCodeSalt(salt: Option[String])
+
+object ResultOfGetCodeSalt {
+  implicit val decoder: Decoder[ResultOfGetCodeSalt] =
+    deriveDecoder[ResultOfGetCodeSalt]
+}
+
+case class ResultOfGetCompilerVersion(version: Option[String])
+
+object ResultOfGetCompilerVersion {
+  implicit val decoder: Decoder[ResultOfGetCompilerVersion] =
+    deriveDecoder[ResultOfGetCompilerVersion]
+}
+
 case class ResultOfParse(parsed: Value)
+
 object ResultOfParse {
   implicit val decoder: Decoder[ResultOfParse] =
     deriveDecoder[ResultOfParse]
+}
+
+case class ResultOfSetCodeSalt(code: String)
+
+object ResultOfSetCodeSalt {
+  implicit val decoder: Decoder[ResultOfSetCodeSalt] = deriveDecoder[ResultOfSetCodeSalt]
 }

@@ -38,15 +38,13 @@ lazy val ton_client_scala = project
       "org.scalatest"              %% "scalatest-shouldmatchers" % scalaTestVersion % Test,
       "org.typelevel"              %% "cats-core"                % catsCoreVersion  % Test
     ),
-    pathToTestResources := baseDirectory
-      .in(`TON-SDK`)
-      .value
+    pathToTestResources := (`TON-SDK` / baseDirectory).value
       .getAbsoluteFile / "ton_client" / "src" / "tests" / "contracts",
-    pathToBridgeDll := baseDirectory.in(native).value.getAbsoluteFile / "build",
+    pathToBridgeDll := (native / baseDirectory).value.getAbsoluteFile / "build",
     Test / unmanagedResourceDirectories ++= Seq(pathToBridgeDll.value, pathToTestResources.value),
-    includeFilter in unmanagedResources in Compile := "*.dll" || "*.dll.a" || "*.dll.lib" || "*.so",
-    includeFilter in unmanagedResources in Test := "*",
-    test in assembly := {},
+    Compile / unmanagedResources / includeFilter  := "*.dll" || "*.dll.a" || "*.dll.lib" || "*.so",
+    Test / unmanagedResources / includeFilter := "*",
+    assembly / test := {},
     scalacOptions := Seq(
       "-Xfatal-warnings",
       "-encoding",
@@ -119,6 +117,7 @@ lazy val buildDllImpl = Def.task {
   }
 
   Process(s"git submodule init", new File("TON-SDK")).!
+  Process(s"git submodule update", new File("TON-SDK")).!
   Process(s"git checkout $currentBranch", new File("TON-SDK")).!
   Process(s"git pull", new File("TON-SDK")).!
   Process("node build", new File("TON-SDK/ton_client")).!
