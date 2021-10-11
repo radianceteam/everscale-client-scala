@@ -38,11 +38,10 @@ lazy val ton_client_scala = project
       "org.scalatest"              %% "scalatest-shouldmatchers" % scalaTestVersion % Test,
       "org.typelevel"              %% "cats-core"                % catsCoreVersion  % Test
     ),
-    pathToTestResources := (`TON-SDK` / baseDirectory).value
-      .getAbsoluteFile / "ton_client" / "src" / "tests" / "contracts",
+    pathToTestResources := (`TON-SDK` / baseDirectory).value.getAbsoluteFile / "ton_client" / "src" / "tests" / "contracts",
     pathToBridgeDll := (native / baseDirectory).value.getAbsoluteFile / "build",
     Test / unmanagedResourceDirectories ++= Seq(pathToBridgeDll.value, pathToTestResources.value),
-    Compile / unmanagedResources / includeFilter  := "*.dll" || "*.dll.a" || "*.dll.lib" || "*.so",
+    Compile / unmanagedResources / includeFilter := "*.dll" || "*.dll.a" || "*.dll.lib" || "*.so",
     Test / unmanagedResources / includeFilter := "*",
     assembly / test := {},
     scalacOptions := Seq(
