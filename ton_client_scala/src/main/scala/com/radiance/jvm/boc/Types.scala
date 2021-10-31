@@ -140,6 +140,13 @@ object ParamsOfGetBlockchainConfig {
     deriveEncoder[ParamsOfGetBlockchainConfig]
 }
 
+case class ParamsOfGetBocDepth(boc: String)
+
+object ParamsOfGetBocDepth {
+  implicit val encoder: Encoder[ParamsOfGetBocDepth] =
+    deriveEncoder[ParamsOfGetBocDepth]
+}
+
 case class ParamsOfGetBocHash(boc: String)
 
 object ParamsOfGetBocHash {
@@ -204,11 +211,16 @@ object ResultOfBocCacheSet {
 
 case class ResultOfDecodeTvc(
   code: Option[String],
+  code_hash: Option[String],
+  code_depth: Option[Long],
   data: Option[String],
+  data_hash: Option[String],
+  data_depth: Option[Long],
   library: Option[String],
   tick: Option[Boolean],
   tock: Option[Boolean],
-  split_depth: Option[Long]
+  split_depth: Option[Long],
+  compiler_version: Option[String]
 )
 
 object ResultOfDecodeTvc {
@@ -235,6 +247,13 @@ case class ResultOfGetBlockchainConfig(config_boc: String)
 object ResultOfGetBlockchainConfig {
   implicit val decoder: Decoder[ResultOfGetBlockchainConfig] =
     deriveDecoder[ResultOfGetBlockchainConfig]
+}
+
+case class ResultOfGetBocDepth(depth: Long)
+
+object ResultOfGetBocDepth {
+  implicit val decoder: Decoder[ResultOfGetBocDepth] =
+    deriveDecoder[ResultOfGetBocDepth]
 }
 
 case class ResultOfGetBocHash(hash: String)
