@@ -994,6 +994,7 @@ package boc {
   case class ParamsOfEncodeBoc(builder: List[BuilderOp], boc_cache: Option[BocCacheType])
   case class ParamsOfEncodeTvc(code: Option[String], data: Option[String], library: Option[String], tick: Option[Boolean], tock: Option[Boolean], split_depth: Option[Long], boc_cache: Option[BocCacheType])
   case class ParamsOfGetBlockchainConfig(block_boc: String)
+  case class ParamsOfGetBocDepth(boc: String)
   case class ParamsOfGetBocHash(boc: String)
   case class ParamsOfGetCodeFromTvc(tvc: String)
   case class ParamsOfGetCodeSalt(code: String, boc_cache: Option[BocCacheType])
@@ -1003,10 +1004,11 @@ package boc {
   case class ParamsOfSetCodeSalt(code: String, salt: String, boc_cache: Option[BocCacheType])
   case class ResultOfBocCacheGet(boc: Option[String])
   case class ResultOfBocCacheSet(boc_ref: String)
-  case class ResultOfDecodeTvc(code: Option[String], data: Option[String], library: Option[String], tick: Option[Boolean], tock: Option[Boolean], split_depth: Option[Long])
+  case class ResultOfDecodeTvc(code: Option[String], code_hash: Option[String], code_depth: Option[Long], data: Option[String], data_hash: Option[String], data_depth: Option[Long], library: Option[String], tick: Option[Boolean], tock: Option[Boolean], split_depth: Option[Long], compiler_version: Option[String])
   case class ResultOfEncodeBoc(boc: String)
   case class ResultOfEncodeTvc(tvc: String)
   case class ResultOfGetBlockchainConfig(config_boc: String)
+  case class ResultOfGetBocDepth(depth: Long)
   case class ResultOfGetBocHash(hash: String)
   case class ResultOfGetCodeFromTvc(code: String)
   case class ResultOfGetCodeSalt(salt: Option[String])
@@ -1061,6 +1063,11 @@ package boc {
    * @param block_boc block_boc
    */
   def getBlockchainConfig(block_boc: String): Future[Either[Throwable, ResultOfGetBlockchainConfig]]
+  /**
+   * Calculates BOC depth
+   * @param boc boc
+   */
+  def getBocDepth(boc: String): Future[Either[Throwable, ResultOfGetBocDepth]]
   /**
    * Calculates BOC root hash
    * @param boc boc

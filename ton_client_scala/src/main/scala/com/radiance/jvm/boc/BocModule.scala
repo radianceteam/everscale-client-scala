@@ -131,6 +131,19 @@ class BocModule(private val ctx: Context) {
   }
 
   /**
+   * Calculates BOC depth
+   * @param boc boc
+   */
+  def getBocDepth(boc: String): Future[Either[Throwable, ResultOfGetBocDepth]]= {
+    ctx.execAsync[ParamsOfGetBocDepth, ResultOfGetBocDepth](
+      "boc.get_boc_depth",
+      ParamsOfGetBocDepth(boc)
+    )
+  }
+
+
+
+  /**
    * Calculates BOC root hash
    * @param boc
    *   BOC encoded as base64
