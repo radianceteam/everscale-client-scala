@@ -265,6 +265,13 @@ object ParamsOfDecodeAccountData {
     deriveEncoder[ParamsOfDecodeAccountData]
 }
 
+case class ParamsOfDecodeBoc(params: List[AbiParam], boc: String, allow_partial: Boolean)
+
+object ParamsOfDecodeBoc {
+  implicit val encoder: Encoder[ParamsOfDecodeBoc] =
+    deriveEncoder[ParamsOfDecodeBoc]
+}
+
 case class ParamsOfDecodeInitialData(abi: Option[AbiADT.Abi], data: String)
 
 object ParamsOfDecodeInitialData {
@@ -373,11 +380,18 @@ object ResultOfAttachSignatureToMessageBody {
     deriveDecoder[ResultOfAttachSignatureToMessageBody]
 }
 
-case class ResultOfDecodeData(data: Value)
+case class ResultOfDecodeAccountData(data: Value)
 
-object ResultOfDecodeData {
-  implicit val decoder: Decoder[ResultOfDecodeData] =
-    deriveDecoder[ResultOfDecodeData]
+object ResultOfDecodeAccountData {
+  implicit val decoder: Decoder[ResultOfDecodeAccountData] =
+    deriveDecoder[ResultOfDecodeAccountData]
+}
+
+case class ResultOfDecodeBoc(data: Value)
+
+object ResultOfDecodeBoc {
+  implicit val decoder: Decoder[ResultOfDecodeBoc] =
+    deriveDecoder[ResultOfDecodeBoc]
 }
 
 case class ResultOfDecodeInitialData(initial_data: Option[Value], initial_pubkey: String)

@@ -7,7 +7,7 @@ package client {
   }
   case class BocConfig(cache_max_size: Option[Long])
   case class BuildInfoDependency(name: String, git_commit: String)
-  case class ClientConfig(network: Option[NetworkConfig], crypto: Option[CryptoConfig], abi: Option[AbiConfig], boc: Option[BocConfig])
+  case class ClientConfig(network: Option[NetworkConfig], crypto: Option[CryptoConfig], abi: Option[AbiConfig], boc: Option[BocConfig], proofs: Option[ProofsConfig], local_storage_path: Option[String])
   case class ClientError(code: Long, message: String, data: Value)
   object ClientErrorCodeEnum {
     sealed trait ClientErrorCode {
@@ -88,6 +88,9 @@ package client {
     case object InvalidParams extends ClientErrorCode {
       override val code: String = "23"
     }
+    case object LocalStorageError extends ClientErrorCode {
+      override val code: String = "35"
+    }
     case object NetModuleNotInit extends ClientErrorCode {
       override val code: String = "14"
     }
@@ -121,6 +124,7 @@ package client {
   case class NetworkConfig(server_address: Option[String], endpoints: Option[List[String]], network_retries_count: Option[Int], max_reconnect_timeout: Option[Long], reconnect_timeout: Option[Long], message_retries_count: Option[Int], message_processing_timeout: Option[Long], wait_for_timeout: Option[Long], out_of_sync_threshold: Option[Long], sending_endpoint_count: Option[Long], latency_detection_interval: Option[Long], max_latency: Option[Long], query_timeout: Option[Long], access_key: Option[String])
   case class ParamsOfAppRequest(app_request_id: Long, request_data: Value)
   case class ParamsOfResolveAppRequest(app_request_id: Long, result: AppRequestResult)
+  case class ProofsConfig(cache_in_local_storage: Option[Boolean])
   case class ResultOfBuildInfo(build_number: Long, dependencies: List[BuildInfoDependency])
   case class ResultOfGetApiReference(api: API)
   case class ResultOfVersion(version: String)
@@ -742,6 +746,7 @@ package abi {
   case class ParamsOfAttachSignature(abi: Abi, public_key: String, message: String, signature: String)
   case class ParamsOfAttachSignatureToMessageBody(abi: Abi, public_key: String, message: String, signature: String)
   case class ParamsOfDecodeAccountData(abi: Abi, data: String)
+  case class ParamsOfDecodeBoc(params: List[AbiParam], boc: String, allow_partial: Boolean)
   case class ParamsOfDecodeInitialData(abi: Option[Abi], data: String)
   case class ParamsOfDecodeMessage(abi: Abi, message: String)
   case class ParamsOfDecodeMessageBody(abi: Abi, body: String, is_internal: Boolean)
@@ -752,7 +757,8 @@ package abi {
   case class ParamsOfUpdateInitialData(abi: Option[Abi], data: String, initial_data: Option[Value], initial_pubkey: Option[String], boc_cache: Option[BocCacheType])
   case class ResultOfAttachSignature(message: String, message_id: String)
   case class ResultOfAttachSignatureToMessageBody(body: String)
-  case class ResultOfDecodeData(data: Value)
+  case class ResultOfDecodeAccountData(data: Value)
+  case class ResultOfDecodeBoc(data: Value)
   case class ResultOfDecodeInitialData(initial_data: Option[Value], initial_pubkey: String)
   case class ResultOfEncodeAccount(account: String, id: String)
   case class ResultOfEncodeInternalMessage(message: String, address: String, message_id: String)
@@ -800,7 +806,29 @@ package abi {
    * @param abi abi
    * @param data data
    */
-  def decodeAccountData(abi: Abi, data: String): Future[Either[Throwable, ResultOfDecodeData]]
+  def decodeAccountData(abi: Abi, data: String): Future[Either[Throwable, ResultOfDecodeAccountData]]
+  /**
+   * Decodes BOC into JSON as a set of provided parameters.
+   * Solidity functions use ABI types for [builder encoding](https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmbuilderstore).
+   * The simplest way to decode such a BOC is to use ABI decoding.
+   * ABI has it own rules for fields layout in cells so manually encoded
+   * BOC can not be described in terms of ABI rules.
+   *
+   * To solve this problem we introduce a new ABI type `Ref(<ParamType>)`
+   * which allows to store `ParamType` ABI parameter in cell reference and, thus,
+   * decode manually encoded BOCs. This type is available only in `decode_boc` function
+   * and will not be available in ABI messages encoding until it is included into some ABI revision.
+   *
+   * Such BOC descriptions covers most users needs. If someone wants to decode some BOC which
+   * can not be described by these rules (i.e. BOC with TLB containing constructors of flags
+   * defining some parsing conditions) then they can decode the fields up to fork condition,
+   * check the parsed data manually, expand the parsing schema and then decode the whole BOC
+   * with the full schema.
+   * @param params params
+   * @param boc boc
+   * @param allow_partial allow_partial
+   */
+  def decodeBoc(params: List[AbiParam], boc: String, allow_partial: Boolean): Future[Either[Throwable, ResultOfDecodeBoc]]
   /**
    * Decodes initial values of a contract's static variables and owner's public key from account initial data This operation is applicable only for initial account data (before deploy). If the contract is already deployed, its data doesn't contain this data section any more.
    * @param abi Initial data is decoded if this parameter is provided
@@ -2165,4 +2193,112 @@ package debot {
    * @param debot_handle debot_handle
    */
   def start(debot_handle: DebotHandle): Future[Either[Throwable, Unit]]
+}
+package proofs {
+  case class ParamsOfProofBlockData(block: Value)
+  case class ParamsOfProofTransactionData(transaction: Value)
+  object ProofsErrorCodeEnum {
+    sealed trait ProofsErrorCode {
+      val code: String
+    }
+    case object DataDiffersFromProven extends ProofsErrorCode {
+      override val code: String = "904"
+    }
+    case object InternalError extends ProofsErrorCode {
+      override val code: String = "903"
+    }
+    case object InvalidData extends ProofsErrorCode {
+      override val code: String = "901"
+    }
+    case object ProofCheckFailed extends ProofsErrorCode {
+      override val code: String = "902"
+    }
+  }
+}
+package proofs {
+  /**
+   * Proves that a given block's data, which is queried from TONOS API, can be trusted.
+   * This function checks block proofs and compares given data with the proven.
+   * If the given data differs from the proven, the exception will be thrown.
+   * The input param is a single block's JSON object, which was queried from DApp server using
+   * functions such as `net.query`, `net.query_collection` or `net.wait_for_collection`.
+   * If block's BOC is not provided in the JSON, it will be queried from DApp server
+   * (in this case it is required to provide at least `id` of block).
+   *
+   * Please note, that joins (like `signatures` in `Block`) are separated entities and not supported,
+   * so function will throw an exception in a case if JSON being checked has such entities in it.
+   *
+   * If `cache_in_local_storage` in config is set to `true` (default), downloaded proofs and
+   * master-chain BOCs are saved into the persistent local storage (e.g. file system for native
+   * environments or browser's IndexedDB for the web); otherwise all the data is cached only in
+   * memory in current client's context and will be lost after destruction of the client.
+   *
+   * **Why Proofs are needed**
+   *
+   * Proofs are needed to ensure that the data downloaded from a DApp server is real blockchain
+   * data. Checking proofs can protect from the malicious DApp server which can potentially provide
+   * fake data, or also from "Man in the Middle" attacks class.
+   *
+   * **What Proofs are**
+   *
+   * Simply, proof is a list of signatures of validators', which have signed this particular master-
+   * block.
+   *
+   * The very first validator set's public keys are included in the zero-state. Whe know a root hash
+   * of the zero-state, because it is stored in the network configuration file, it is our authority
+   * root. For proving zero-state it is enough to calculate and compare its root hash.
+   *
+   * In each new validator cycle the validator set is changed. The new one is stored in a key-block,
+   * which is signed by the validator set, which we already trust, the next validator set will be
+   * stored to the new key-block and signed by the current validator set, and so on.
+   *
+   * In order to prove any block in the master-chain we need to check, that it has been signed by
+   * a trusted validator set. So we need to check all key-blocks' proofs, started from the zero-state
+   * and until the block, which we want to prove. But it can take a lot of time and traffic to
+   * download and prove all key-blocks on a client. For solving this, special trusted blocks are used
+   * in TON-SDK.
+   *
+   * The trusted block is the authority root, as well, as the zero-state. Each trusted block is the
+   * `id` (e.g. `root_hash`) of the already proven key-block. There can be plenty of trusted
+   * blocks, so there can be a lot of authority roots. The hashes of trusted blocks for MainNet
+   * and DevNet are hardcoded in SDK in a separated binary file (trusted_key_blocks.bin) and can
+   * be updated for each release.
+   * In future SDK releases, one will also be able to provide their hashes of trusted blocks for
+   * other networks, besides for MainNet and DevNet.
+   * By using trusted key-blocks, in order to prove any block, we can prove chain of key-blocks to
+   * the closest previous trusted key-block, not only to the zero-state.
+   *
+   * But shard-blocks don't have proofs on DApp server. In this case, in order to prove any shard-
+   * block data, we search for a corresponding master-block, which contains the root hash of this
+   * shard-block, or some shard block which is linked to that block in shard-chain. After proving
+   * this master-block, we traverse through each link and calculate and compare hashes with links,
+   * one-by-one. After that we can ensure that this shard-block has also been proven.
+   * @param block block
+   */
+  def proofBlockData(block: Value): Future[Either[Throwable, Unit]]
+  /**
+   * Proves that a given transaction's data, which is queried from TONOS API, can be trusted.
+   * This function requests the corresponding block, checks block proofs, ensures that given transaction
+   * exists in the proven block and compares given data with the proven.
+   * If the given data differs from the proven, the exception will be thrown.
+   * The input parameter is a single transaction's JSON object (see params description),
+   * which was queried from TONOS API using functions such as `net.query`, `net.query_collection`
+   * or `net.wait_for_collection`.
+   *
+   * If transaction's BOC and/or `block_id` are not provided in the JSON, they will be queried from
+   * TONOS API (in this case it is required to provide at least `id` of transaction).
+   *
+   * Please note, that joins (like `account`, `in_message`, `out_messages`, etc. in `Transaction`
+   * entity) are separated entities and not supported, so function will throw an exception in a case
+   * if JSON being checked has such entities in it.
+   *
+   * If `cache_in_local_storage` in config is set to `true` (default), downloaded proofs and
+   * master-chain BOCs are saved into the persistent local storage (e.g. file system for native
+   * environments or browser's IndexedDB for the web); otherwise all the data is cached only in
+   * memory in current client's context and will be lost after destruction of the client.
+   *
+   * For more information about proofs checking, see description of `proof_block_data` function.
+   * @param transaction transaction
+   */
+  def proofTransactionData(transaction: Value): Future[Either[Throwable, Unit]]
 }
