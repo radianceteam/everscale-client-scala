@@ -45,7 +45,9 @@ case class ClientConfig(
   network: Option[NetworkConfig],
   crypto: Option[CryptoConfig] = None,
   abi: Option[AbiConfig] = None,
-  boc: Option[BocConfig] = None
+  boc: Option[BocConfig] = None,
+  proofs: Option[ProofsConfig] = None,
+  local_storage_path: Option[String] = None
 )
 
 object ClientConfig {
@@ -160,6 +162,10 @@ object ClientErrorCodeEnum {
     val code: String = "23"
   }
 
+  case object LocalStorageError extends ClientErrorCode {
+    override val code: String = "35"
+  }
+
   case object ContractsAddressConversionFailed extends ClientErrorCode {
     val code: String = "24"
   }
@@ -248,6 +254,12 @@ case class ParamsOfResolveAppRequest(
 object ParamsOfResolveAppRequest {
   implicit val encoder: Encoder[ParamsOfResolveAppRequest] =
     deriveEncoder[ParamsOfResolveAppRequest]
+}
+
+case class ProofsConfig(cache_in_local_storage: Option[Boolean])
+
+object ProofsConfig {
+  implicit val encoder: Encoder[ProofsConfig] = deriveEncoder[ProofsConfig]
 }
 
 case class ResultOfBuildInfo(
