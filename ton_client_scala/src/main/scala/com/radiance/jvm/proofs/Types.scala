@@ -10,6 +10,12 @@ object ParamsOfProofBlockData {
   implicit val encoder: Encoder[ParamsOfProofBlockData] = deriveEncoder[ParamsOfProofBlockData]
 }
 
+case class ParamsOfProofMessageData(message: Value)
+
+object ParamsOfProofMessageData {
+  implicit val encoder: Encoder[ParamsOfProofMessageData] = deriveEncoder[ParamsOfProofMessageData]
+}
+
 case class ParamsOfProofTransactionData(transaction: Value)
 
 object ParamsOfProofTransactionData {

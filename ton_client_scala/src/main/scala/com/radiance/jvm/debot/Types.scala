@@ -87,6 +87,10 @@ object DebotErrorCodeEnum {
     override val code: String = "809"
   }
 
+  case object DebotNoCode extends DebotErrorCode {
+    override val code: String = "813"
+  }
+
   case object DebotOperationRejected extends DebotErrorCode {
     override val code: String = "812"
   }
@@ -117,7 +121,8 @@ case class DebotInfo(
   language: Option[String],
   dabi: Option[String],
   icon: Option[String],
-  interfaces: List[String]
+  interfaces: List[String],
+  dabiVersion: String
 )
 
 object DebotInfo {
