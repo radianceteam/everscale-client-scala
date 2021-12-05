@@ -183,6 +183,31 @@ class AbiModule(ctx: Context) {
   }
 
   /**
+   * Encodes initial account data with initial values for the contract's static variables and owner's public key into a
+   * data BOC that can be passed to `encode_tvc` function afterwards. This function is analogue of `tvm.buildDataInit`
+   * function in Solidity.
+   * @param abi
+   *   abi
+   * @param initial_data
+   *   `abi` parameter should be provided to set initial data
+   * @param initial_pubkey
+   *   initial_pubkey
+   * @param boc_cache
+   *   boc_cache
+   */
+  def encodeInitialData(
+    abi: Option[AbiADT.Abi],
+    initial_data: Option[Value],
+    initial_pubkey: Option[String],
+    boc_cache: Option[BocCacheTypeADT.BocCacheType]
+  ): Future[Either[Throwable, ResultOfEncodeInitialData]] = {
+    ctx.execAsync[ParamsOfEncodeInitialData, ResultOfEncodeInitialData](
+      "abi.encode_initial_data",
+      ParamsOfEncodeInitialData(abi, initial_data, initial_pubkey, boc_cache)
+    )
+  }
+
+  /**
    * Encodes an internal ABI-compatible message Allows to encode deploy and function call messages.
    *
    * Use cases include messages of any possible type:

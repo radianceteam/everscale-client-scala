@@ -310,6 +310,18 @@ object ParamsOfEncodeAccount {
     deriveEncoder[ParamsOfEncodeAccount]
 }
 
+case class ParamsOfEncodeInitialData(
+  abi: Option[AbiADT.Abi],
+  initial_data: Option[Value],
+  initial_pubkey: Option[String],
+  boc_cache: Option[BocCacheTypeADT.BocCacheType]
+)
+
+object ParamsOfEncodeInitialData {
+  implicit val encoder: Encoder[ParamsOfEncodeInitialData] =
+    deriveEncoder[ParamsOfEncodeInitialData]
+}
+
 case class ParamsOfEncodeInternalMessage(
   abi: Option[AbiADT.Abi],
   address: Option[String],
@@ -406,6 +418,13 @@ case class ResultOfEncodeAccount(account: String, id: String)
 object ResultOfEncodeAccount {
   implicit val decoder: Decoder[ResultOfEncodeAccount] =
     deriveDecoder[ResultOfEncodeAccount]
+}
+
+case class ResultOfEncodeInitialData(data: String)
+
+object ResultOfEncodeInitialData {
+  implicit val decoder: Decoder[ResultOfEncodeInitialData] =
+    deriveDecoder[ResultOfEncodeInitialData]
 }
 
 case class ResultOfEncodeInternalMessage(
