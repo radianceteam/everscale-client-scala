@@ -751,6 +751,7 @@ package abi {
   case class ParamsOfDecodeMessage(abi: Abi, message: String)
   case class ParamsOfDecodeMessageBody(abi: Abi, body: String, is_internal: Boolean)
   case class ParamsOfEncodeAccount(state_init: StateInitSource, balance: Option[BigInt], last_trans_lt: Option[BigInt], last_paid: Option[Long], boc_cache: Option[BocCacheType])
+  case class ParamsOfEncodeInitialData(abi: Option[Abi], initial_data: Option[Value], initial_pubkey: Option[String], boc_cache: Option[BocCacheType])
   case class ParamsOfEncodeInternalMessage(abi: Option[Abi], address: Option[String], src_address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], value: String, bounce: Option[Boolean], enable_ihr: Option[Boolean])
   case class ParamsOfEncodeMessage(abi: Abi, address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], signer: Signer, processing_try_index: Option[Long])
   case class ParamsOfEncodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long])
@@ -761,6 +762,7 @@ package abi {
   case class ResultOfDecodeBoc(data: Value)
   case class ResultOfDecodeInitialData(initial_data: Option[Value], initial_pubkey: String)
   case class ResultOfEncodeAccount(account: String, id: String)
+  case class ResultOfEncodeInitialData(data: String)
   case class ResultOfEncodeInternalMessage(message: String, address: String, message_id: String)
   case class ResultOfEncodeMessage(message: String, data_to_sign: Option[String], address: String, message_id: String)
   case class ResultOfEncodeMessageBody(body: String, data_to_sign: Option[String])
@@ -860,6 +862,15 @@ package abi {
    * @param boc_cache The BOC itself returned if no cache type provided
    */
   def encodeAccount(state_init: StateInitSource, balance: Option[BigInt], last_trans_lt: Option[BigInt], last_paid: Option[Long], boc_cache: Option[BocCacheType]): Future[Either[Throwable, ResultOfEncodeAccount]]
+  /**
+   * Encodes initial account data with initial values for the contract's static variables and owner's public key into a data BOC that can be passed to `encode_tvc` function afterwards.
+   * This function is analogue of `tvm.buildDataInit` function in Solidity.
+   * @param abi abi
+   * @param initial_data `abi` parameter should be provided to set initial data
+   * @param initial_pubkey initial_pubkey
+   * @param boc_cache boc_cache
+   */
+  def encodeInitialData(abi: Option[Abi], initial_data: Option[Value], initial_pubkey: Option[String], boc_cache: Option[BocCacheType]): Future[Either[Throwable, ResultOfEncodeInitialData]]
   /**
    * Encodes an internal ABI-compatible message
    * Allows to encode deploy and function call messages.
