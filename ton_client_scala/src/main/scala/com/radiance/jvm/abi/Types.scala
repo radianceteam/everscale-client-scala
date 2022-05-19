@@ -234,6 +234,13 @@ object MessageSourceADT {
     extras.semiauto.deriveConfiguredEncoder[MessageSource]
 }
 
+case class ParamsOfAbiEncodeBoc(params: List[AbiParam], data: Value, boc_cache: Option[BocCacheTypeADT.BocCacheType])
+
+object ParamsOfAbiEncodeBoc {
+  implicit val encoder: Encoder[ParamsOfAbiEncodeBoc] =
+    deriveEncoder[ParamsOfAbiEncodeBoc]
+}
+
 case class ParamsOfAttachSignature(
   abi: AbiADT.Abi,
   public_key: String,
@@ -258,7 +265,7 @@ object ParamsOfAttachSignatureToMessageBody {
     deriveEncoder[ParamsOfAttachSignatureToMessageBody]
 }
 
-case class ParamsOfDecodeAccountData(abi: AbiADT.Abi, data: String)
+case class ParamsOfDecodeAccountData(abi: AbiADT.Abi, data: String, allow_partial: Option[Boolean])
 
 object ParamsOfDecodeAccountData {
   implicit val encoder: Encoder[ParamsOfDecodeAccountData] =
@@ -272,14 +279,14 @@ object ParamsOfDecodeBoc {
     deriveEncoder[ParamsOfDecodeBoc]
 }
 
-case class ParamsOfDecodeInitialData(abi: Option[AbiADT.Abi], data: String)
+case class ParamsOfDecodeInitialData(abi: Option[AbiADT.Abi], data: String, allow_partial: Option[Boolean])
 
 object ParamsOfDecodeInitialData {
   implicit val encoder: Encoder[ParamsOfDecodeInitialData] =
     deriveEncoder[ParamsOfDecodeInitialData]
 }
 
-case class ParamsOfDecodeMessage(abi: AbiADT.Abi, message: String)
+case class ParamsOfDecodeMessage(abi: AbiADT.Abi, message: String, allow_partial: Option[Boolean])
 
 object ParamsOfDecodeMessage {
   implicit val encoder: Encoder[ParamsOfDecodeMessage] =
@@ -289,7 +296,8 @@ object ParamsOfDecodeMessage {
 case class ParamsOfDecodeMessageBody(
   abi: AbiADT.Abi,
   body: String,
-  is_internal: Boolean
+  is_internal: Boolean,
+  allow_partial: Option[Boolean]
 )
 
 object ParamsOfDecodeMessageBody {
@@ -376,6 +384,13 @@ case class ParamsOfUpdateInitialData(
 object ParamsOfUpdateInitialData {
   implicit val encoder: Encoder[ParamsOfUpdateInitialData] =
     deriveEncoder[ParamsOfUpdateInitialData]
+}
+
+case class ResultOfAbiEncodeBoc(boc: String)
+
+object ResultOfAbiEncodeBoc {
+  implicit val decoder: Decoder[ResultOfAbiEncodeBoc] =
+    deriveDecoder[ResultOfAbiEncodeBoc]
 }
 
 case class ResultOfAttachSignature(message: String, message_id: String)

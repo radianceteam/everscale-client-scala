@@ -233,11 +233,35 @@ case class NetworkConfig(
   latency_detection_interval: Option[Long] = None,
   max_latency: Option[Long] = None,
   query_timeout: Option[Long] = None,
+  queries_protocol: Option[NetworkQueriesProtocolEnum.NetworkQueriesProtocol] = None,
+  first_remp_status_timeout: Option[Long] = None,
+  next_remp_status_timeout: Option[Long] = None,
   access_key: Option[String] = None
 )
 
 object NetworkConfig {
   implicit val encoder: Encoder[NetworkConfig] = deriveEncoder[NetworkConfig]
+}
+
+object NetworkQueriesProtocolEnum {
+
+  /**
+   * Network protocol used to perform GraphQL queries.
+   */
+  sealed trait NetworkQueriesProtocol
+
+  /**
+   * Each GraphQL query uses separate HTTP request.
+   */
+  case object HTTP extends NetworkQueriesProtocol
+
+  /**
+   * All GraphQL queries will be served using single web socket connection.
+   */
+  case object WS extends NetworkQueriesProtocol
+
+  implicit val encoder: Encoder[NetworkQueriesProtocol] =
+    extras.semiauto.deriveEnumerationEncoder[NetworkQueriesProtocol]
 }
 
 case class ParamsOfAppRequest(app_request_id: Long, request_data: Value)

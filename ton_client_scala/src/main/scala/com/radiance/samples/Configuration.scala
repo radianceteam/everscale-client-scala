@@ -9,20 +9,24 @@ object Configuration {
     import scala.concurrent.ExecutionContext
 
     val networkConfig: NetworkConfig = NetworkConfig(
-      "net.ton.dev".some, // server_address: Option[String]
-      None, // endpoints:                  Option[List[String]]
-      5.some, // network_retries_count:      Option[Int]
-      30000L.some, // max_reconnect_timeout:      Option[Long]
-      30000L.some, // reconnect_timeout:          Option[Long]
-      5.some, // message_retries_count:      Option[Int]
-      60000L.some, // message_processing_timeout: Option[Long]
-      60000L.some, // wait_for_timeout:           Option[Long]
-      30000L.some, // out_of_sync_threshold:      Option[Long]
-      1L.some, // sending_endpoint_count:    Option[Long]
-      5000L.some, // latency_detection_interval: Option[Long]
-      5000L.some, // max_latency: Option[Long]
-      3000L.some, // query_timeout: Option[Long],
-      "".some // access_key:                 Option[String]
+      server_address = "net.ton.dev".some: Option[String],
+      endpoints = None: Option[List[String]],
+      network_retries_count = 5.some: Option[Int],
+      max_reconnect_timeout = 30000L.some: Option[Long],
+      reconnect_timeout = 30000L.some: Option[Long],
+      message_retries_count = 5.some: Option[Int],
+      message_processing_timeout = 60000L.some: Option[Long],
+      wait_for_timeout = 60000L.some: Option[Long],
+      out_of_sync_threshold = 30000L.some: Option[Long],
+      sending_endpoint_count = 1L.some: Option[Long],
+      latency_detection_interval = 5000L.some: Option[Long],
+      max_latency = 5000L.some: Option[Long],
+      query_timeout = 3000L.some: Option[Long],
+      queries_protocol =
+        NetworkQueriesProtocolEnum.HTTP.some: Option[NetworkQueriesProtocolEnum.NetworkQueriesProtocol],
+      first_remp_status_timeout = 60000L.some: Option[Long],
+      next_remp_status_timeout = 60000L.some: Option[Long],
+      access_key = "access_key".some: Option[String]
     )
 
     val cryptoConfig: CryptoConfig = CryptoConfig(

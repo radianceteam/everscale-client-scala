@@ -242,7 +242,8 @@ class AbiModuleTest extends AnyFlatSpec with TestUtils {
           "abi.decode_message",
           ParamsOfDecodeMessage(
             events_abi,
-            message
+            message,
+            None
           )
         )
 
@@ -257,7 +258,8 @@ class AbiModuleTest extends AnyFlatSpec with TestUtils {
           ParamsOfDecodeMessageBody(
             events_abi,
             body,
-            is_internal = parsed.parsed.hcursor.get[String]("msg_type_name").get == "Internal"
+            is_internal = parsed.parsed.hcursor.get[String]("msg_type_name").get == "Internal",
+            None
           )
         )
       assert(result == result_body)
@@ -298,7 +300,8 @@ class AbiModuleTest extends AnyFlatSpec with TestUtils {
         abi = events_abi,
         body =
           "te6ccgEBAgEAlgAB4a3f2/jCeWWvgMoAXOakv3VSD56sQrDPT76n1cbrSvpZ0BCs0KEUy2Duvo3zPExePONW3TYy0MCA1i+FFRXcSIXTHxAj/Hd67jWQF7peccWoU/dbMCBJBB6YdPCVZcJlJkAAAF0ZyXLg19VzGQVviwSgAQBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-        is_internal = false
+        is_internal = false,
+        None
       )
     )
 

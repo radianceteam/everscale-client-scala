@@ -50,63 +50,57 @@ object ParamsOfWaitForTransaction {
     deriveEncoder[ParamsOfWaitForTransaction]
 }
 object ProcessingErrorCodeEnum {
-
   sealed trait ProcessingErrorCode {
     val code: String
   }
-
-  case object MessageAlreadyExpired extends ProcessingErrorCode {
-    override val code: String = "501"
-  }
-
-  case object MessageHasNotDestinationAddress extends ProcessingErrorCode {
-    override val code: String = "502"
-  }
-
-  case object CanNotBuildMessageCell extends ProcessingErrorCode {
-    override val code: String = "503"
-  }
-
-  case object FetchBlockFailed extends ProcessingErrorCode {
-    override val code: String = "504"
-  }
-
-  case object SendMessageFailed extends ProcessingErrorCode {
-    override val code: String = "505"
-  }
-
-  case object InvalidMessageBoc extends ProcessingErrorCode {
-    override val code: String = "506"
-  }
-
-  case object MessageExpired extends ProcessingErrorCode {
-    override val code: String = "507"
-  }
-
-  case object TransactionWaitTimeout extends ProcessingErrorCode {
-    override val code: String = "508"
-  }
-
-  case object InvalidBlockReceived extends ProcessingErrorCode {
-    override val code: String = "509"
-  }
-
-  case object CanNotCheckBlockShard extends ProcessingErrorCode {
-    override val code: String = "510"
-  }
-
   case object BlockNotFound extends ProcessingErrorCode {
     override val code: String = "511"
   }
-
-  case object InvalidData extends ProcessingErrorCode {
-    override val code: String = "512"
+  case object CanNotBuildMessageCell extends ProcessingErrorCode {
+    override val code: String = "503"
   }
-
+  case object CanNotCheckBlockShard extends ProcessingErrorCode {
+    override val code: String = "510"
+  }
   case object ExternalSignerMustNotBeUsed extends ProcessingErrorCode {
     override val code: String = "513"
   }
-
+  case object FetchBlockFailed extends ProcessingErrorCode {
+    override val code: String = "504"
+  }
+  case object InvalidBlockReceived extends ProcessingErrorCode {
+    override val code: String = "509"
+  }
+  case object InvalidData extends ProcessingErrorCode {
+    override val code: String = "512"
+  }
+  case object InvalidMessageBoc extends ProcessingErrorCode {
+    override val code: String = "506"
+  }
+  case object InvalidRempStatus extends ProcessingErrorCode {
+    override val code: String = "515"
+  }
+  case object MessageAlreadyExpired extends ProcessingErrorCode {
+    override val code: String = "501"
+  }
+  case object MessageExpired extends ProcessingErrorCode {
+    override val code: String = "507"
+  }
+  case object MessageHasNotDestinationAddress extends ProcessingErrorCode {
+    override val code: String = "502"
+  }
+  case object MessageRejected extends ProcessingErrorCode {
+    override val code: String = "514"
+  }
+  case object NextRempStatusTimeout extends ProcessingErrorCode {
+    override val code: String = "516"
+  }
+  case object SendMessageFailed extends ProcessingErrorCode {
+    override val code: String = "505"
+  }
+  case object TransactionWaitTimeout extends ProcessingErrorCode {
+    override val code: String = "508"
+  }
 }
 
 object ProcessingEventADT {
@@ -116,6 +110,11 @@ object ProcessingEventADT {
   case class FetchNextBlockFailed(shard_block_id: String, message_id: String, message: String, error: ClientError)
       extends ProcessingEvent
   case class MessageExpired(message_id: String, message: String, error: ClientError) extends ProcessingEvent
+  case class RempError(error: ClientError) extends ProcessingEvent
+  case class RempIncludedIntoAcceptedBlock(message_id: String, timestamp: BigInt, json: Value) extends ProcessingEvent
+  case class RempIncludedIntoBlock(message_id: String, timestamp: BigInt, json: Value) extends ProcessingEvent
+  case class RempOther(message_id: String, timestamp: BigInt, json: Value) extends ProcessingEvent
+  case class RempSentToValidators(message_id: String, timestamp: BigInt, json: Value) extends ProcessingEvent
   case class SendFailed(shard_block_id: String, message_id: String, message: String, error: ClientError)
       extends ProcessingEvent
 

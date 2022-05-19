@@ -121,7 +121,15 @@ package client {
   }
   /** Crypto config. */
   case class CryptoConfig(mnemonic_dictionary: Option[Long], mnemonic_word_count: Option[Long], hdkey_derivation_path: Option[String])
-  case class NetworkConfig(server_address: Option[String], endpoints: Option[List[String]], network_retries_count: Option[Int], max_reconnect_timeout: Option[Long], reconnect_timeout: Option[Long], message_retries_count: Option[Int], message_processing_timeout: Option[Long], wait_for_timeout: Option[Long], out_of_sync_threshold: Option[Long], sending_endpoint_count: Option[Long], latency_detection_interval: Option[Long], max_latency: Option[Long], query_timeout: Option[Long], access_key: Option[String])
+  case class NetworkConfig(server_address: Option[String], endpoints: Option[List[String]], network_retries_count: Option[Int], max_reconnect_timeout: Option[Long], reconnect_timeout: Option[Long], message_retries_count: Option[Int], message_processing_timeout: Option[Long], wait_for_timeout: Option[Long], out_of_sync_threshold: Option[Long], sending_endpoint_count: Option[Long], latency_detection_interval: Option[Long], max_latency: Option[Long], query_timeout: Option[Long], queries_protocol: Option[NetworkQueriesProtocol], first_remp_status_timeout: Option[Long], next_remp_status_timeout: Option[Long], access_key: Option[String])
+  object NetworkQueriesProtocolEnum {
+    /** Network protocol used to perform GraphQL queries. */
+    sealed trait NetworkQueriesProtocol
+    /** Each GraphQL query uses separate HTTP request. */
+    case object HTTP extends NetworkQueriesProtocol
+    /** All GraphQL queries will be served using single web socket connection. */
+    case object WS extends NetworkQueriesProtocol
+  }
   case class ParamsOfAppRequest(app_request_id: Long, request_data: Value)
   case class ParamsOfResolveAppRequest(app_request_id: Long, result: AppRequestResult)
   case class ProofsConfig(cache_in_local_storage: Option[Boolean])
@@ -145,7 +153,15 @@ package client {
 }
 package crypto {
   case class AesInfo(mode: CipherMode, iv: Option[String])
-  case class AesParams(mode: CipherMode, key: String, iv: Option[String])
+  case class AesParamsEB(mode: CipherMode, key: String, iv: Option[String])
+  object BoxEncryptionAlgorithmADT {
+    sealed trait BoxEncryptionAlgorithm
+    case class ChaCha20(value: ChaCha20ParamsCB) extends BoxEncryptionAlgorithm
+    case class NaclBox(value: NaclBoxParamsCB) extends BoxEncryptionAlgorithm
+    case class NaclSecretBox(value: NaclSecretBoxParamsCB) extends BoxEncryptionAlgorithm
+  }
+  case class ChaCha20ParamsCB(nonce: String)
+  case class ChaCha20ParamsEB(key: String, nonce: String)
   object CipherModeEnum {
     sealed trait CipherMode
     case object CBC extends CipherMode
@@ -153,6 +169,17 @@ package crypto {
     case object CTR extends CipherMode
     case object ECB extends CipherMode
     case object OFB extends CipherMode
+  }
+  case class CryptoBoxHandle(value: BigInt) extends AnyVal
+  object CryptoBoxSecretADT {
+    /** Crypto Box Secret. */
+    sealed trait CryptoBoxSecret
+    /** Crypto Box Secret. */
+    case class EncryptedSecret(encrypted_secret: String) extends CryptoBoxSecret
+    /** Crypto Box Secret. */
+    case class PredefinedSeedPhrase(phrase: String, dictionary: Long, wordcount: Long) extends CryptoBoxSecret
+    /** Crypto Box Secret. */
+    case class RandomSeedPhrase(dictionary: Long, wordcount: Long) extends CryptoBoxSecret
   }
   object CryptoErrorCodeEnum {
     sealed trait CryptoErrorCode {
@@ -179,6 +206,15 @@ package crypto {
     case object CannotCreateCipher extends CryptoErrorCode {
       override val code: String = "126"
     }
+    case object CryptoBoxNotRegistered extends CryptoErrorCode {
+      override val code: String = "130"
+    }
+    case object CryptoBoxSecretDeserializationError extends CryptoErrorCode {
+      override val code: String = "133"
+    }
+    case object CryptoBoxSecretSerializationError extends CryptoErrorCode {
+      override val code: String = "132"
+    }
     case object DecryptDataError extends CryptoErrorCode {
       override val code: String = "128"
     }
@@ -191,6 +227,9 @@ package crypto {
     case object InvalidBigInt extends CryptoErrorCode {
       override val code: String = "107"
     }
+    case object InvalidCryptoBoxType extends CryptoErrorCode {
+      override val code: String = "131"
+    }
     case object InvalidFactorizeChallenge extends CryptoErrorCode {
       override val code: String = "106"
     }
@@ -202,6 +241,9 @@ package crypto {
     }
     case object InvalidKeySize extends CryptoErrorCode {
       override val code: String = "109"
+    }
+    case object InvalidNonceSize extends CryptoErrorCode {
+      override val code: String = "134"
     }
     case object InvalidPublicKey extends CryptoErrorCode {
       override val code: String = "100"
@@ -242,21 +284,54 @@ package crypto {
   }
   object EncryptionAlgorithmADT {
     sealed trait EncryptionAlgorithm
-    case class AES(value: AesParams) extends EncryptionAlgorithm
+    case class AES(value: AesParamsEB) extends EncryptionAlgorithm
+    case class ChaCha20(value: ChaCha20ParamsEB) extends EncryptionAlgorithm
+    case class NaclBox(value: NaclBoxParamsEB) extends EncryptionAlgorithm
+    case class NaclSecretBox(value: NaclSecretBoxParamsEB) extends EncryptionAlgorithm
   }
   case class EncryptionBoxHandle(value: BigInt) extends AnyVal
-  /** Encryption box information */
+  /** Encryption box information. */
   case class EncryptionBoxInfo(hdpath: Option[String], algorithm: Option[String], options: Option[Value], public: Option[Value])
   case class KeyPair(public: String, secret: String)
+  case class NaclBoxParamsCB(their_public: String, nonce: String)
+  case class NaclBoxParamsEB(their_public: String, secret: String, nonce: String)
+  case class NaclSecretBoxParamsCB(nonce: String)
+  case class NaclSecretBoxParamsEB(key: String, nonce: String)
   object ParamsOfAppEncryptionBoxADT {
-    /** Encryption box callbacks. */
+    /** Interface for data encryption/decryption */
     sealed trait ParamsOfAppEncryptionBox
-    /** Encryption box callbacks. */
+    /** Interface for data encryption/decryption */
     case class Decrypt(data: String) extends ParamsOfAppEncryptionBox
-    /** Encryption box callbacks. */
+    /** Interface for data encryption/decryption */
     case class Encrypt(data: String) extends ParamsOfAppEncryptionBox
     /** Get encryption box info */
     case object GetInfo extends ParamsOfAppEncryptionBox
+  }
+  object ParamsOfAppPasswordProviderADT {
+    /**
+     * Interface that provides a callback that returns an encrypted password, used for cryptobox secret encryption
+     * To secure the password while passing it from application to the library,
+     * the library generates a temporary key pair, passes the pubkey
+     * to the passwordProvider, decrypts the received password with private key,
+     * and deletes the key pair right away.
+     *
+     * Application should generate a temporary nacl_box_keypair
+     * and encrypt the password with naclbox function using nacl_box_keypair.secret
+     * and encryption_public_key keys + nonce = 24-byte prefix of encryption_public_key.
+     */
+    sealed trait ParamsOfAppPasswordProvider
+    /**
+     * Interface that provides a callback that returns an encrypted password, used for cryptobox secret encryption
+     * To secure the password while passing it from application to the library,
+     * the library generates a temporary key pair, passes the pubkey
+     * to the passwordProvider, decrypts the received password with private key,
+     * and deletes the key pair right away.
+     *
+     * Application should generate a temporary nacl_box_keypair
+     * and encrypt the password with naclbox function using nacl_box_keypair.secret
+     * and encryption_public_key keys + nonce = 24-byte prefix of encryption_public_key.
+     */
+    case class GetPassword(encryption_public_key: String) extends ParamsOfAppPasswordProvider
   }
   object ParamsOfAppSigningBoxADT {
     /** Signing box callbacks. */
@@ -268,12 +343,15 @@ package crypto {
   }
   case class ParamsOfChaCha20(data: String, key: String, nonce: String)
   case class ParamsOfConvertPublicKeyToTonSafeFormat(public_key: String)
+  case class ParamsOfCreateCryptoBox(secret_encryption_salt: String, secret: CryptoBoxSecret)
   case class ParamsOfCreateEncryptionBox(algorithm: EncryptionAlgorithm)
   case class ParamsOfEncryptionBoxDecrypt(encryption_box: EncryptionBoxHandle, data: String)
   case class ParamsOfEncryptionBoxEncrypt(encryption_box: EncryptionBoxHandle, data: String)
   case class ParamsOfEncryptionBoxGetInfo(encryption_box: EncryptionBoxHandle)
   case class ParamsOfFactorize(composite: String)
   case class ParamsOfGenerateRandomBytes(length: Long)
+  case class ParamsOfGetEncryptionBoxFromCryptoBox(handle: Long, hdpath: Option[String], algorithm: BoxEncryptionAlgorithm, secret_lifetime: Option[Long])
+  case class ParamsOfGetSigningBoxFromCryptoBox(handle: Long, hdpath: Option[String], secret_lifetime: Option[Long])
   case class ParamsOfHDKeyDeriveFromXPrv(xprv: String, child_index: Long, hardened: Boolean)
   case class ParamsOfHDKeyDeriveFromXPrvPath(xprv: String, path: String)
   case class ParamsOfHDKeyPublicFromXPrv(xprv: String)
@@ -300,6 +378,7 @@ package crypto {
   case class ParamsOfSigningBoxSign(signing_box: SigningBoxHandle, unsigned: String)
   case class ParamsOfTonCrc16(data: String)
   case class ParamsOfVerifySignature(signed: String, public: String)
+  case class RegisteredCryptoBox(handle: CryptoBoxHandle)
   case class RegisteredEncryptionBox(handle: EncryptionBoxHandle)
   case class RegisteredSigningBox(handle: SigningBoxHandle)
   object ResultOfAppEncryptionBoxADT {
@@ -311,6 +390,10 @@ package crypto {
     case class Encrypt(data: String) extends ResultOfAppEncryptionBox
     /** Returning values from signing box callbacks. */
     case class GetInfo(info: EncryptionBoxInfo) extends ResultOfAppEncryptionBox
+  }
+  object ResultOfAppPasswordProviderADT {
+    sealed trait ResultOfAppPasswordProvider
+    case class GetPassword(encrypted_password: String, app_encryption_pubkey: String) extends ResultOfAppPasswordProvider
   }
   object ResultOfAppSigningBoxADT {
     /** Returning values from signing box callbacks. */
@@ -327,6 +410,8 @@ package crypto {
   case class ResultOfEncryptionBoxGetInfo(info: EncryptionBoxInfo)
   case class ResultOfFactorize(factors: List[String])
   case class ResultOfGenerateRandomBytes(bytes: String)
+  case class ResultOfGetCryptoBoxInfo(encrypted_secret: String)
+  case class ResultOfGetCryptoBoxSeedPhrase(phrase: String, dictionary: Long, wordcount: Long)
   case class ResultOfHDKeyDeriveFromXPrv(xprv: String)
   case class ResultOfHDKeyDeriveFromXPrvPath(xprv: String)
   case class ResultOfHDKeyPublicFromXPrv(public: String)
@@ -361,10 +446,31 @@ package crypto {
    */
   def chacha20(data: String, key: String, nonce: String): Future[Either[Throwable, ResultOfChaCha20]]
   /**
+   * Removes cached secrets (overwrites with zeroes) from all signing and encryption boxes, derived from crypto box.
+   * @param handle handle
+   */
+  def clearCryptoBoxSecretCache(handle: CryptoBoxHandle): Future[Either[Throwable, Unit]]
+  /**
    * Converts public key to ton safe_format
    * @param public_key public_key
    */
   def convertPublicKeyToTonSafeFormat(public_key: String): Future[Either[Throwable, ResultOfConvertPublicKeyToTonSafeFormat]]
+  /**
+   * Creates a Crypto Box instance.
+   * Crypto Box is a root crypto object, that encapsulates some secret (seed phrase usually)
+   * in encrypted form and acts as a factory for all crypto primitives used in SDK:
+   * keys for signing and encryption, derived from this secret.
+   *
+   * Crypto Box encrypts original Seed Phrase with salt and password that is retrieved
+   * from `password_provider` callback, implemented on Application side.
+   *
+   * When used, decrypted secret shows up in core library's memory for a very short period
+   * of time and then is immediately overwritten with zeroes.
+   * @param secret_encryption_salt secret_encryption_salt
+   * @param secret secret
+   * @param password_provider password_provider
+   */
+  def createCryptoBox(secret_encryption_salt: String, secret: CryptoBoxSecret, password_provider: ParamsOfAppPasswordProvider => ResultOfAppPasswordProvider): Future[Either[Throwable, RegisteredCryptoBox]]
   /**
    * Creates encryption box with specified algorithm
    * @param algorithm algorithm
@@ -407,11 +513,42 @@ package crypto {
   /** Generates random ed25519 key pair. */
   def generateRandomSignKeys(): Future[Either[Throwable, KeyPair]]
   /**
+   * Get Crypto Box Info. Used to get `encrypted_secret` that should be used for all the cryptobox initializations except the first one.
+   * @param handle handle
+   */
+  def getCryptoBoxInfo(handle: CryptoBoxHandle): Future[Either[Throwable, ResultOfGetCryptoBoxInfo]]
+  /**
+   * Get Crypto Box Seed Phrase.
+   * Attention! Store this data in your application for a very short period of time and overwrite it with zeroes ASAP.
+   * @param handle handle
+   */
+  def getCryptoBoxSeedPhrase(handle: CryptoBoxHandle): Future[Either[Throwable, ResultOfGetCryptoBoxSeedPhrase]]
+  /**
+   * Gets Encryption Box from Crypto Box.
+   * Derives encryption keypair from cryptobox secret and hdpath and
+   * stores it in cache for `secret_lifetime`
+   * or until explicitly cleared by `clear_crypto_box_secret_cache` method.
+   * If `secret_lifetime` is not specified - overwrites encryption secret with zeroes immediately after
+   * encryption operation.
+   * @param handle handle
+   * @param hdpath By default, Everscale HD path is used.
+   * @param algorithm algorithm
+   * @param secret_lifetime secret_lifetime
+   */
+  def getEncryptionBoxFromCryptoBox(handle: Long, hdpath: Option[String], algorithm: BoxEncryptionAlgorithm, secret_lifetime: Option[Long]): Future[Either[Throwable, RegisteredEncryptionBox]]
+  /**
    * Creates a default signing box implementation.
    * @param public public
    * @param secret secret
    */
   def getSigningBox(public: String, secret: String): Future[Either[Throwable, RegisteredSigningBox]]
+  /**
+   * Get handle of Signing Box derived from Crypto Box.
+   * @param handle handle
+   * @param hdpath By default, Everscale HD path is used.
+   * @param secret_lifetime secret_lifetime
+   */
+  def getSigningBoxFromCryptoBox(handle: Long, hdpath: Option[String], secret_lifetime: Option[Long]): Future[Either[Throwable, RegisteredSigningBox]]
   /**
    * Returns extended private key derived from the specified extended private key and child index
    * @param xprv xprv
@@ -576,6 +713,11 @@ package crypto {
    * @param app_object app_object
    */
   def registerSigningBox(app_object: ParamsOfAppSigningBox => ResultOfAppSigningBox): Future[Either[Throwable, RegisteredSigningBox]]
+  /**
+   * Removes Crypto Box. Clears all secret data.
+   * @param handle handle
+   */
+  def removeCryptoBox(handle: CryptoBoxHandle): Future[Either[Throwable, Unit]]
   /**
    * Removes encryption box from SDK
    * @param handle handle
@@ -743,19 +885,21 @@ package abi {
     case class Encoded(message: String, abi: Option[Abi]) extends MessageSource
     case class EncodingParams(value: ParamsOfEncodeMessage) extends MessageSource
   }
+  case class ParamsOfAbiEncodeBoc(params: List[AbiParam], data: Value, boc_cache: Option[BocCacheType])
   case class ParamsOfAttachSignature(abi: Abi, public_key: String, message: String, signature: String)
   case class ParamsOfAttachSignatureToMessageBody(abi: Abi, public_key: String, message: String, signature: String)
-  case class ParamsOfDecodeAccountData(abi: Abi, data: String)
+  case class ParamsOfDecodeAccountData(abi: Abi, data: String, allow_partial: Option[Boolean])
   case class ParamsOfDecodeBoc(params: List[AbiParam], boc: String, allow_partial: Boolean)
-  case class ParamsOfDecodeInitialData(abi: Option[Abi], data: String)
-  case class ParamsOfDecodeMessage(abi: Abi, message: String)
-  case class ParamsOfDecodeMessageBody(abi: Abi, body: String, is_internal: Boolean)
+  case class ParamsOfDecodeInitialData(abi: Option[Abi], data: String, allow_partial: Option[Boolean])
+  case class ParamsOfDecodeMessage(abi: Abi, message: String, allow_partial: Option[Boolean])
+  case class ParamsOfDecodeMessageBody(abi: Abi, body: String, is_internal: Boolean, allow_partial: Option[Boolean])
   case class ParamsOfEncodeAccount(state_init: StateInitSource, balance: Option[BigInt], last_trans_lt: Option[BigInt], last_paid: Option[Long], boc_cache: Option[BocCacheType])
   case class ParamsOfEncodeInitialData(abi: Option[Abi], initial_data: Option[Value], initial_pubkey: Option[String], boc_cache: Option[BocCacheType])
   case class ParamsOfEncodeInternalMessage(abi: Option[Abi], address: Option[String], src_address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], value: String, bounce: Option[Boolean], enable_ihr: Option[Boolean])
   case class ParamsOfEncodeMessage(abi: Abi, address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], signer: Signer, processing_try_index: Option[Long])
   case class ParamsOfEncodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long])
   case class ParamsOfUpdateInitialData(abi: Option[Abi], data: String, initial_data: Option[Value], initial_pubkey: Option[String], boc_cache: Option[BocCacheType])
+  case class ResultOfAbiEncodeBoc(boc: String)
   case class ResultOfAttachSignature(message: String, message_id: String)
   case class ResultOfAttachSignatureToMessageBody(body: String)
   case class ResultOfDecodeAccountData(data: Value)
@@ -807,8 +951,9 @@ package abi {
    * Note: this feature requires ABI 2.1 or higher.
    * @param abi abi
    * @param data data
+   * @param allow_partial allow_partial
    */
-  def decodeAccountData(abi: Abi, data: String): Future[Either[Throwable, ResultOfDecodeAccountData]]
+  def decodeAccountData(abi: Abi, data: String, allow_partial: Option[Boolean]): Future[Either[Throwable, ResultOfDecodeAccountData]]
   /**
    * Decodes BOC into JSON as a set of provided parameters.
    * Solidity functions use ABI types for [builder encoding](https://github.com/tonlabs/TON-Solidity-Compiler/blob/master/API.md#tvmbuilderstore).
@@ -835,21 +980,24 @@ package abi {
    * Decodes initial values of a contract's static variables and owner's public key from account initial data This operation is applicable only for initial account data (before deploy). If the contract is already deployed, its data doesn't contain this data section any more.
    * @param abi Initial data is decoded if this parameter is provided
    * @param data data
+   * @param allow_partial allow_partial
    */
-  def decodeInitialData(abi: Option[Abi], data: String): Future[Either[Throwable, ResultOfDecodeInitialData]]
+  def decodeInitialData(abi: Option[Abi], data: String, allow_partial: Option[Boolean]): Future[Either[Throwable, ResultOfDecodeInitialData]]
   /**
    * Decodes message body using provided message BOC and ABI.
    * @param abi abi
    * @param message message
+   * @param allow_partial allow_partial
    */
-  def decodeMessage(abi: Abi, message: String): Future[Either[Throwable, DecodedMessageBody]]
+  def decodeMessage(abi: Abi, message: String, allow_partial: Option[Boolean]): Future[Either[Throwable, DecodedMessageBody]]
   /**
    * Decodes message body using provided body BOC and ABI.
    * @param abi abi
    * @param body body
    * @param is_internal is_internal
+   * @param allow_partial allow_partial
    */
-  def decodeMessageBody(abi: Abi, body: String, is_internal: Boolean): Future[Either[Throwable, DecodedMessageBody]]
+  def decodeMessageBody(abi: Abi, body: String, is_internal: Boolean, allow_partial: Option[Boolean]): Future[Either[Throwable, DecodedMessageBody]]
   /**
    * Creates account state BOC
    * Creates account state provided with one of these sets of data :
@@ -862,6 +1010,13 @@ package abi {
    * @param boc_cache The BOC itself returned if no cache type provided
    */
   def encodeAccount(state_init: StateInitSource, balance: Option[BigInt], last_trans_lt: Option[BigInt], last_paid: Option[Long], boc_cache: Option[BocCacheType]): Future[Either[Throwable, ResultOfEncodeAccount]]
+  /**
+   * Encodes given parameters in JSON into a BOC using param types from ABI.
+   * @param params params
+   * @param data data
+   * @param boc_cache The BOC itself returned if no cache type provided
+   */
+  def encodeBoc(params: List[AbiParam], data: Value, boc_cache: Option[BocCacheType]): Future[Either[Throwable, ResultOfAbiEncodeBoc]]
   /**
    * Encodes initial account data with initial values for the contract's static variables and owner's public key into a data BOC that can be passed to `encode_tvc` function afterwards.
    * This function is analogue of `tvm.buildDataInit` function in Solidity.
@@ -1018,6 +1173,8 @@ package boc {
     /** Cell builder operation. */
     sealed trait BuilderOp
     /** Cell builder operation. */
+    case class Address(address: String) extends BuilderOp
+    /** Cell builder operation. */
     case class BitString(value: String) extends BuilderOp
     /** Cell builder operation. */
     case class Cell(builder: List[BuilderOp]) extends BuilderOp
@@ -1031,6 +1188,7 @@ package boc {
   case class ParamsOfBocCacheUnpin(pin: String, boc_ref: Option[String])
   case class ParamsOfDecodeTvc(tvc: String, boc_cache: Option[BocCacheType])
   case class ParamsOfEncodeBoc(builder: List[BuilderOp], boc_cache: Option[BocCacheType])
+  case class ParamsOfEncodeExternalInMessage(src: Option[String], dst: String, init: Option[String], body: Option[String], boc_cache: Option[BocCacheType])
   case class ParamsOfEncodeTvc(code: Option[String], data: Option[String], library: Option[String], tick: Option[Boolean], tock: Option[Boolean], split_depth: Option[Long], boc_cache: Option[BocCacheType])
   case class ParamsOfGetBlockchainConfig(block_boc: String)
   case class ParamsOfGetBocDepth(boc: String)
@@ -1045,6 +1203,7 @@ package boc {
   case class ResultOfBocCacheSet(boc_ref: String)
   case class ResultOfDecodeTvc(code: Option[String], code_hash: Option[String], code_depth: Option[Long], data: Option[String], data_hash: Option[String], data_depth: Option[Long], library: Option[String], tick: Option[Boolean], tock: Option[Boolean], split_depth: Option[Long], compiler_version: Option[String])
   case class ResultOfEncodeBoc(boc: String)
+  case class ResultOfEncodeExternalInMessage(message: String, message_id: String)
   case class ResultOfEncodeTvc(tvc: String)
   case class ResultOfGetBlockchainConfig(config_boc: String)
   case class ResultOfGetBocDepth(depth: Long)
@@ -1081,11 +1240,21 @@ package boc {
    */
   def decodeTvc(tvc: String, boc_cache: Option[BocCacheType]): Future[Either[Throwable, ResultOfDecodeTvc]]
   /**
-   * Encodes bag of cells (BOC) with builder operations. This method provides the same functionality as Solidity TvmBuilder. Resulting BOC of this method can be passed into Solidity and C++ contracts as TvmCell type
+   * Encodes bag of cells (BOC) with builder operations. This method provides the same functionality as Solidity TvmBuilder. Resulting BOC of this method can be passed into Solidity and C++ contracts as TvmCell type.
    * @param builder builder
    * @param boc_cache boc_cache
    */
   def encodeBoc(builder: List[BuilderOp], boc_cache: Option[BocCacheType]): Future[Either[Throwable, ResultOfEncodeBoc]]
+  /**
+   * Encodes a message
+   * Allows to encode any external inbound message.
+   * @param src src
+   * @param dst dst
+   * @param init init
+   * @param body body
+   * @param boc_cache The BOC itself returned if no cache type provided
+   */
+  def encodeExternalInMessage(src: Option[String], dst: String, init: Option[String], body: Option[String], boc_cache: Option[BocCacheType]): Future[Either[Throwable, ResultOfEncodeExternalInMessage]]
   /**
    * Encodes tvc from code, data, libraries ans special options (see input params)
    * @param code code
@@ -1202,6 +1371,9 @@ package processing {
     case object InvalidMessageBoc extends ProcessingErrorCode {
       override val code: String = "506"
     }
+    case object InvalidRempStatus extends ProcessingErrorCode {
+      override val code: String = "515"
+    }
     case object MessageAlreadyExpired extends ProcessingErrorCode {
       override val code: String = "501"
     }
@@ -1210,6 +1382,12 @@ package processing {
     }
     case object MessageHasNotDestinationAddress extends ProcessingErrorCode {
       override val code: String = "502"
+    }
+    case object MessageRejected extends ProcessingErrorCode {
+      override val code: String = "514"
+    }
+    case object NextRempStatusTimeout extends ProcessingErrorCode {
+      override val code: String = "516"
     }
     case object SendMessageFailed extends ProcessingErrorCode {
       override val code: String = "505"
@@ -1224,6 +1402,11 @@ package processing {
     case class FetchFirstBlockFailed(error: ClientError) extends ProcessingEvent
     case class FetchNextBlockFailed(shard_block_id: String, message_id: String, message: String, error: ClientError) extends ProcessingEvent
     case class MessageExpired(message_id: String, message: String, error: ClientError) extends ProcessingEvent
+    case class RempError(error: ClientError) extends ProcessingEvent
+    case class RempIncludedIntoAcceptedBlock(message_id: String, timestamp: BigInt, json: Value) extends ProcessingEvent
+    case class RempIncludedIntoBlock(message_id: String, timestamp: BigInt, json: Value) extends ProcessingEvent
+    case class RempOther(message_id: String, timestamp: BigInt, json: Value) extends ProcessingEvent
+    case class RempSentToValidators(message_id: String, timestamp: BigInt, json: Value) extends ProcessingEvent
     case class SendFailed(shard_block_id: String, message_id: String, message: String, error: ClientError) extends ProcessingEvent
     /**
      * Notifies the application that the account's current shard block will be fetched from the network. This step is performed before the message sending so that sdk knows starting from which block it will search for the transaction.
@@ -1608,6 +1791,7 @@ package net {
   case class ParamsOfQueryTransactionTree(in_msg: String, abi_registry: Option[List[Abi]], timeout: Option[Long])
   case class ParamsOfResumeBlockIterator(resume_state: Value)
   case class ParamsOfResumeTransactionIterator(resume_state: Value, accounts_filter: Option[List[String]])
+  case class ParamsOfSubscribe(subscription: String, variables: Option[Value])
   case class ParamsOfSubscribeCollection(collection: String, filter: Option[Value], result: String)
   case class ParamsOfWaitForCollection(collection: String, filter: Option[Value], result: String, timeout: Option[Long])
   case class RegisteredIterator(handle: Long)
@@ -1849,8 +2033,8 @@ package net {
   /**
    * Allows to query and paginate through the list of accounts that the specified account has interacted with, sorted by the time of the last internal message between accounts
    * *Attention* this query retrieves data from 'Counterparties' service which is not supported in
-   * the opensource version of DApp Server (and will not be supported) as well as in TON OS SE (will be supported in SE in future),
-   * but is always accessible via [TON OS Devnet/Mainnet Clouds](https://docs.ton.dev/86757ecb2/p/85c869-networks)
+   * the opensource version of DApp Server (and will not be supported) as well as in Evernode SE (will be supported in SE in future),
+   * but is always accessible via [EVER OS Clouds](../ton-os-api/networks.md)
    * @param account account
    * @param result result
    * @param first first
@@ -1945,6 +2129,47 @@ package net {
   def setEndpoints(endpoints: List[String]): Future[Either[Throwable, Unit]]
   /**
    * Creates a subscription
+   * The subscription is a persistent communication channel between
+   * client and Everscale Network.
+   *
+   * ### Important Notes on Subscriptions
+   *
+   * Unfortunately sometimes the connection with the network brakes down.
+   * In this situation the library attempts to reconnect to the network.
+   * This reconnection sequence can take significant time.
+   * All of this time the client is disconnected from the network.
+   *
+   * Bad news is that all changes that happened while
+   * the client was disconnected are lost.
+   *
+   * Good news is that the client report errors to the callback when
+   * it loses and resumes connection.
+   *
+   * So, if the lost changes are important to the application then
+   * the application must handle these error reports.
+   *
+   * Library reports errors with `responseType` == 101
+   * and the error object passed via `params`.
+   *
+   * When the library has successfully reconnected
+   * the application receives callback with
+   * `responseType` == 101 and `params.code` == 614 (NetworkModuleResumed).
+   *
+   * Application can use several ways to handle this situation:
+   * - If application monitors changes for the single
+   * object (for example specific account):  application
+   * can perform a query for this object and handle actual data as a
+   * regular data from the subscription.
+   * - If application monitors sequence of some objects
+   * (for example transactions of the specific account): application must
+   * refresh all cached (or visible to user) lists where this sequences presents.
+   * @param subscription subscription
+   * @param variables Must be a map with named values that can be used in query.
+   * @param callback callback
+   */
+  def subscribe(subscription: String, variables: Option[Value], callback: Request): Future[Either[Throwable, ResultOfSubscribeCollection]]
+  /**
+   * Creates a collection subscription
    * Triggers for each insert/update of data that satisfies
    * the `filter` conditions.
    * The projection fields are limited to `result` fields.
@@ -2271,13 +2496,16 @@ package proofs {
    * a trusted validator set. So we need to check all key-blocks' proofs, started from the zero-state
    * and until the block, which we want to prove. But it can take a lot of time and traffic to
    * download and prove all key-blocks on a client. For solving this, special trusted blocks are used
-   * in TON-SDK.
+   * in Ever-SDK.
    *
    * The trusted block is the authority root, as well, as the zero-state. Each trusted block is the
    * `id` (e.g. `root_hash`) of the already proven key-block. There can be plenty of trusted
    * blocks, so there can be a lot of authority roots. The hashes of trusted blocks for MainNet
-   * and DevNet are hardcoded in SDK in a separated binary file (trusted_key_blocks.bin) and can
-   * be updated for each release.
+   * and DevNet are hardcoded in SDK in a separated binary file (trusted_key_blocks.bin) and is
+   * being updated for each release by using `update_trusted_blocks` utility.
+   *
+   * See [update_trusted_blocks](../../../tools/update_trusted_blocks) directory for more info.
+   *
    * In future SDK releases, one will also be able to provide their hashes of trusted blocks for
    * other networks, besides for MainNet and DevNet.
    * By using trusted key-blocks, in order to prove any block, we can prove chain of key-blocks to
