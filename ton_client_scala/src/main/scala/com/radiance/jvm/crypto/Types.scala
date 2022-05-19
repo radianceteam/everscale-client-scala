@@ -2,17 +2,43 @@ package com.radiance.jvm.crypto
 
 import com.radiance.jvm.Value
 import com.radiance.jvm.crypto.EncryptionAlgorithmADT.EncryptionAlgorithm
+import com.radiance.jvm.crypto.ResultOfAppSigningBoxADT.ResultOfAppSigningBox
 import io.circe._
 import io.circe.derivation._
 import io.circe.generic.extras
 
 case class AesInfo(mode: CipherModeEnum.CipherMode, iv: Option[String])
 
-case class AesParams(mode: CipherModeEnum.CipherMode, key: String, iv: Option[String])
+case class AesParamsEB(mode: CipherModeEnum.CipherMode, key: String, iv: Option[String])
 
-object AesParams {
-  implicit val encoder: Encoder[AesParams] =
-    deriveEncoder[AesParams]
+object AesParamsEB {
+  implicit val encoder: Encoder[AesParamsEB] =
+    deriveEncoder[AesParamsEB]
+}
+
+object BoxEncryptionAlgorithmADT {
+  sealed trait BoxEncryptionAlgorithm
+  case class ChaCha20(value: ChaCha20ParamsCB) extends BoxEncryptionAlgorithm
+  case class NaclBox(value: NaclBoxParamsCB) extends BoxEncryptionAlgorithm
+  case class NaclSecretBox(value: NaclSecretBoxParamsCB) extends BoxEncryptionAlgorithm
+
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[BoxEncryptionAlgorithm] =
+    extras.semiauto.deriveConfiguredEncoder[BoxEncryptionAlgorithm]
+}
+
+case class ChaCha20ParamsCB(nonce: String)
+
+object ChaCha20ParamsCB {
+  implicit val encoder: Encoder[ChaCha20ParamsCB] =
+    deriveEncoder[ChaCha20ParamsCB]
+}
+
+case class ChaCha20ParamsEB(key: String, nonce: String)
+
+object ChaCha20ParamsEB {
+  implicit val encoder: Encoder[ChaCha20ParamsEB] =
+    deriveEncoder[ChaCha20ParamsEB]
 }
 
 object CipherModeEnum {
@@ -25,6 +51,41 @@ object CipherModeEnum {
 
   implicit val encoder: Encoder[CipherMode] =
     extras.semiauto.deriveEnumerationEncoder[CipherMode]
+}
+
+case class CryptoBoxHandle(value: BigInt) extends AnyVal
+
+object CryptoBoxHandle {
+  implicit val decoder: Decoder[CryptoBoxHandle] =
+    Decoder.instance(c => c.value.as[BigInt].map(CryptoBoxHandle(_)))
+  implicit val encoder: Encoder[CryptoBoxHandle] = Encoder.instance(a => Json.fromBigInt(a.value))
+}
+
+object CryptoBoxSecretADT {
+
+  /**
+   * Crypto Box Secret.
+   */
+  sealed trait CryptoBoxSecret
+
+  /**
+   * Crypto Box Secret.
+   */
+  case class EncryptedSecret(encrypted_secret: String) extends CryptoBoxSecret
+
+  /**
+   * Crypto Box Secret.
+   */
+  case class PredefinedSeedPhrase(phrase: String, dictionary: Long, wordcount: Long) extends CryptoBoxSecret
+
+  /**
+   * Crypto Box Secret.
+   */
+  case class RandomSeedPhrase(dictionary: Long, wordcount: Long) extends CryptoBoxSecret
+
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[CryptoBoxSecret] =
+    extras.semiauto.deriveConfiguredEncoder[CryptoBoxSecret]
 }
 
 object CryptoErrorCodeEnum {
@@ -60,9 +121,22 @@ object CryptoErrorCodeEnum {
   case object CannotCreateCipher extends CryptoErrorCode {
     override val code: String = "126"
   }
+  case object CryptoBoxNotRegistered extends CryptoErrorCode {
+    override val code: String = "130"
+  }
+
+  case object CryptoBoxSecretDeserializationError extends CryptoErrorCode {
+    override val code: String = "133"
+  }
+
+  case object CryptoBoxSecretSerializationError extends CryptoErrorCode {
+    override val code: String = "132"
+  }
+
   case object DecryptDataError extends CryptoErrorCode {
     override val code: String = "128"
   }
+
   case object EncryptDataError extends CryptoErrorCode {
     override val code: String = "127"
   }
@@ -73,6 +147,10 @@ object CryptoErrorCodeEnum {
 
   case object InvalidBigInt extends CryptoErrorCode {
     override val code: String = "107"
+  }
+
+  case object InvalidCryptoBoxType extends CryptoErrorCode {
+    override val code: String = "131"
   }
 
   case object InvalidFactorizeChallenge extends CryptoErrorCode {
@@ -89,6 +167,10 @@ object CryptoErrorCodeEnum {
 
   case object InvalidKeySize extends CryptoErrorCode {
     override val code: String = "109"
+  }
+
+  case object InvalidNonceSize extends CryptoErrorCode {
+    override val code: String = "134"
   }
 
   case object InvalidPublicKey extends CryptoErrorCode {
@@ -142,8 +224,10 @@ object CryptoErrorCodeEnum {
 
 object EncryptionAlgorithmADT {
   sealed trait EncryptionAlgorithm
-
-  case class AES(value: AesParams) extends EncryptionAlgorithm
+  case class AES(value: AesParamsEB) extends EncryptionAlgorithm
+  case class ChaCha20(value: ChaCha20ParamsEB) extends EncryptionAlgorithm
+  case class NaclBox(value: NaclBoxParamsEB) extends EncryptionAlgorithm
+  case class NaclSecretBox(value: NaclSecretBoxParamsEB) extends EncryptionAlgorithm
 
   import com.radiance.jvm.DiscriminatorConfig._
   implicit val encoder: Encoder[EncryptionAlgorithm] =
@@ -159,7 +243,7 @@ object EncryptionBoxHandle {
 }
 
 /**
- * Encryption box information
+ * Encryption box information.
  */
 case class EncryptionBoxInfo(
   hdpath: Option[String],
@@ -182,20 +266,48 @@ object KeyPair {
   implicit val codec: Codec[KeyPair] = deriveCodec[KeyPair]
 }
 
+case class NaclBoxParamsCB(their_public: String, nonce: String)
+
+object NaclBoxParamsCB {
+  implicit val encoder: Encoder[NaclBoxParamsCB] =
+    deriveEncoder[NaclBoxParamsCB]
+}
+
+case class NaclBoxParamsEB(their_public: String, secret: String, nonce: String)
+
+object NaclBoxParamsEB {
+  implicit val encoder: Encoder[NaclBoxParamsEB] =
+    deriveEncoder[NaclBoxParamsEB]
+}
+
+case class NaclSecretBoxParamsCB(nonce: String)
+
+object NaclSecretBoxParamsCB {
+  implicit val encoder: Encoder[NaclSecretBoxParamsCB] =
+    deriveEncoder[NaclSecretBoxParamsCB]
+}
+
+case class NaclSecretBoxParamsEB(key: String, nonce: String)
+
+object NaclSecretBoxParamsEB {
+  implicit val encoder: Encoder[NaclSecretBoxParamsEB] =
+    deriveEncoder[NaclSecretBoxParamsEB]
+}
+
 object ParamsOfAppEncryptionBoxADT {
 
   /**
-   * Encryption box callbacks.
+   * Interface for data encryption/decryption
    */
   sealed trait ParamsOfAppEncryptionBox
 
   /**
-   * Encryption box callbacks.
+   * Interface for data encryption/decryption
    */
   case class Decrypt(data: String) extends ParamsOfAppEncryptionBox
 
   /**
-   * Encryption box callbacks.
+   * Interface for data encryption/decryption
    */
   case class Encrypt(data: String) extends ParamsOfAppEncryptionBox
 
@@ -203,6 +315,35 @@ object ParamsOfAppEncryptionBoxADT {
    * Get encryption box info
    */
   case object GetInfo extends ParamsOfAppEncryptionBox
+}
+
+object ParamsOfAppPasswordProviderADT {
+
+  /**
+   * Interface that provides a callback that returns an encrypted password, used for cryptobox secret encryption To
+   * secure the password while passing it from application to the library, the library generates a temporary key pair,
+   * passes the pubkey to the passwordProvider, decrypts the received password with private key, and deletes the key
+   * pair right away.
+   *
+   * Application should generate a temporary nacl_box_keypair and encrypt the password with naclbox function using
+   * nacl_box_keypair.secret and encryption_public_key keys + nonce = 24-byte prefix of encryption_public_key.
+   */
+  sealed trait ParamsOfAppPasswordProvider
+
+  /**
+   * Interface that provides a callback that returns an encrypted password, used for cryptobox secret encryption To
+   * secure the password while passing it from application to the library, the library generates a temporary key pair,
+   * passes the pubkey to the passwordProvider, decrypts the received password with private key, and deletes the key
+   * pair right away.
+   *
+   * Application should generate a temporary nacl_box_keypair and encrypt the password with naclbox function using
+   * nacl_box_keypair.secret and encryption_public_key keys + nonce = 24-byte prefix of encryption_public_key.
+   */
+  case class GetPassword(encryption_public_key: String) extends ParamsOfAppPasswordProvider
+
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[EncryptionAlgorithm] =
+    extras.semiauto.deriveConfiguredEncoder[EncryptionAlgorithm]
 }
 
 object ParamsOfAppSigningBoxADT {
@@ -232,18 +373,25 @@ object ParamsOfConvertPublicKeyToTonSafeFormat {
     deriveEncoder[ParamsOfConvertPublicKeyToTonSafeFormat]
 }
 
+case class ParamsOfCreateCryptoBox(secret_encryption_salt: String, secret: CryptoBoxSecretADT.CryptoBoxSecret)
+
+object ParamsOfCreateCryptoBox {
+  implicit val encoder: Encoder[ParamsOfCreateCryptoBox] =
+    deriveEncoder[ParamsOfCreateCryptoBox]
+}
+
 case class ParamsOfEncryptionBoxDecrypt(encryption_box: EncryptionBoxHandle, data: String)
+
+object ParamsOfEncryptionBoxDecrypt {
+  implicit val encoder: Encoder[ParamsOfEncryptionBoxDecrypt] =
+    deriveEncoder[ParamsOfEncryptionBoxDecrypt]
+}
 
 case class ParamsOfCreateEncryptionBox(algorithm: EncryptionAlgorithm)
 
 object ParamsOfCreateEncryptionBox {
   implicit val encoder: Encoder[ParamsOfCreateEncryptionBox] =
     deriveEncoder[ParamsOfCreateEncryptionBox]
-}
-
-object ParamsOfEncryptionBoxDecrypt {
-  implicit val encoder: Encoder[ParamsOfEncryptionBoxDecrypt] =
-    deriveEncoder[ParamsOfEncryptionBoxDecrypt]
 }
 
 case class ParamsOfEncryptionBoxEncrypt(encryption_box: EncryptionBoxHandle, data: String)
@@ -272,6 +420,25 @@ case class ParamsOfGenerateRandomBytes(length: Long)
 object ParamsOfGenerateRandomBytes {
   implicit val encoder: Encoder[ParamsOfGenerateRandomBytes] =
     deriveEncoder[ParamsOfGenerateRandomBytes]
+}
+
+case class ParamsOfGetEncryptionBoxFromCryptoBox(
+  handle: Long,
+  hdpath: Option[String],
+  algorithm: BoxEncryptionAlgorithmADT.BoxEncryptionAlgorithm,
+  secret_lifetime: Option[Long]
+)
+
+object ParamsOfGetEncryptionBoxFromCryptoBox {
+  implicit val encoder: Encoder[ParamsOfGetEncryptionBoxFromCryptoBox] =
+    deriveEncoder[ParamsOfGetEncryptionBoxFromCryptoBox]
+}
+
+case class ParamsOfGetSigningBoxFromCryptoBox(handle: Long, hdpath: Option[String], secret_lifetime: Option[Long])
+
+object ParamsOfGetSigningBoxFromCryptoBox {
+  implicit val encoder: Encoder[ParamsOfGetSigningBoxFromCryptoBox] =
+    deriveEncoder[ParamsOfGetSigningBoxFromCryptoBox]
 }
 
 case class ParamsOfHash(data: String)
@@ -511,6 +678,13 @@ object ParamsOfVerifySignature {
     deriveEncoder[ParamsOfVerifySignature]
 }
 
+case class RegisteredCryptoBox(handle: CryptoBoxHandle)
+
+object RegisteredCryptoBox {
+  implicit val codec: Codec[RegisteredCryptoBox] =
+    deriveCodec[RegisteredCryptoBox]
+}
+
 case class RegisteredEncryptionBox(handle: EncryptionBoxHandle)
 
 object RegisteredEncryptionBox {
@@ -550,6 +724,15 @@ object ResultOfAppEncryptionBoxADT {
   import com.radiance.jvm.DiscriminatorConfig._
   implicit val encoder: Encoder[ResultOfAppEncryptionBox] =
     extras.semiauto.deriveConfiguredEncoder[ResultOfAppEncryptionBox]
+}
+
+object ResultOfAppPasswordProviderADT {
+  sealed trait ResultOfAppPasswordProvider
+  case class GetPassword(encrypted_password: String, app_encryption_pubkey: String) extends ResultOfAppPasswordProvider
+
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val encoder: Encoder[ResultOfAppSigningBox] =
+    extras.semiauto.deriveConfiguredEncoder[ResultOfAppSigningBox]
 }
 
 object ResultOfAppSigningBoxADT {
@@ -613,6 +796,20 @@ case class ResultOfGenerateRandomBytes(bytes: String)
 object ResultOfGenerateRandomBytes {
   implicit val decoder: Decoder[ResultOfGenerateRandomBytes] =
     deriveDecoder[ResultOfGenerateRandomBytes]
+}
+
+case class ResultOfGetCryptoBoxInfo(encrypted_secret: String)
+
+object ResultOfGetCryptoBoxInfo {
+  implicit val decoder: Decoder[ResultOfGetCryptoBoxInfo] =
+    deriveDecoder[ResultOfGetCryptoBoxInfo]
+}
+
+case class ResultOfGetCryptoBoxSeedPhrase(phrase: String, dictionary: Long, wordcount: Long)
+
+object ResultOfGetCryptoBoxSeedPhrase {
+  implicit val decoder: Decoder[ResultOfGetCryptoBoxSeedPhrase] =
+    deriveDecoder[ResultOfGetCryptoBoxSeedPhrase]
 }
 
 case class ResultOfHash(hash: String)

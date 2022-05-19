@@ -244,6 +244,12 @@ object ParamsOfResumeTransactionIterator {
   implicit val encoder: Encoder[ParamsOfResumeTransactionIterator] = deriveEncoder[ParamsOfResumeTransactionIterator]
 }
 
+case class ParamsOfSubscribe(subscription: String, variables: Option[Value])
+
+object ParamsOfSubscribe {
+  implicit val encoder: Encoder[ParamsOfSubscribe] = deriveEncoder[ParamsOfSubscribe]
+}
+
 case class ParamsOfSubscribeCollection(
   collection: String,
   filter: Option[Value],

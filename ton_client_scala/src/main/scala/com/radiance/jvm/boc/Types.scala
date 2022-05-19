@@ -61,6 +61,11 @@ object BuilderOpADT {
   /**
    * Cell builder operation.
    */
+  case class Address(address: String) extends BuilderOp
+
+  /**
+   * Cell builder operation.
+   */
   case class BitString(value: String) extends BuilderOp
 
   /**
@@ -116,6 +121,19 @@ case class ParamsOfEncodeBoc(builder: List[BuilderOpADT.BuilderOp], boc_cache: O
 object ParamsOfEncodeBoc {
   implicit val encoder: Encoder[ParamsOfEncodeBoc] =
     deriveEncoder[ParamsOfEncodeBoc]
+}
+
+case class ParamsOfEncodeExternalInMessage(
+  src: Option[String],
+  dst: String,
+  init: Option[String],
+  body: Option[String],
+  boc_cache: Option[BocCacheTypeADT.BocCacheType]
+)
+
+object ParamsOfEncodeExternalInMessage {
+  implicit val encoder: Encoder[ParamsOfEncodeExternalInMessage] =
+    deriveEncoder[ParamsOfEncodeExternalInMessage]
 }
 
 case class ParamsOfEncodeTvc(
@@ -233,6 +251,13 @@ case class ResultOfEncodeBoc(boc: String)
 object ResultOfEncodeBoc {
   implicit val decoder: Decoder[ResultOfEncodeBoc] =
     deriveDecoder[ResultOfEncodeBoc]
+}
+
+case class ResultOfEncodeExternalInMessage(message: String, message_id: String)
+
+object ResultOfEncodeExternalInMessage {
+  implicit val decoder: Decoder[ResultOfEncodeExternalInMessage] =
+    deriveDecoder[ResultOfEncodeExternalInMessage]
 }
 
 case class ResultOfEncodeTvc(tvc: String)

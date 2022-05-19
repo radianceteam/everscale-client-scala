@@ -293,8 +293,8 @@ class NetModule(private val ctx: Context) {
    * Allows to query and paginate through the list of accounts that the specified account has interacted with, sorted by
    * the time of the last internal message between accounts *Attention* this query retrieves data from 'Counterparties'
    * service which is not supported in the opensource version of DApp Server (and will not be supported) as well as in
-   * TON OS SE (will be supported in SE in future), but is always accessible via [TON OS Devnet/Mainnet
-   * Clouds](https://docs.ton.dev/86757ecb2/p/85c869-networks)
+   * Evernode SE (will be supported in SE in future), but is always accessible via [EVER OS
+   * Clouds](../ton-os-api/networks.md)
    * @param account
    *   account
    * @param result
@@ -442,6 +442,50 @@ class NetModule(private val ctx: Context) {
    */
   def setEndpoints(endpoints: List[String]): Future[Either[Throwable, Unit]] = {
     ctx.execAsync[EndpointsSet, Unit]("net.set_endpoints", EndpointsSet(endpoints))
+  }
+
+  /**
+   * Creates a subscription The subscription is a persistent communication channel between client and Everscale Network.
+   *
+   * ### Important Notes on Subscriptions
+   *
+   * Unfortunately sometimes the connection with the network brakes down. In this situation the library attempts to
+   * reconnect to the network. This reconnection sequence can take significant time. All of this time the client is
+   * disconnected from the network.
+   *
+   * Bad news is that all changes that happened while the client was disconnected are lost.
+   *
+   * Good news is that the client report errors to the callback when it loses and resumes connection.
+   *
+   * So, if the lost changes are important to the application then the application must handle these error reports.
+   *
+   * Library reports errors with `responseType` == 101 and the error object passed via `params`.
+   *
+   * When the library has successfully reconnected the application receives callback with `responseType` == 101 and
+   * `params.code` == 614 (NetworkModuleResumed).
+   *
+   * Application can use several ways to handle this situation:
+   *   - If application monitors changes for the single object (for example specific account): application can perform a
+   *     query for this object and handle actual data as a regular data from the subscription.
+   *   - If application monitors sequence of some objects (for example transactions of the specific account):
+   *     application must refresh all cached (or visible to user) lists where this sequences presents.
+   * @param subscription
+   *   subscription
+   * @param variables
+   *   Must be a map with named values that can be used in query.
+   * @param callback
+   *   callback
+   */
+  def subscribe(
+    subscription: String,
+    variables: Option[Value],
+    callback: Request
+  ): Future[Either[Throwable, ResultOfSubscribeCollection]] = {
+    ctx.execAsyncWithCallback[ParamsOfSubscribe, ResultOfSubscribeCollection](
+      "net.subscribe",
+      ParamsOfSubscribe(subscription, variables),
+      callback
+    )
   }
 
   /**

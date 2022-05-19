@@ -26,6 +26,16 @@ class CryptoModule(private val ctx: Context) {
       .execSync[ParamsOfChaCha20, ResultOfChaCha20]("crypto.chacha20", ParamsOfChaCha20(data, key, nonce))
 
   /**
+   * Removes cached secrets (overwrites with zeroes) from all signing and encryption boxes, derived from crypto box.
+   * @param handle
+   *   handle
+   */
+  def clearCryptoBoxSecretCache(handle: CryptoBoxHandle): Future[Either[Throwable, Unit]] = {
+    ctx
+      .execAsync[CryptoBoxHandle, Unit]("crypto.clear_crypto_box_secret_cache", handle)
+  }
+
+  /**
    * Converts public key to ton safe_format
    * @param public_key
    *   Public key - 64 symbols hex string
@@ -37,6 +47,43 @@ class CryptoModule(private val ctx: Context) {
       "crypto.convert_public_key_to_ton_safe_format",
       ParamsOfConvertPublicKeyToTonSafeFormat(public_key)
     )
+
+  /**
+   * Creates a Crypto Box instance. Crypto Box is a root crypto object, that encapsulates some secret (seed phrase
+   * usually) in encrypted form and acts as a factory for all crypto primitives used in SDK: keys for signing and
+   * encryption, derived from this secret.
+   *
+   * Crypto Box encrypts original Seed Phrase with salt and password that is retrieved from `password_provider`
+   * callback, implemented on Application side.
+   *
+   * When used, decrypted secret shows up in core library's memory for a very short period of time and then is
+   * immediately overwritten with zeroes.
+   * @param secret_encryption_salt
+   *   secret_encryption_salt
+   * @param secret
+   *   secret
+   * @param password_provider
+   *   password_provider
+   */
+  def createCryptoBox(
+    secret_encryption_salt: String,
+    secret: CryptoBoxSecretADT.CryptoBoxSecret,
+    password_provider: AppObject[
+      ParamsOfAppPasswordProviderADT.ParamsOfAppPasswordProvider,
+      ResultOfAppPasswordProviderADT.ResultOfAppPasswordProvider
+    ]
+  ): Future[Either[Throwable, RegisteredCryptoBox]] = {
+//    ctx.registerAppObject[
+//      RegisteredCryptoBox,
+//      ParamsOfAppPasswordProviderADT.ParamsOfAppPasswordProvider,
+//      ResultOfAppPasswordProviderADT.ResultOfAppPasswordProvider
+//    ](
+//      "crypto.create_crypto_box",
+//      secret_encryption_salt,
+//      password_provider
+//    )
+    ???
+  }
 
   /**
    * Creates encryption box with specified algorithm
@@ -134,6 +181,55 @@ class CryptoModule(private val ctx: Context) {
       .execSync[Unit, KeyPair]("crypto.generate_random_sign_keys", ())
 
   /**
+   * Get Crypto Box Info. Used to get `encrypted_secret` that should be used for all the cryptobox initializations
+   * except the first one.
+   * @param handle
+   *   handle
+   */
+  def getCryptoBoxInfo(handle: CryptoBoxHandle): Future[Either[Throwable, ResultOfGetCryptoBoxInfo]] = {
+    ctx
+      .execAsync[CryptoBoxHandle, ResultOfGetCryptoBoxInfo]("crypto.get_crypto_box_info", handle)
+  }
+
+  /**
+   * Get Crypto Box Seed Phrase. Attention! Store this data in your application for a very short period of time and
+   * overwrite it with zeroes ASAP.
+   * @param handle
+   *   handle
+   */
+  def getCryptoBoxSeedPhrase(handle: CryptoBoxHandle): Future[Either[Throwable, ResultOfGetCryptoBoxSeedPhrase]] = {
+    ctx
+      .execAsync[CryptoBoxHandle, ResultOfGetCryptoBoxSeedPhrase]("crypto.get_crypto_box_seed_phrase", handle)
+  }
+
+  /**
+   * Gets Encryption Box from Crypto Box. Derives encryption keypair from cryptobox secret and hdpath and stores it in
+   * cache for `secret_lifetime` or until explicitly cleared by `clear_crypto_box_secret_cache` method. If
+   * `secret_lifetime` is not specified - overwrites encryption secret with zeroes immediately after encryption
+   * operation.
+   * @param handle
+   *   handle
+   * @param hdpath
+   *   By default, Everscale HD path is used.
+   * @param algorithm
+   *   algorithm
+   * @param secret_lifetime
+   *   secret_lifetime
+   */
+  def getEncryptionBoxFromCryptoBox(
+    handle: Long,
+    hdpath: Option[String],
+    algorithm: BoxEncryptionAlgorithmADT.BoxEncryptionAlgorithm,
+    secret_lifetime: Option[Long]
+  ): Future[Either[Throwable, RegisteredEncryptionBox]] = {
+    ctx
+      .execAsync[ParamsOfGetEncryptionBoxFromCryptoBox, RegisteredEncryptionBox](
+        "crypto.get_encryption_box_from_crypto_box",
+        ParamsOfGetEncryptionBoxFromCryptoBox(handle, hdpath, algorithm, secret_lifetime)
+      )
+  }
+
+  /**
    * @param public
    *   public
    * @param secret
@@ -144,6 +240,27 @@ class CryptoModule(private val ctx: Context) {
     secret: String
   ): Either[Throwable, RegisteredSigningBox] = {
     ctx.execSync[KeyPair, RegisteredSigningBox]("crypto.get_signing_box", KeyPair(public, secret))
+  }
+
+  /**
+   * Get handle of Signing Box derived from Crypto Box.
+   * @param handle
+   *   handle
+   * @param hdpath
+   *   By default, Everscale HD path is used.
+   * @param secret_lifetime
+   *   secret_lifetime
+   */
+  def getSigningBoxFromCryptoBox(
+    handle: Long,
+    hdpath: Option[String],
+    secret_lifetime: Option[Long]
+  ): Future[Either[Throwable, RegisteredSigningBox]] = {
+    ctx
+      .execAsync[ParamsOfGetSigningBoxFromCryptoBox, RegisteredSigningBox](
+        "crypto.get_encryption_box_from_crypto_box",
+        ParamsOfGetSigningBoxFromCryptoBox(handle, hdpath, secret_lifetime)
+      )
   }
 
   /**
@@ -563,6 +680,15 @@ class CryptoModule(private val ctx: Context) {
         "",
         app_object
       )
+  }
+
+  /**
+   * Removes Crypto Box. Clears all secret data.
+   * @param handle
+   *   handle
+   */
+  def removeCryptoBox(handle: CryptoBoxHandle): Future[Either[Throwable, Unit]] = {
+    ctx.unregisterAppObject(handle.value.toInt, "crypto.remove_crypto_box")
   }
 
   /**

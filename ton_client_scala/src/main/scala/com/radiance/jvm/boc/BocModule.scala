@@ -85,6 +85,32 @@ class BocModule(private val ctx: Context) {
   }
 
   /**
+   * Encodes a message Allows to encode any external inbound message.
+   * @param src
+   *   src
+   * @param dst
+   *   dst
+   * @param init
+   *   init
+   * @param body
+   *   body
+   * @param boc_cache
+   *   The BOC itself returned if no cache type provided
+   */
+  def encodeExternalInMessage(
+    src: Option[String],
+    dst: String,
+    init: Option[String],
+    body: Option[String],
+    boc_cache: Option[BocCacheTypeADT.BocCacheType]
+  ): Future[Either[Throwable, ResultOfEncodeExternalInMessage]] = {
+    ctx.execAsync[ParamsOfEncodeExternalInMessage, ResultOfEncodeExternalInMessage](
+      "boc.encode_external_in_message",
+      ParamsOfEncodeExternalInMessage(src, dst, init, body, boc_cache)
+    )
+  }
+
+  /**
    * Encodes tvc from code, data, libraries ans special options (see input params)
    * @param code
    *   code

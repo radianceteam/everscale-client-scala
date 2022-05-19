@@ -60,11 +60,17 @@ class AbiModule(ctx: Context) {
    *   abi
    * @param data
    *   data
+   * @param allow_partial
+   *   allow_partial
    */
-  def decodeAccountData(abi: AbiADT.Abi, data: String): Future[Either[Throwable, ResultOfDecodeAccountData]] = {
+  def decodeAccountData(
+    abi: AbiADT.Abi,
+    data: String,
+    allow_partial: Option[Boolean]
+  ): Future[Either[Throwable, ResultOfDecodeAccountData]] = {
     ctx.execAsync[ParamsOfDecodeAccountData, ResultOfDecodeAccountData](
       "abi.decode_account_data",
-      ParamsOfDecodeAccountData(abi, data)
+      ParamsOfDecodeAccountData(abi, data, allow_partial)
     )
   }
 
@@ -108,47 +114,60 @@ class AbiModule(ctx: Context) {
    *   Initial data is decoded if this parameter is provided
    * @param data
    *   data
+   * @param allow_partial
+   *   allow_partial
    */
-  def decodeInitialData(abi: Option[AbiADT.Abi], data: String): Future[Either[Throwable, ResultOfDecodeInitialData]] = {
+  def decodeInitialData(
+    abi: Option[AbiADT.Abi],
+    data: String,
+    allow_partial: Option[Boolean]
+  ): Future[Either[Throwable, ResultOfDecodeInitialData]] = {
     ctx.execAsync[ParamsOfDecodeInitialData, ResultOfDecodeInitialData](
       "abi.decode_initial_data",
-      ParamsOfDecodeInitialData(abi, data)
+      ParamsOfDecodeInitialData(abi, data, allow_partial)
     )
   }
 
   /**
    * Decodes message body using provided message BOC and ABI.
    * @param abi
-   *   contract ABI
-   *
+   *   abi
    * @param message
-   *   Message BOC
+   *   message
+   * @param allow_partial
+   *   allow_partial
    */
   def decodeMessage(
     abi: AbiADT.Abi,
-    message: String
+    message: String,
+    allow_partial: Option[Boolean]
   ): Future[Either[Throwable, DecodedMessageBody]] = {
-    ctx.execAsync[ParamsOfDecodeMessage, DecodedMessageBody]("abi.decode_message", ParamsOfDecodeMessage(abi, message))
+    ctx.execAsync[ParamsOfDecodeMessage, DecodedMessageBody](
+      "abi.decode_message",
+      ParamsOfDecodeMessage(abi, message, allow_partial)
+    )
   }
 
   /**
    * Decodes message body using provided body BOC and ABI.
    * @param abi
-   *   Contract ABI used to decode.
-   *
+   *   abi
    * @param body
-   *   Message body BOC encoded in `base64`.
+   *   body
    * @param is_internal
-   *   True if the body belongs to the internal message.
+   *   is_internal
+   * @param allow_partial
+   *   allow_partial
    */
   def decodeMessageBody(
     abi: AbiADT.Abi,
     body: String,
-    is_internal: Boolean
+    is_internal: Boolean,
+    allow_partial: Option[Boolean]
   ): Future[Either[Throwable, DecodedMessageBody]] = {
     ctx.execAsync[ParamsOfDecodeMessageBody, DecodedMessageBody](
       "abi.decode_message_body",
-      ParamsOfDecodeMessageBody(abi, body, is_internal)
+      ParamsOfDecodeMessageBody(abi, body, is_internal, allow_partial)
     )
   }
 
@@ -179,6 +198,26 @@ class AbiModule(ctx: Context) {
     ctx.execAsync[ParamsOfEncodeAccount, ResultOfEncodeAccount](
       "abi.encode_account",
       ParamsOfEncodeAccount(state_init, balance, last_trans_lt, last_paid, boc_cache)
+    )
+  }
+
+  /**
+   * Encodes given parameters in JSON into a BOC using param types from ABI.
+   * @param params
+   *   params
+   * @param data
+   *   data
+   * @param boc_cache
+   *   The BOC itself returned if no cache type provided
+   */
+  def encodeBoc(
+    params: List[AbiParam],
+    data: Value,
+    boc_cache: Option[BocCacheTypeADT.BocCacheType]
+  ): Future[Either[Throwable, ResultOfAbiEncodeBoc]] = {
+    ctx.execAsync[ParamsOfAbiEncodeBoc, ResultOfAbiEncodeBoc](
+      "abi.encode_boc",
+      ParamsOfAbiEncodeBoc(params, data: Value, boc_cache)
     )
   }
 
