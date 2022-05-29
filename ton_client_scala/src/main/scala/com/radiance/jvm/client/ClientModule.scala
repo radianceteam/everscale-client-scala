@@ -13,6 +13,12 @@ class ClientModule(private val ctx: Context) {
   /**
    * Returns Core Library API reference
    */
+  def config(): Either[Throwable, ClientConfig] =
+    ctx.execSync[Unit, ClientConfig]("client.build_info", ())
+
+  /**
+   * Returns Core Library API reference
+   */
   def getApiReference: Either[Throwable, ResultOfGetApiReference] =
     ctx.execSync[Unit, ResultOfGetApiReference](
       "client.get_api_reference",

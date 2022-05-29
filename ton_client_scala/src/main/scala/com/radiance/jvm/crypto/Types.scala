@@ -2,7 +2,6 @@ package com.radiance.jvm.crypto
 
 import com.radiance.jvm.Value
 import com.radiance.jvm.crypto.EncryptionAlgorithmADT.EncryptionAlgorithm
-import com.radiance.jvm.crypto.ResultOfAppSigningBoxADT.ResultOfAppSigningBox
 import io.circe._
 import io.circe.derivation._
 import io.circe.generic.extras
@@ -315,6 +314,10 @@ object ParamsOfAppEncryptionBoxADT {
    * Get encryption box info
    */
   case object GetInfo extends ParamsOfAppEncryptionBox
+
+  import com.radiance.jvm.DiscriminatorConfig._
+  implicit val decoder: Decoder[ParamsOfAppEncryptionBox] =
+    extras.semiauto.deriveConfiguredDecoder[ParamsOfAppEncryptionBox]
 }
 
 object ParamsOfAppPasswordProviderADT {
@@ -342,8 +345,8 @@ object ParamsOfAppPasswordProviderADT {
   case class GetPassword(encryption_public_key: String) extends ParamsOfAppPasswordProvider
 
   import com.radiance.jvm.DiscriminatorConfig._
-  implicit val encoder: Encoder[EncryptionAlgorithm] =
-    extras.semiauto.deriveConfiguredEncoder[EncryptionAlgorithm]
+  implicit val decoder: Decoder[ParamsOfAppPasswordProvider] =
+    extras.semiauto.deriveConfiguredDecoder[ParamsOfAppPasswordProvider]
 }
 
 object ParamsOfAppSigningBoxADT {
@@ -731,8 +734,8 @@ object ResultOfAppPasswordProviderADT {
   case class GetPassword(encrypted_password: String, app_encryption_pubkey: String) extends ResultOfAppPasswordProvider
 
   import com.radiance.jvm.DiscriminatorConfig._
-  implicit val encoder: Encoder[ResultOfAppSigningBox] =
-    extras.semiauto.deriveConfiguredEncoder[ResultOfAppSigningBox]
+  implicit val encoder: Encoder[ResultOfAppPasswordProvider] =
+    extras.semiauto.deriveConfiguredEncoder[ResultOfAppPasswordProvider]
 }
 
 object ResultOfAppSigningBoxADT {

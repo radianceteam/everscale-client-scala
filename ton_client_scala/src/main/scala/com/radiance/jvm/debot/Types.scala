@@ -2,6 +2,7 @@ package com.radiance.jvm.debot
 
 import com.radiance.jvm.crypto._
 import io.circe._
+import io.circe.derivation._
 import io.circe.generic.extras
 
 case class DebotAction(
@@ -14,7 +15,7 @@ case class DebotAction(
 )
 
 object DebotAction {
-  implicit val encoder: Encoder[DebotAction] = derivation.deriveEncoder[DebotAction]
+  implicit val codec: Codec[DebotAction] = deriveCodec[DebotAction]
 }
 
 object DebotActivityADT {
@@ -38,8 +39,8 @@ object DebotActivityADT {
   ) extends DebotActivity
 
   import com.radiance.jvm.DiscriminatorConfig._
-  implicit val encoder: Encoder[DebotActivity] =
-    extras.semiauto.deriveConfiguredEncoder[DebotActivity]
+  implicit val decoder: Decoder[DebotActivity] =
+    extras.semiauto.deriveConfiguredDecoder[DebotActivity]
 }
 
 object DebotErrorCodeEnum {
@@ -126,7 +127,7 @@ case class DebotInfo(
 )
 
 object DebotInfo {
-  implicit val encoder: Encoder[DebotInfo] = derivation.deriveEncoder[DebotInfo]
+  implicit val codec: Codec[DebotInfo] = derivation.deriveCodec[DebotInfo]
 }
 
 object ParamsOfAppDebotBrowserADT {
@@ -182,8 +183,8 @@ object ParamsOfAppDebotBrowserADT {
   case object SwitchCompleted extends ParamsOfAppDebotBrowser
 
   import com.radiance.jvm.DiscriminatorConfig._
-  implicit val encoder: Encoder[ParamsOfAppDebotBrowser] =
-    extras.semiauto.deriveConfiguredEncoder[ParamsOfAppDebotBrowser]
+  implicit val decoder: Decoder[ParamsOfAppDebotBrowser] =
+    extras.semiauto.deriveConfiguredDecoder[ParamsOfAppDebotBrowser]
 }
 
 /**
@@ -191,10 +192,20 @@ object ParamsOfAppDebotBrowserADT {
  */
 case class ParamsOfExecute(debot_handle: DebotHandle, action: DebotAction)
 
+object ParamsOfExecute {
+  implicit val encoder: Encoder[ParamsOfExecute] =
+    deriveEncoder[ParamsOfExecute]
+}
+
 /**
  * [UNSTABLE](UNSTABLE.md) Parameters to fetch DeBot metadata.
  */
 case class ParamsOfFetch(address: String)
+
+object ParamsOfFetch {
+  implicit val encoder: Encoder[ParamsOfFetch] =
+    deriveEncoder[ParamsOfFetch]
+}
 
 /**
  * [UNSTABLE](UNSTABLE.md) Parameters to init DeBot.
@@ -211,15 +222,30 @@ case class ParamsOfRemove(debot_handle: DebotHandle)
  */
 case class ParamsOfSend(debot_handle: DebotHandle, message: String)
 
+object ParamsOfSend {
+  implicit val encoder: Encoder[ParamsOfSend] =
+    deriveEncoder[ParamsOfSend]
+}
+
 /**
  * [UNSTABLE](UNSTABLE.md) Parameters to start DeBot. DeBot must be already initialized with init() function.
  */
 case class ParamsOfStart(debot_handle: DebotHandle)
 
+object ParamsOfStart {
+  implicit val encoder: Encoder[ParamsOfStart] =
+    deriveEncoder[ParamsOfStart]
+}
+
 /**
  * [UNSTABLE](UNSTABLE.md) Structure for storing debot handle returned from `init` function.
  */
 case class RegisteredDebot(debot_handle: DebotHandle, debot_abi: String, info: DebotInfo)
+
+object RegisteredDebot {
+  implicit val decoder: Decoder[RegisteredDebot] =
+    deriveDecoder[RegisteredDebot]
+}
 
 object ResultOfAppDebotBrowserADT {
 
@@ -249,14 +275,19 @@ object ResultOfAppDebotBrowserADT {
   case object InvokeDebot extends ResultOfAppDebotBrowser
 
   import com.radiance.jvm.DiscriminatorConfig._
-  implicit val decoder: Decoder[ResultOfAppDebotBrowser] =
-    extras.semiauto.deriveConfiguredDecoder[ResultOfAppDebotBrowser]
+  implicit val encoder: Encoder[ResultOfAppDebotBrowser] =
+    extras.semiauto.deriveConfiguredEncoder[ResultOfAppDebotBrowser]
 }
 
 /**
  * [UNSTABLE](UNSTABLE.md)
  */
 case class ResultOfFetch(info: DebotInfo)
+
+object ResultOfFetch {
+  implicit val decoder: Decoder[ResultOfFetch] =
+    deriveDecoder[ResultOfFetch]
+}
 
 /**
  * [UNSTABLE](UNSTABLE.md) Describes how much funds will be debited from the target contract balance as a result of the
@@ -265,5 +296,5 @@ case class ResultOfFetch(info: DebotInfo)
 case class Spending(amount: BigInt, dst: String)
 
 object Spending {
-  implicit val encoder: Encoder[Spending] = derivation.deriveEncoder[Spending]
+  implicit val decoder: Decoder[Spending] = derivation.deriveDecoder[Spending]
 }

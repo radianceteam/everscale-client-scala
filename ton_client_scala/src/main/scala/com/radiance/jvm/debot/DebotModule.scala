@@ -1,9 +1,7 @@
 package com.radiance.jvm.debot
 
 import com.radiance.jvm._
-import com.radiance.jvm.app.AppObject
-import com.radiance.jvm.debot.ParamsOfAppDebotBrowserADT.ParamsOfAppDebotBrowser
-import com.radiance.jvm.debot.ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser
+import com.radiance.jvm.app.AppDebotBrowser
 
 import scala.concurrent.Future
 
@@ -19,7 +17,12 @@ class DebotModule(private val ctx: Context) {
    * @param action
    *   action
    */
-  def execute(debot_handle: DebotHandle, action: DebotAction): Future[Either[Throwable, Unit]] = ???
+  def execute(debot_handle: DebotHandle, action: DebotAction): Future[Either[Throwable, Unit]] = {
+    ctx.execAsync[ParamsOfExecute, Unit](
+      "debot.execute",
+      ParamsOfExecute(debot_handle, action)
+    )
+  }
 
   /**
    * [UNSTABLE](UNSTABLE.md) Fetches DeBot metadata from blockchain. Downloads DeBot from blockchain and creates and
@@ -27,7 +30,12 @@ class DebotModule(private val ctx: Context) {
    * @param address
    *   address
    */
-  def fetch(address: String): Future[Either[Throwable, ResultOfFetch]] = ???
+  def fetch(address: String): Future[Either[Throwable, ResultOfFetch]] = {
+    ctx.execAsync[ParamsOfFetch, ResultOfFetch](
+      "debot.fetch",
+      ParamsOfFetch(address)
+    )
+  }
 
   /**
    * [UNSTABLE](UNSTABLE.md) Creates and instance of DeBot. Downloads debot smart contract (code and data) from
@@ -41,9 +49,17 @@ class DebotModule(private val ctx: Context) {
    */
   def init(
     address: String,
-    app_object: AppObject[ParamsOfAppDebotBrowser, ResultOfAppDebotBrowser]
+    app_object: AppDebotBrowser
   ): Future[Either[Throwable, RegisteredDebot]] = {
-    ???
+    ctx.registerAppObject[
+      RegisteredDebot,
+      ParamsOfAppDebotBrowserADT.ParamsOfAppDebotBrowser,
+      ResultOfAppDebotBrowserADT.ResultOfAppDebotBrowser
+    ](
+      "debot.init",
+      address,
+      app_object
+    )
   }
 
   /**
@@ -52,7 +68,9 @@ class DebotModule(private val ctx: Context) {
    * @param debot_handle
    *   debot_handle
    */
-  def remove(debot_handle: DebotHandle): Future[Either[Throwable, Unit]] = ???
+  def remove(debot_handle: DebotHandle): Future[Either[Throwable, Unit]] = {
+    ctx.unregisterAppObject(debot_handle.value.toInt, "debot.remove")
+  }
 
   /**
    * [UNSTABLE](UNSTABLE.md) Sends message to Debot. Used by Debot Browser to send response on Dinterface call or from
@@ -62,7 +80,12 @@ class DebotModule(private val ctx: Context) {
    * @param message
    *   message
    */
-  def send(debot_handle: DebotHandle, message: String): Future[Either[Throwable, Unit]] = ???
+  def send(debot_handle: DebotHandle, message: String): Future[Either[Throwable, Unit]] = {
+    ctx.execAsync[ParamsOfSend, Unit](
+      "debot.send",
+      ParamsOfSend(debot_handle, message)
+    )
+  }
 
   /**
    * [UNSTABLE](UNSTABLE.md) Starts the DeBot. Downloads debot smart contract from blockchain and switches it to context
@@ -77,5 +100,10 @@ class DebotModule(private val ctx: Context) {
    * @param debot_handle
    *   debot_handle
    */
-  def start(debot_handle: DebotHandle): Future[Either[Throwable, Unit]] = ???
+  def start(debot_handle: DebotHandle): Future[Either[Throwable, Unit]] = {
+    ctx.execAsync[ParamsOfStart, Unit](
+      "debot.start",
+      ParamsOfStart(debot_handle)
+    )
+  }
 }

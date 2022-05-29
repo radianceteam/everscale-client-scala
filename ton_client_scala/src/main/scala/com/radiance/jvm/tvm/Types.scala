@@ -115,7 +115,10 @@ case class TransactionFees(
   gas_fee: BigInt,
   out_msgs_fwd_fee: BigInt,
   total_account_fees: BigInt,
-  total_output: BigInt
+  total_output: BigInt,
+  ext_in_msg_fee: BigInt,
+  total_fwd_fees: BigInt,
+  account_fees: BigInt
 )
 
 object TransactionFees {
