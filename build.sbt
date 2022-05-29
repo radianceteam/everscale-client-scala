@@ -9,7 +9,7 @@ val treehuggerVersion = "0.4.4"
 val logbackClassicVersion = "1.2.6"
 val scalaLoggingVersion = "3.9.4"
 
-val currentBranch = "master"
+val currentBranch = "1.24.0-rc"
 val pathToCmakeWin = """C:\Program Files\JetBrains\CLion 2020.2.4\bin\cmake\win\bin\cmake.exe"""
 val pathToCmakeLinux = """/usr/bin/cmake"""
 val pathToTonClientHeaderSdk = "TON-SDK/ton_client"

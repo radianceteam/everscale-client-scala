@@ -1,6 +1,7 @@
 package com.radiance.generator.types
 
 import com.radiance.generator.types.ApiDescription._
+import cats.implicits._
 
 object ScalaRepr {
 
@@ -9,7 +10,7 @@ object ScalaRepr {
     summary: Option[String],
     description: Option[String],
     types: List[ScalaType],
-    functions: List[FunctionDecl]
+    functions: List[ApiFunctionType]
   )
 
   case class FieldDescription(
@@ -44,8 +45,6 @@ object ScalaRepr {
   case object UnitScalaType extends ScalaType
 
   case class GenericScalaType(name: String, args: List[ScalaType]) extends ScalaType
-
-  case class Error(td: TypeData) extends ScalaType
 
   sealed trait ScalaTypeDecl {
     val name: String
@@ -84,54 +83,47 @@ object ScalaRepr {
   case class AdtScalaType(name: String, summary: Option[String], description: Option[String], list: List[ScalaTypeDecl])
       extends ScalaTypeDecl
 
-  case class ContentIsEmptyError(name: String, td: TypeDecl, summary: Option[String], description: Option[String])
-      extends ScalaTypeDecl
+  case class ContentIsEmptyError(
+                                  name: String,
+                                  td: ApiType,
+                                  summary: Option[String],
+                                  description: Option[String]
+  ) extends ScalaTypeDecl
 
-  case class WrongDeclError(name: String, d: ErrorDecl, summary: Option[String], description: Option[String])
-      extends ScalaTypeDecl
+  def toScalaType(td: ApiType): ScalaType = td match {
+    case ApiValueClassDeclForRef(ref_name) =>
+      fixUndefinedType(ref_name)
 
-  def toScalaType(td: TypeData): ScalaType = td.`type` match {
-    case RefType => td.ref_name.map(fixUndefinedType).getOrElse(Error(td))
-
-    case NumberType =>
-      td.number_type
-        .map {
+    case ApiNumberType(number_type) =>
+      number_type match {
           case UIntSubtype  => ScalaLongType
           case IntSubtype   => ScalaIntType
           case FloatSubtype => ScalaFloatType
         }
-        .getOrElse(Error(td))
 
-    case BigIntType =>
-      td.number_type
-        .flatMap(t => td.number_size.map(i => (t, i)))
-        .map {
+    case ApiValueClassDeclForNumber(number_type, number_size) =>
+      (number_type, number_size) match {
           case (IntSubtype, 64) => ScalaLongType
           case _                => ScalaBigIntType
         }
-        .getOrElse(Error(td))
 
-    case StringType => ScalaStringType
+    case ApiOptional(optional_inner) =>
+      ScalaOptionType(toScalaType(optional_inner))
 
-    case BooleanType => ScalaBooleanType
+    case ApiArray(array_item) =>
+      ListScalaType(toScalaType(array_item))
 
-    case OptionalType =>
-      td.optional_inner
-        .map(i => ScalaOptionType(toScalaType(i)))
-        .getOrElse(Error(td))
+    case ApiGeneric(generic_name, generic_args) =>
+      GenericScalaType(generic_name, generic_args.collect {
+        case ga: GenericRefDescription => ScalaRefType(ga.ref_name.get)
+      })
 
-    case ArrayType =>
-      td.array_item
-        .map(i => ListScalaType(toScalaType(i)))
-        .getOrElse(Error(td))
 
-    case GenericType =>
-      td.generic_name
-        .flatMap(n => td.generic_args.map(list => (n, list.map(toScalaType))))
-        .map { case (n, list) => GenericScalaType(n, list) }
-        .getOrElse(Error(td))
+    case ApiString => ScalaStringType
 
-    case NoneType => UnitScalaType
+    case ApiBoolean => ScalaBooleanType
+
+    case ApiNone(_) => UnitScalaType
 
   }
 
@@ -149,52 +141,45 @@ object ScalaRepr {
     case x         => ScalaRefType(x)
   }
 
-  def toCaseObjectDecl(td: TypeDecl): ScalaCaseObjectType =
-    ScalaCaseObjectType(td.name, td.value, td.summary, td.description)
+  def toScalaTypeDecl(td: ApiTypeDescription): ScalaTypeDecl = {
+    td.typ match {
 
-  def toScalaTypeDecl(td: TypeDecl): ScalaTypeDecl = td.`type` match {
-    case StructTypeDecl =>
-      td.struct_fields
-        .map(
-          list =>
-            (td.name, list.map(t => FieldDescription(sanitize(t.name.get), toScalaType(t), t.summary, t.description)))
+      case ApiStruct(struct_fields) =>
+        ScalaCaseClassType(
+          sanitize(td.name),
+          td.summary,
+          td.description,
+          struct_fields.map(t => FieldDescription(sanitize(t.name), toScalaType(t.typ), t.summary, t.description))
         )
-        .map {
-          case (n, Nil)  => ScalaCaseObjectType(sanitize(n), td.value, td.summary, td.description)
-          case (n, list) => ScalaCaseClassType(sanitize(n), td.summary, td.description, list)
-        }
-        .getOrElse(ContentIsEmptyError("Error in struct declaration", td, None, None))
 
-    case EnumOfTypesDecl =>
-      td.enum_types
-        .map(t => AdtScalaType(td.name, td.summary, td.description, t.map(e => toScalaTypeDecl(e))))
-        .getOrElse(ContentIsEmptyError("Error in EnumOfTypes decl", td, None, None))
+      case ApiEmptyStruct(value) =>
+        ScalaCaseObjectType(sanitize(td.name), value, td.summary, td.description)
 
-    case EnumOfConstsDecl =>
-      td.enum_consts
-        .map(list => EnumScalaType(td.name, td.summary, td.description, list.map(toCaseObjectDecl)))
-        .getOrElse(ContentIsEmptyError("Error in EnumOfConsts", td, None, None))
+      case ApiEnumOfTypes(enum_types) =>
+        AdtScalaType(td.name, td.summary, td.description, enum_types.map(e => toScalaTypeDecl(e)))
 
-    case NoneDecl => ScalaCaseObjectType(td.name, td.value, td.summary, td.description)
+      case ApiEnumOfConsts(enum_consts) =>
+        EnumScalaType(
+          td.name,
+          td.summary,
+          td.description,
+          enum_consts.map(t => ScalaCaseObjectType(t.name, t.value, t.summary, t.description))
+        )
 
-    case ValueClassDeclForRef =>
-      td.ref_name
-        .map {
-          n =>
-            ScalaValueClassType(
-              td.name,
-              td.summary,
-              td.description,
-              List(FieldDescription("value", fixUndefinedType(n), None, None))
-            )
-        }
-        .getOrElse(ContentIsEmptyError("Error in ValueClassDeclForRef", td, None, None))
+      case ApiNone(value) =>
+        ScalaCaseObjectType(td.name, value, td.summary, td.description)
 
-    case ValueClassDeclForNumber =>
-      td.number_type
-        .flatMap(nt => td.number_size.map(ns => (nt, ns)))
-        .map {
-          case (IntSubtype, 64) =>
+      case ApiValueClassDeclForRef(ref_name) =>
+        ScalaValueClassType(
+          td.name,
+          td.summary,
+          td.description,
+          List(FieldDescription("value", fixUndefinedType(ref_name), None, None))
+        )
+
+      case ApiValueClassDeclForNumber(number_type, number_size) =>
+        (number_type, number_size) match {
+          case (ntSubtype, 64) =>
             ScalaValueClassType(
               td.name,
               td.summary,
@@ -208,7 +193,7 @@ object ScalaRepr {
               td.description,
               List(FieldDescription("value", ScalaIntType, None, None))
             )
-          case _                =>
+          case _                            =>
             ScalaValueClassType(
               td.name,
               td.summary,
@@ -216,13 +201,12 @@ object ScalaRepr {
               List(FieldDescription("value", ScalaBigIntType, None, None))
             )
         }
-        .getOrElse(ContentIsEmptyError("Error in ValueClassDeclForNumber", td, None, None))
 
-    case p @ ErrorDecl(_) => WrongDeclError("WrongDeclError", p, Some(td.name), Some(td.toString))
+    }
   }
 
   case class Param(
-    name: Option[String],
+    name: String,
     summary: Option[String],
     description: Option[String],
     typ: ScalaType
@@ -237,17 +221,15 @@ object ScalaRepr {
     result: ScalaType
   )
 
-  def toScalaFuncDecl(f: FunctionDecl): ScalaFunctionDecl = f match {
-    case FunctionDecl(name, summary, description, params, result, _) =>
+  def toScalaFuncDecl(f: ApiFunctionType): ScalaFunctionDecl = f match {
+    case ApiFunctionType(name, summary, description, params, result) =>
       ScalaFunctionDecl(
         name,
         toCamelCase(name),
         summary,
         description,
-        params.map(p => Param(p.name, p.summary, p.description, toScalaType(p))),
+        params.map(p => Param(p.name, p.summary, p.description, toScalaType(p.typ))),
         toScalaType(result)
       )
-
   }
-
 }

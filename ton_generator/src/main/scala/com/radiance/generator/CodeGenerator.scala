@@ -1,14 +1,16 @@
 package com.radiance.generator
 
-import com.radiance.generator.types.ApiDescription.TypeDecl
+import cats.implicits._
+import com.radiance.generator.types.ApiDescription.{ApiStruct, ApiType, ApiTypeDescription}
 import com.radiance.generator.types.ScalaRepr._
 import com.radiance.generator.types.{ApiDescription, ScalaRepr}
 import io.circe.parser._
 import treehugger.forest._
 import definitions._
 import treehuggerDSL._
-import cats.implicits._
 
+import java.io.File
+import java.nio.file.{Files, Path, Paths}
 import scala.collection.mutable
 
 object CodeGenerator extends App {
@@ -16,7 +18,16 @@ object CodeGenerator extends App {
   import scala.io.Source
   val jsonString: String = Source.fromResource("api.json").getLines.mkString("")
 
-  val rootRes = parse(jsonString).map(_.as[ApiDescription.Root])
+  val basePackageList: List[String] = List("com", "radiance", "jvm2")
+
+  val genDirPath: Path = Paths.get("/home/admin/IdeaProjects/ton-client-scala/ton_client_scala/src/main/scala")
+
+  val rootDirPath = Paths.get(genDirPath.toString, basePackageList.toArray: _*)
+
+  Files.createDirectories(rootDirPath)
+
+  val rootRes = parse(jsonString).map(_.as[ApiDescription.ApiRoot])
+
   val root = rootRes.fold(
     t => throw t,
     res =>
@@ -25,13 +36,29 @@ object CodeGenerator extends App {
         r => r
       )
   )
-  val declarationByName: Map[String, TypeDecl] = root.modules
+
+  println(root)
+
+  val declarationByName: Map[String, ApiTypeDescription] = root.modules
     .flatMap(m => m.types.map(t => (s"${m.name}.${t.name}", t)))
     .toMap
-  root.modules.foreach {
+  val fileSeq: Seq[File] = root.modules.flatMap {
     m =>
-      generateType(m.types.map(t => ScalaRepr.toScalaTypeDecl(t)), m.name)
-      generateFunctions(m.functions.map(f => ScalaRepr.toScalaFuncDecl(f)), declarationByName, m.name, "")
+      generateTypesFile(
+        rootDirPath.toFile,
+        m.types.map(t => ScalaRepr.toScalaTypeDecl(t)),
+        basePackageList.mkString("."),
+        m.name
+      ) ::
+        generateModuleFile(
+          rootDirPath.toFile,
+          m.functions.map(f => ScalaRepr.toScalaFuncDecl(f)),
+          declarationByName,
+          basePackageList.mkString("."),
+          m.name,
+          m.summary,
+          m.description
+        ) :: Nil
   }
 
   def mergeComments(summary: Option[String], description: Option[String]): Option[String] =
@@ -42,41 +69,43 @@ object CodeGenerator extends App {
       case _                  => None
     }
 
-  def generateFunctions(
-    fDecls: List[ScalaFunctionDecl],
-    declarationByName: Map[String, TypeDecl],
-    packageName: String,
-    objName: String
-  ): Unit = {
+  def generateModuleFile(
+                          baseDir: File,
+                          fDecls: List[ScalaFunctionDecl],
+                          declarationByName: Map[String, ApiTypeDescription],
+                          basePackageName: String,
+                          subPackageName: String,
+                          maybeSummary: Option[String],
+                          maybeDescription: Option[String]
+  ): File = {
     val usedModules: mutable.Set[String] = mutable.Set()
 
     val allDecls = fDecls.sortBy(_.camelName).foldRight(Nil: List[Tree]) {
       case (decl, acc) =>
         val commentOpt: Option[String] = mergeComments(decl.summary, decl.description)
 
-        val filteredParams: List[Param] = decl.params.filter(p => p.name.get != "context" && p.name.get != "_context")
+        val filteredParams: List[Param] = decl.params.filter(p => p.name != "context" && p.name != "_context")
 
         val extendedParams = filteredParams.flatMap {
           p =>
             p.typ match {
               case ScalaRefType(name) =>
-                declarationByName
-                  .get(name)
-                  .flatMap(
-                    t =>
-                      t.struct_fields.map(
-                        _.map(
-                          f =>
-                            Param(
-                              f.name,
-                              f.summary,
-                              f.description,
-                              toScalaType(f)
-                            )
-                        )
-                      )
-                  )
-                  .getOrElse(List(p))
+                (for {
+                  d <- declarationByName.get(name)
+                  t <- d.some.filter(_.typ.isInstanceOf[ApiStruct])
+                         .map(_.typ.asInstanceOf[ApiStruct])
+                  h <- t.struct_fields.map {
+                         f =>
+                           Param(
+                             f.name,
+                             f.summary,
+                             f.description,
+                             toScalaType(f.typ)
+                           )
+                       }.some
+                } yield {
+                  h
+                }).getOrElse(List(p))
               case _                  => List(p)
             }
         }
@@ -87,38 +116,56 @@ object CodeGenerator extends App {
           )
         )
 
-        val tree1: Tree = (DEF(decl.camelName, returnType)
-          .withParams(extendedParams.map(p => PARAM(p.name.get, toType(p.typ, usedModules)): ValDef)))
+        val tree1: Tree = DEF(decl.camelName, returnType)
+          .withParams(extendedParams.map(p => PARAM(p.name, toType(p.typ, usedModules)): ValDef))
         val fullInfo = commentOpt.fold("")(u => u.stripSuffix("\n") + "\n") + extendedParams
-          .map(p => s"@param ${p.name.get} ${p.description.getOrElse(p.name.get)}")
+          .map(p => s"@param ${p.name} ${p.description.getOrElse(p.name)}")
           .mkString("\n")
         val tree = tree1.withDoc(fullInfo)
         tree :: acc
     }
 
-    val tree = (PACKAGE(packageName) := BLOCK(
-      allDecls
-    ))
-    println(treeToString(tree))
+    val tree: Tree = PACKAGEHEADER(s"$basePackageName.$subPackageName").mkTree(
+      List(
+        IMPORT("com.radiance.jvm.Context"),
+        IMPORT("com.radiance.jvm.Value"),
+        IMPORT("scala.concurrent.Future"),
+        CLASSDEF(s"${subPackageName.capitalize}Module")
+          .withParams(PARAM("ctx", "Context"))
+          .mkTree(allDecls)
+          .withDoc(mergeComments(maybeSummary, maybeDescription))
+      )
+    )
+
+    val subDir: Path = baseDir.toPath.resolve(subPackageName)
+    val file: Path = subDir.resolve(s"${subPackageName.capitalize}Module.scala")
+    Files.createFile(file)
+    Files.writeString(file, treeToString(tree))
+    file.toFile
   }
 
-  def generateType(decls: List[ScalaTypeDecl], packageName: String): Unit = {
+  def generateTypesFile(
+    baseDir: File,
+    decls: List[ScalaTypeDecl],
+    basePackageName: String,
+    subPackageName: String
+  ): File = {
     val usedModules: mutable.Set[String] = mutable.Set()
 
-    val allDecls = decls.sortBy(_.name).foldRight(Nil: List[Tree]) {
+    val allDecls: List[Tree] = decls.sortBy(_.name).foldRight(Nil: List[Tree]) {
       case (decl, acc) =>
-        val commentOpt: Option[String] = mergeComments(decl.summary, decl.description)
+        val maybeComment: Option[String] = mergeComments(decl.summary, decl.description)
 
         decl match {
           case ScalaCaseClassType(name, _, _, fields) =>
             val params = fields.map { f => PARAM(f.name, toType(f.typ, usedModules)): ValDef }
             val elm = CASECLASSDEF(RootClass.newClass(name)).withParams(params).tree
-            commentOpt.map(elm.withDoc(_)).getOrElse(elm) :: acc
+            maybeComment.map(elm.withDoc(_)).getOrElse(elm) :: acc
 
           case ScalaValueClassType(name, _, _, fields) =>
             val params = fields.map { f => PARAM(f.name, toType(f.typ, usedModules)): ValDef }
             val elm = CASECLASSDEF(RootClass.newClass(name)).withParents("AnyVal").withParams(params).tree
-            commentOpt.map(elm.withDoc(_)).getOrElse(elm) :: acc
+            maybeComment.map(elm.withDoc(_)).getOrElse(elm) :: acc
 
           case EnumScalaType(traitName, _, _, list) =>
             val valueCheck: mutable.Set[Option[String]] = mutable.Set()
@@ -149,13 +196,13 @@ object CodeGenerator extends App {
               throw new IllegalArgumentException("Something wrong with value field")
             }
 
-            val first = commentOpt.fold(sealedTrait)(sealedTrait.withDoc(_))
+            val first = maybeComment.fold(sealedTrait)(sealedTrait.withDoc(_))
             val encloseObj = OBJECTDEF(traitName + "Enum").mkTree(first :: objDecls)
             encloseObj :: acc
 
           case AdtScalaType(traitName, _, _, list) =>
             val sealedTrait = TRAITDEF(traitName).withFlags(Flags.SEALED).tree
-            val first = commentOpt.map(sealedTrait.withDoc(_)).getOrElse(sealedTrait)
+            val first = maybeComment.map(sealedTrait.withDoc(_)).getOrElse(sealedTrait)
 
             val childDecls = list.sortBy(_.name).map {
               case ScalaCaseObjectType(objectName, value, summary, description) =>
@@ -166,12 +213,12 @@ object CodeGenerator extends App {
               case ScalaCaseClassType(name, _, _, fields) =>
                 val params = fields.map { f => PARAM(f.name, toType(f.typ, usedModules)): ValDef }
                 val elm = CASECLASSDEF(RootClass.newClass(name)).withParams(params).withParents(traitName).tree
-                commentOpt.map(elm.withDoc(_)).getOrElse(elm)
+                maybeComment.map(elm.withDoc(_)).getOrElse(elm)
 
               case ScalaValueClassType(name, _, _, fields) =>
                 val params = fields.map { f => PARAM(f.name, toType(f.typ, usedModules)): ValDef }
                 val elm = CASECLASSDEF(RootClass.newClass(name)).withParams(params).withParents(traitName).tree
-                commentOpt.map(elm.withDoc(_)).getOrElse(elm)
+                maybeComment.map(elm.withDoc(_)).getOrElse(elm)
 
               case x => throw new IllegalArgumentException(s"Unexpected value: $x in ADT definition")
             }
@@ -182,10 +229,16 @@ object CodeGenerator extends App {
         }
     }
 
-    val tree = (PACKAGE(packageName) := BLOCK(
-      allDecls
-    ))
-    println(treeToString(tree))
+    val tree: Tree = PACKAGEHEADER(s"$basePackageName.$subPackageName").mkTree(
+      IMPORT("com.radiance.jvm.Value") :: allDecls
+    )
+
+    val subDir: Path = baseDir.toPath.resolve(subPackageName)
+    Files.createDirectory(subDir)
+    val file: Path = subDir.resolve("Types.scala")
+    Files.createFile(file)
+    Files.writeString(file, treeToString(tree))
+    file.toFile
   }
 
   private def toType(fieldType1: ScalaType, fieldType2: ScalaType, importSet: mutable.Set[String]): Type = {
@@ -227,6 +280,8 @@ object CodeGenerator extends App {
     case GenericScalaType(_, arg1 :: arg2 :: Nil) => {
       toType(arg1, arg2, importSet)
     }
+
+    case GenericScalaType(_, _) => UnitClass
 
     case UnitScalaType => UnitClass
 
