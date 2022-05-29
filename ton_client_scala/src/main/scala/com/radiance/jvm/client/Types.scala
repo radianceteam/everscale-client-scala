@@ -12,7 +12,7 @@ case class AbiConfig(
 )
 
 object AbiConfig {
-  implicit val encoder: Encoder[AbiConfig] = deriveEncoder[AbiConfig]
+  implicit val codec: Codec[AbiConfig] = deriveCodec[AbiConfig]
 }
 
 object AppRequestResultADT {
@@ -31,7 +31,7 @@ object AppRequestResultADT {
 case class BocConfig(cache_max_size: Option[Long])
 
 object BocConfig {
-  implicit val encoder: Encoder[BocConfig] = deriveEncoder[BocConfig]
+  implicit val codec: Codec[BocConfig] = deriveCodec[BocConfig]
 }
 
 case class BuildInfoDependency(name: String, git_commit: String)
@@ -51,7 +51,7 @@ case class ClientConfig(
 )
 
 object ClientConfig {
-  implicit val encoder: Encoder[ClientConfig] = deriveEncoder[ClientConfig]
+  implicit val codec: Codec[ClientConfig] = deriveCodec[ClientConfig]
 }
 
 case class ClientError(code: Long, message: String, data: Value)
@@ -216,7 +216,7 @@ case class CryptoConfig(
 )
 
 object CryptoConfig {
-  implicit val encoder: Encoder[CryptoConfig] = deriveEncoder[CryptoConfig]
+  implicit val codec: Codec[CryptoConfig] = deriveCodec[CryptoConfig]
 }
 
 case class NetworkConfig(
@@ -240,7 +240,7 @@ case class NetworkConfig(
 )
 
 object NetworkConfig {
-  implicit val encoder: Encoder[NetworkConfig] = deriveEncoder[NetworkConfig]
+  implicit val codec: Codec[NetworkConfig] = deriveCodec[NetworkConfig]
 }
 
 object NetworkQueriesProtocolEnum {
@@ -260,8 +260,8 @@ object NetworkQueriesProtocolEnum {
    */
   case object WS extends NetworkQueriesProtocol
 
-  implicit val encoder: Encoder[NetworkQueriesProtocol] =
-    extras.semiauto.deriveEnumerationEncoder[NetworkQueriesProtocol]
+  implicit val codec: Codec[NetworkQueriesProtocol] =
+    extras.semiauto.deriveEnumerationCodec[NetworkQueriesProtocol]
 }
 
 case class ParamsOfAppRequest(app_request_id: Long, request_data: Value)
@@ -283,7 +283,7 @@ object ParamsOfResolveAppRequest {
 case class ProofsConfig(cache_in_local_storage: Option[Boolean])
 
 object ProofsConfig {
-  implicit val encoder: Encoder[ProofsConfig] = deriveEncoder[ProofsConfig]
+  implicit val codec: Codec[ProofsConfig] = deriveCodec[ProofsConfig]
 }
 
 case class ResultOfBuildInfo(

@@ -4,3 +4,4 @@ target
 */target
 /native/build/
 /native/cmake-build-debug/
+/native/cmake-build-release/

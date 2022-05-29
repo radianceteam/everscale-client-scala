@@ -1,8 +1,9 @@
 package com.radiance.jvm.crypto
 
 import com.radiance.jvm.Context
-import com.radiance.jvm.app.AppObject
+import com.radiance.jvm.app.{AppCryptoBox, AppEncryptionBox, AppSigningBox}
 import com.radiance.jvm.crypto.EncryptionAlgorithmADT.EncryptionAlgorithm
+import io.circe.syntax._
 
 import scala.concurrent.Future
 
@@ -68,21 +69,18 @@ class CryptoModule(private val ctx: Context) {
   def createCryptoBox(
     secret_encryption_salt: String,
     secret: CryptoBoxSecretADT.CryptoBoxSecret,
-    password_provider: AppObject[
+    password_provider: AppCryptoBox
+  ): Future[Either[Throwable, RegisteredCryptoBox]] = {
+    val params = ParamsOfCreateCryptoBox(secret_encryption_salt, secret)
+    ctx.registerAppObject[
+      RegisteredCryptoBox,
       ParamsOfAppPasswordProviderADT.ParamsOfAppPasswordProvider,
       ResultOfAppPasswordProviderADT.ResultOfAppPasswordProvider
-    ]
-  ): Future[Either[Throwable, RegisteredCryptoBox]] = {
-//    ctx.registerAppObject[
-//      RegisteredCryptoBox,
-//      ParamsOfAppPasswordProviderADT.ParamsOfAppPasswordProvider,
-//      ResultOfAppPasswordProviderADT.ResultOfAppPasswordProvider
-//    ](
-//      "crypto.create_crypto_box",
-//      secret_encryption_salt,
-//      password_provider
-//    )
-    ???
+    ](
+      "crypto.create_crypto_box",
+      params.asJson.noSpaces,
+      password_provider
+    )
   }
 
   /**
@@ -584,7 +582,6 @@ class CryptoModule(private val ctx: Context) {
         ParamsOfNaclSign(unsigned, secret)
       )
 
-  // TODO add test
   /**
    * Verifies the signature with public key and `unsigned` data.
    * @param unsigned
@@ -643,10 +640,7 @@ class CryptoModule(private val ctx: Context) {
    *   app_object
    */
   def registerEncryptionBox(
-    app_object: AppObject[
-      ParamsOfAppEncryptionBoxADT.ParamsOfAppEncryptionBox,
-      ResultOfAppEncryptionBoxADT.ResultOfAppEncryptionBox
-    ]
+    app_object: AppEncryptionBox
   ): Future[Either[Throwable, RegisteredEncryptionBox]] = {
     ctx
       .registerAppObject[
@@ -665,10 +659,7 @@ class CryptoModule(private val ctx: Context) {
    *   app_object
    */
   def registerSigningBox(
-    app_object: AppObject[
-      ParamsOfAppSigningBoxADT.ParamsOfAppSigningBox,
-      ResultOfAppSigningBoxADT.ResultOfAppSigningBox
-    ]
+    app_object: AppSigningBox
   ): Future[Either[Throwable, RegisteredSigningBox]] = {
     ctx
       .registerAppObject[

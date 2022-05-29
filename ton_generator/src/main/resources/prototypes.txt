@@ -141,6 +141,8 @@ package client {
   /** Returns detailed information about this build. */
   def buildInfo(): Future[Either[Throwable, ResultOfBuildInfo]]
   /** Returns Core Library API reference */
+  def config(): Future[Either[Throwable, ClientConfig]]
+  /** Returns Core Library API reference */
   def getApiReference(): Future[Either[Throwable, ResultOfGetApiReference]]
   /**
    * Resolves application request processing result
@@ -1579,7 +1581,7 @@ package tvm {
   case class ResultOfRunExecutor(transaction: Value, out_messages: List[String], decoded: Option[DecodedOutput], account: String, fees: TransactionFees)
   case class ResultOfRunGet(output: Value)
   case class ResultOfRunTvm(out_messages: List[String], decoded: Option[DecodedOutput], account: String)
-  case class TransactionFees(in_msg_fwd_fee: BigInt, storage_fee: BigInt, gas_fee: BigInt, out_msgs_fwd_fee: BigInt, total_account_fees: BigInt, total_output: BigInt)
+  case class TransactionFees(in_msg_fwd_fee: BigInt, storage_fee: BigInt, gas_fee: BigInt, out_msgs_fwd_fee: BigInt, total_account_fees: BigInt, total_output: BigInt, ext_in_msg_fee: BigInt, total_fwd_fees: BigInt, account_fees: BigInt)
   object TvmErrorCodeEnum {
     sealed trait TvmErrorCode {
       val code: String

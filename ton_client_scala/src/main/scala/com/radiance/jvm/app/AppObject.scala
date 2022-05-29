@@ -8,9 +8,11 @@ import io.circe.syntax._
 import scala.concurrent.ExecutionContext
 import scala.util.Try
 
-class AppObject[T: Decoder, V: Encoder](f: T => V)(implicit
+abstract class AppObject[T: Decoder, V: Encoder](implicit
   val ec: ExecutionContext
 ) {
+
+  protected val f: T => V
 
   val functionName: String = "client.resolve_app_request"
 
