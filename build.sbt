@@ -23,10 +23,10 @@ lazy val buildBridge = taskKey[Unit]("Build bridge library.")
 
 val root = project in file(".")
 
-lazy val ton_client_scala = project
+lazy val `everscale-client-scala` = project
   .settings(
     scalaVersion := "2.13.4",
-    version := "1.6.0",
+    version := "1.34.2",
     libraryDependencies ++= Seq(
       "io.circe"                   %% "circe-core"               % circeVersion,
       "io.circe"                   %% "circe-derivation"         % circeDerivationVersion,
@@ -95,7 +95,7 @@ lazy val `TON-SDK` = project
     buildDependentLib := buildDllImpl.value
   )
 
-lazy val ton_generator = project
+lazy val `everscale-codegen` = project
   .settings(
     libraryDependencies ++= Seq(
       "io.circe"             %% "circe-core"         % circeVersion,
