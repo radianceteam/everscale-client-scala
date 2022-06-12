@@ -3,15 +3,15 @@
 **Community links:**
 
 [![Chat on Telegram](https://img.shields.io/badge/chat-on%20telegram-9cf.svg)](https://t.me/RADIANCE_TON_SDK)
-[![SDK version](https://img.shields.io/badge/TON%20SDK%20version-1.34.2-green)](https://github.com/tonlabs/TON-SDK/tree/1.34.0)
+[![SDK version](https://img.shields.io/badge/TON%20SDK%20version-1.34.2-green)](https://github.com/tonlabs/ever-sdk/tree/1.34.2)
 
-**Everscale scala client** is a simple scala binding to the [TON SDK](https://github.com/tonlabs/TON-SDK). 
+**Everscale scala client** is a simple scala binding to the [ever-sdk](https://github.com/tonlabs/ever-sdk). 
 
 Features:
-* All methods of the TON SDK v 1.34.2
-* Interaction with the TON SDK through synchronous an asynchronous calls
+* All methods of the ever-sdk v 1.34.2
+* Interaction with the ever-sdk through synchronous an asynchronous calls
 * The every method contains inline-doc
-* The automatic download of the TON SDK library for the current environment
+* The automatic download of the ever-sdk library for the current environment
 
 ## Requirements
 
@@ -20,7 +20,7 @@ Features:
 - cmake
 - Docker
 - __JAVA_HOME__ environment variable need to be defined
-- on Windows environment variable __PATH__ need contains absolute path to folder __TON-SDK/ton_client/build__. 
+- on Windows environment variable __PATH__ need contains absolute path to folder __ever-sdk/ton_client/build__. 
 
 ## Prerequisites
 
@@ -34,7 +34,7 @@ Features:
     
     [Read more about installation](https://stackoverflow.com/questions/30069830/how-to-install-mingw-w64-and-msys2)
  
- __Important__: Be sure you use the same toolchain for building TON-SDK client and bridge library 
+ __Important__: Be sure you use the same toolchain for building ever-sdk client and bridge library 
  from __native__ subproject, in other case you can get __UnsatisfiedLinkError__ with message:  Can't find dependent libraries.
  
  If you use Linux install cmake:
@@ -52,9 +52,9 @@ Required Docker image - [TON OS Startup Edition](https://hub.docker.com/r/tonlab
 
 Project contains several subprojects:
 1. __native__ - cpp project, that you can edit with any cpp IDE you prefer (CLion, Visual Studio Code etc.).
-2. __TON-SDK__ - [git submodule](https://git-scm.com/docs/git-submodule) of TON-SDK repo.
-3. __ton_client_scala__ - Scala binding itself.
-4. __ton_generator__ - code generator for ton_client_scala.
+2. __ever-sdk__ - [git submodule](https://git-scm.com/docs/git-submodule) of ever-sdk repo.
+3. __everscale-client-scala__ - Scala binding itself.
+4. __everscale-codegen__ - code generator for ton_client_scala.
 
 ## Installation
 
@@ -62,7 +62,7 @@ Project contains several subprojects:
     
     * Update git submodule
      
-    Select branch in TON-SDK you want to build and execute in the folder __TON-SDK__ console next commands:
+    Select branch in ever-sdk you want to build and execute in the folder __ever-sdk__ console next commands:
     
     ```git checkout <branch>```
     
@@ -70,11 +70,11 @@ Project contains several subprojects:
     
     * Build ton_client binary library
     
-    In the folder __TON-SDK/ton_client/client__ run nodejs build script:
+    In the folder __ever-sdk/ton_client/client__ run nodejs build script:
     
     ```node build```
     
-    * Copy header file tonclient.h from __TON-SDK/ton_client/client__ to folder __native/include__
+    * Copy header file tonclient.h from __ever-sdk/ton_client/client__ to folder __native/include__
     
     * Compile project native with toolchain you prefer
     
@@ -84,9 +84,9 @@ Project contains several subprojects:
     
     * Set in build.sbt branch value you want to build
     
-    * Select sbt project __TON-SDK__ with command 
+    * Select sbt project __ever-sdk__ with command 
     
-    ```project TON-SDK```
+    ```project ever-sdk```
     
     and then run command 
     
@@ -164,10 +164,10 @@ Or you can use simpler configuration:
     val ctx: Context = Context(clientConfig)
 ```
 
-More details you can find [here](https://github.com/tonlabs/TON-SDK/blob/1.16.0/docs/mod_client.md#ClientConfig). 
+More details you can find [here](https://github.com/tonlabs/ever-sdk/blob/1.16.0/docs/mod_client.md#ClientConfig). 
 
 ## Basic usage
-In subpackages of __com.radiance.jvm__ you can find modules that encapsulate definite functionality of Scala TON Client:
+In subpackages of __com.radiance.jvm__ you can find modules that encapsulate definite functionality of Scala Everscale Client:
     
 * AbiModule
 * BocModule
@@ -187,9 +187,9 @@ In subpackages of __com.radiance.jvm__ you can find modules that encapsulate def
 
     val ctx: Context = ???
     val clientModule = new ClientModule(ctx)
-    // Get TON SDK version
+    // Get Everscale SDK version
     val result1: Either[Throwable, ResultOfVersion] = clientModule.version
-    // Get TON SDK build info
+    // Get Everscale SDK build info
     val result2: Either[Throwable, ResultOfBuildInfo] = clientModule.buildInfo
 ```
 
