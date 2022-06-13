@@ -21,7 +21,7 @@ elseif(CYGWIN)
     SET (CMAKE_FIND_LIBRARY_SUFFIXES ".lib" ".dll")
 endif()
 
-file(TO_CMAKE_PATH ${CMAKE_SOURCE_DIR}/../TON-SDK/ton_client/build PATH_TO_LIBRARY)
+file(TO_CMAKE_PATH ${CMAKE_SOURCE_DIR}/../ever-sdk/ton_client/build PATH_TO_LIBRARY)
 find_library(ton_client_dll NAMES ton_client PATHS ${PATH_TO_LIBRARY})
 message(WARNING "${PATH_TO_LIBRARY}")
 message(WARNING ${ton_client_dll})
