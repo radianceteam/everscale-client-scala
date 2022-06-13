@@ -9,10 +9,11 @@ val treehuggerVersion = "0.4.4"
 val logbackClassicVersion = "1.2.6"
 val scalaLoggingVersion = "3.9.4"
 
-val currentBranch = "1.24.0-rc"
-val pathToCmakeWin = """C:\Program Files\JetBrains\CLion 2020.2.4\bin\cmake\win\bin\cmake.exe"""
+val currentBranch = "master"
+val pathToCmakeWin = """C:\Program Files\JetBrains\CLion 2021.1\bin\cmake\win\bin\cmake.exe"""
+
 val pathToCmakeLinux = """/usr/bin/cmake"""
-val pathToTonClientHeaderSdk = "TON-SDK/ton_client"
+val pathToTonClientHeaderSdk = "ever-sdk/ton_client"
 val pathToTonClientHeaderNative = "native/include"
 
 lazy val pathToBridgeDll = SettingKey[File]("pathToBridgeDll")
@@ -38,7 +39,7 @@ lazy val `everscale-client-scala` = project
       "org.scalatest"              %% "scalatest-shouldmatchers" % scalaTestVersion % Test,
       "org.typelevel"              %% "cats-core"                % catsCoreVersion  % Test
     ),
-    pathToTestResources := (`TON-SDK` / baseDirectory).value.getAbsoluteFile / "ton_client" / "src" / "tests" / "contracts",
+    pathToTestResources := (`ever-sdk` / baseDirectory).value.getAbsoluteFile / "ton_client" / "src" / "tests" / "contracts",
     pathToBridgeDll := (native / baseDirectory).value.getAbsoluteFile / "build",
     Test / unmanagedResourceDirectories ++= Seq(pathToBridgeDll.value, pathToTestResources.value),
     Compile / unmanagedResources / includeFilter := "*.dll" || "*.dll.a" || "*.dll.lib" || "*.so",
@@ -90,7 +91,7 @@ lazy val native = project
     buildBridge := buildBridgeImpl.value
   )
 
-lazy val `TON-SDK` = project
+lazy val `ever-sdk` = project
   .settings(
     buildDependentLib := buildDllImpl.value
   )
@@ -115,11 +116,11 @@ lazy val buildDllImpl = Def.task {
     case _       => ()
   }
 
-  Process(s"git submodule init", new File("TON-SDK")).!
-  Process(s"git submodule update", new File("TON-SDK")).!
-  Process(s"git checkout $currentBranch", new File("TON-SDK")).!
-  Process(s"git pull", new File("TON-SDK")).!
-  Process("node build", new File("TON-SDK/ton_client")).!
+  Process(s"git submodule init", new File("ever-sdk")).!
+  Process(s"git submodule update", new File("ever-sdk")).!
+  Process(s"git checkout $currentBranch", new File("ever-sdk")).!
+  Process(s"git pull", new File("ever-sdk")).!
+  Process("node build", new File("ever-sdk/ton_client")).!
 
 }
 
