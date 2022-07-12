@@ -26,7 +26,7 @@ val root = project in file(".")
 lazy val `everscale-client-scala` = project
   .settings(
     scalaVersion := "2.13.4",
-    version := "1.34.2",
+    version := "1.35.0",
     libraryDependencies ++= Seq(
       "io.circe"                   %% "circe-core"               % circeVersion,
       "io.circe"                   %% "circe-derivation"         % circeDerivationVersion,

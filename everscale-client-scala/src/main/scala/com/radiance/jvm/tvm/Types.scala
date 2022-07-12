@@ -28,7 +28,8 @@ case class ExecutionOptions(
   blockchain_config: Option[String],
   block_time: Option[Long],
   block_lt: Option[BigInt],
-  transaction_lt: Option[BigInt]
+  transaction_lt: Option[BigInt],
+  chksig_always_succeed: Option[Boolean]
 )
 
 object ExecutionOptions {
