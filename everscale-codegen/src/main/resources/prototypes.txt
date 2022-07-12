@@ -829,6 +829,9 @@ package abi {
     case object InvalidFunctionId extends AbiErrorCode {
       override val code: String = "312"
     }
+    case object InvalidFunctionName extends AbiErrorCode {
+      override val code: String = "315"
+    }
     case object InvalidJson extends AbiErrorCode {
       override val code: String = "303"
     }
@@ -890,6 +893,7 @@ package abi {
   case class ParamsOfAbiEncodeBoc(params: List[AbiParam], data: Value, boc_cache: Option[BocCacheType])
   case class ParamsOfAttachSignature(abi: Abi, public_key: String, message: String, signature: String)
   case class ParamsOfAttachSignatureToMessageBody(abi: Abi, public_key: String, message: String, signature: String)
+  case class ParamsOfCalcFunctionId(abi: Abi, function_name: String, output: Option[Boolean])
   case class ParamsOfDecodeAccountData(abi: Abi, data: String, allow_partial: Option[Boolean])
   case class ParamsOfDecodeBoc(params: List[AbiParam], boc: String, allow_partial: Boolean)
   case class ParamsOfDecodeInitialData(abi: Option[Abi], data: String, allow_partial: Option[Boolean])
@@ -904,6 +908,7 @@ package abi {
   case class ResultOfAbiEncodeBoc(boc: String)
   case class ResultOfAttachSignature(message: String, message_id: String)
   case class ResultOfAttachSignatureToMessageBody(body: String)
+  case class ResultOfCalcFunctionId(function_id: Long)
   case class ResultOfDecodeAccountData(data: Value)
   case class ResultOfDecodeBoc(data: Value)
   case class ResultOfDecodeInitialData(initial_data: Option[Value], initial_pubkey: String)
@@ -948,6 +953,13 @@ package abi {
    * @param signature Must be encoded with `hex`.
    */
   def attachSignatureToMessageBody(abi: Abi, public_key: String, message: String, signature: String): Future[Either[Throwable, ResultOfAttachSignatureToMessageBody]]
+  /**
+   * Calculates contract function ID by contract ABI
+   * @param abi abi
+   * @param function_name function_name
+   * @param output output
+   */
+  def calcFunctionId(abi: Abi, function_name: String, output: Option[Boolean]): Future[Either[Throwable, ResultOfCalcFunctionId]]
   /**
    * Decodes account data using provided data BOC and ABI.
    * Note: this feature requires ABI 2.1 or higher.
@@ -1574,7 +1586,7 @@ package tvm {
     /** Emulate uninitialized account to run deploy message */
     case object Uninit extends AccountForExecutor
   }
-  case class ExecutionOptions(blockchain_config: Option[String], block_time: Option[Long], block_lt: Option[BigInt], transaction_lt: Option[BigInt])
+  case class ExecutionOptions(blockchain_config: Option[String], block_time: Option[Long], block_lt: Option[BigInt], transaction_lt: Option[BigInt], chksig_always_succeed: Option[Boolean])
   case class ParamsOfRunExecutor(message: String, account: AccountForExecutor, execution_options: Option[ExecutionOptions], abi: Option[Abi], skip_transaction_check: Option[Boolean], boc_cache: Option[BocCacheType], return_updated_account: Option[Boolean])
   case class ParamsOfRunGet(account: String, function_name: String, input: Option[Value], execution_options: Option[ExecutionOptions], tuple_list_as_array: Option[Boolean])
   case class ParamsOfRunTvm(message: String, account: String, execution_options: Option[ExecutionOptions], abi: Option[Abi], boc_cache: Option[BocCacheType], return_updated_account: Option[Boolean])

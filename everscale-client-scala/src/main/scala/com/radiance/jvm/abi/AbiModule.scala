@@ -55,6 +55,26 @@ class AbiModule(ctx: Context) {
   }
 
   /**
+   * Calculates contract function ID by contract ABI
+   * @param abi
+   *   abi
+   * @param function_name
+   *   function_name
+   * @param output
+   *   output
+   */
+  def calcFunctionId(
+    abi: AbiADT.Abi,
+    function_name: String,
+    output: Option[Boolean]
+  ): Future[Either[Throwable, ResultOfCalcFunctionId]] = {
+    ctx.execAsync[ParamsOfCalcFunctionId, ResultOfCalcFunctionId](
+      "abi.calc_function_id",
+      ParamsOfCalcFunctionId(abi, function_name, output)
+    )
+  }
+
+  /**
    * Decodes account data using provided data BOC and ABI. Note: this feature requires ABI 2.1 or higher.
    * @param abi
    *   abi
