@@ -3,12 +3,12 @@
 **Community links:**
 
 [![Chat on Telegram](https://img.shields.io/badge/chat-on%20telegram-9cf.svg)](https://t.me/RADIANCE_TON_SDK)
-[![SDK version](https://img.shields.io/badge/TON%20SDK%20version-1.35.0-green)](https://github.com/tonlabs/ever-sdk/tree/1.35.0)
+[![SDK version](https://img.shields.io/badge/TON%20SDK%20version-1.37.0-green)](https://github.com/tonlabs/ever-sdk/tree/1.37.0)
 
 **Everscale scala client** is a simple scala binding to the [ever-sdk](https://github.com/tonlabs/ever-sdk). 
 
 Features:
-* All methods of the ever-sdk v 1.35.0
+* All methods of the ever-sdk v 1.37.0
 * Interaction with the ever-sdk through synchronous an asynchronous calls
 * The every method contains inline-doc
 * The automatic download of the ever-sdk library for the current environment
@@ -100,7 +100,7 @@ Project contains several subprojects:
     
     ```buildBridge```
     
-    * Select sbt project __ton_client_scala__ and run sbt command
+    * Select sbt project __everscale-client-scala__ and run sbt command
     
     ```compile```
 

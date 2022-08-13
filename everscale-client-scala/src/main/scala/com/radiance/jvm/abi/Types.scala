@@ -375,7 +375,8 @@ case class ParamsOfEncodeMessageBody(
   call_set: CallSet,
   is_internal: Boolean,
   signer: SignerADT.Signer,
-  processing_try_index: Option[Long]
+  processing_try_index: Option[Long],
+  address: Option[String]
 )
 
 object ParamsOfEncodeMessageBody {
