@@ -76,6 +76,9 @@ object AbiErrorCodeEnum {
   case object InvalidFunctionId extends AbiErrorCode {
     override val code: String = "312"
   }
+  case object InvalidFunctionName extends AbiErrorCode {
+    override val code: String = "315"
+  }
   case object InvalidJson extends AbiErrorCode {
     override val code: String = "303"
   }
@@ -265,6 +268,13 @@ object ParamsOfAttachSignatureToMessageBody {
     deriveEncoder[ParamsOfAttachSignatureToMessageBody]
 }
 
+case class ParamsOfCalcFunctionId(abi: AbiADT.Abi, function_name: String, output: Option[Boolean])
+
+object ParamsOfCalcFunctionId {
+  implicit val encoder: Encoder[ParamsOfCalcFunctionId] =
+    deriveEncoder[ParamsOfCalcFunctionId]
+}
+
 case class ParamsOfDecodeAccountData(abi: AbiADT.Abi, data: String, allow_partial: Option[Boolean])
 
 object ParamsOfDecodeAccountData {
@@ -365,7 +375,8 @@ case class ParamsOfEncodeMessageBody(
   call_set: CallSet,
   is_internal: Boolean,
   signer: SignerADT.Signer,
-  processing_try_index: Option[Long]
+  processing_try_index: Option[Long],
+  address: Option[String]
 )
 
 object ParamsOfEncodeMessageBody {
@@ -405,6 +416,13 @@ case class ResultOfAttachSignatureToMessageBody(body: String)
 object ResultOfAttachSignatureToMessageBody {
   implicit val decoder: Decoder[ResultOfAttachSignatureToMessageBody] =
     deriveDecoder[ResultOfAttachSignatureToMessageBody]
+}
+
+case class ResultOfCalcFunctionId(function_id: Long)
+
+object ResultOfCalcFunctionId {
+  implicit val decoder: Decoder[ResultOfCalcFunctionId] =
+    deriveDecoder[ResultOfCalcFunctionId]
 }
 
 case class ResultOfDecodeAccountData(data: Value)
