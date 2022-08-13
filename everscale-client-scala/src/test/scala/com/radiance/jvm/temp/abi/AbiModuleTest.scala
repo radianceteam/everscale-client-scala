@@ -73,7 +73,8 @@ class AbiModuleTest extends AnyFlatSpec with TestUtils {
     run_params.call_set.get,
     false,
     run_params.signer,
-    run_params.processing_try_index
+    run_params.processing_try_index,
+    None
   )
 
   def extract_body(message: String): Value = {

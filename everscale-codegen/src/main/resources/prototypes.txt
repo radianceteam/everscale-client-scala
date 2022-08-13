@@ -903,7 +903,7 @@ package abi {
   case class ParamsOfEncodeInitialData(abi: Option[Abi], initial_data: Option[Value], initial_pubkey: Option[String], boc_cache: Option[BocCacheType])
   case class ParamsOfEncodeInternalMessage(abi: Option[Abi], address: Option[String], src_address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], value: String, bounce: Option[Boolean], enable_ihr: Option[Boolean])
   case class ParamsOfEncodeMessage(abi: Abi, address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], signer: Signer, processing_try_index: Option[Long])
-  case class ParamsOfEncodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long])
+  case class ParamsOfEncodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long], address: Option[String])
   case class ParamsOfUpdateInitialData(abi: Option[Abi], data: String, initial_data: Option[Value], initial_pubkey: Option[String], boc_cache: Option[BocCacheType])
   case class ResultOfAbiEncodeBoc(boc: String)
   case class ResultOfAttachSignature(message: String, message_id: String)
@@ -1138,8 +1138,11 @@ package abi {
    * Expiration timeouts will grow with every retry.
    *
    * Default value is 0.
+   * @param address Since ABI version 2.3 destination address of external inbound message is used in message
+   * body signature calculation. Should be provided when signed external inbound message body is
+   * created. Otherwise can be omitted.
    */
-  def encodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long]): Future[Either[Throwable, ResultOfEncodeMessageBody]]
+  def encodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long], address: Option[String]): Future[Either[Throwable, ResultOfEncodeMessageBody]]
   /**
    * Updates initial account data with initial values for the contract's static variables and owner's public key. This operation is applicable only for initial account data (before deploy). If the contract is already deployed, its data doesn't contain this data section any more.
    * @param abi abi

@@ -388,35 +388,34 @@ class AbiModule(ctx: Context) {
   /**
    * Encodes message body according to ABI function call.
    * @param abi
-   *   Contract ABI.
-   *
+   *   abi
    * @param call_set
-   *   Function call parameters.
-   *
-   * Must be specified in non deploy message.
+   *   Must be specified in non deploy message.
    *
    * In case of deploy message contains parameters of constructor.
    * @param is_internal
-   *   True if internal message body must be encoded.
+   *   is_internal
    * @param signer
-   *   Signing parameters.
+   *   signer
    * @param processing_try_index
-   *   Processing try index.
-   *
-   * Used in message processing with retries.
+   *   Used in message processing with retries.
    *
    * Encoder uses the provided try index to calculate message expiration time.
    *
    * Expiration timeouts will grow with every retry.
    *
    * Default value is 0.
+   * @param address
+   *   Since ABI version 2.3 destination address of external inbound message is used in message body signature
+   *   calculation. Should be provided when signed external inbound message body is created. Otherwise can be omitted.
    */
   def encodeMessageBody(
     abi: AbiADT.Abi,
     call_set: CallSet,
     is_internal: Boolean,
     signer: SignerADT.Signer,
-    processing_try_index: Option[Long]
+    processing_try_index: Option[Long],
+    address: Option[String]
   ): Future[Either[Throwable, ResultOfEncodeMessageBody]] = {
     ctx.execAsync[ParamsOfEncodeMessageBody, ResultOfEncodeMessageBody](
       "abi.encode_message_body",
@@ -425,7 +424,8 @@ class AbiModule(ctx: Context) {
         call_set,
         is_internal,
         signer,
-        processing_try_index
+        processing_try_index,
+        address
       )
     )
   }
