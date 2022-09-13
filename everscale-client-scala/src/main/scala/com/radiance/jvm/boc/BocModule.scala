@@ -19,7 +19,7 @@ class BocModule(private val ctx: Context) {
   }
 
   /**
-   * Save BOC into cache
+   * Save BOC into cache or increase pin counter for existing pinned BOC
    * @param boc
    *   boc
    * @param cache_type
@@ -36,7 +36,9 @@ class BocModule(private val ctx: Context) {
   }
 
   /**
-   * Unpin BOCs with specified pin. BOCs which don't have another pins will be removed from cache
+   * Unpin BOCs with specified pin defined in the `cache_set`. Decrease pin reference counter for BOCs with specified
+   * pin defined in the `cache_set`. BOCs which have only 1 pin and its reference counter become 0 will be removed from
+   * cache
    * @param pin
    *   pin
    * @param boc_ref

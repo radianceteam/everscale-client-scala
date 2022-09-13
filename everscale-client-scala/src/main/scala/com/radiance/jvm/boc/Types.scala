@@ -10,6 +10,10 @@ object BocCacheTypeADT {
 
   case class Pinned(pin: String) extends BocCacheType
 
+  /**
+   * BOC is placed into a common BOC pool with limited size regulated by LRU (least recently used) cache lifecycle. BOC
+   * resides there until it is replaced with other BOCs if it is not used
+   */
   case object Unpinned extends BocCacheType
 
   import com.radiance.jvm.DiscriminatorConfig._
