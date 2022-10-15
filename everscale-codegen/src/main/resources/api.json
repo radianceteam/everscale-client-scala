@@ -1,5 +1,5 @@
 {
-  "version": "1.37.1",
+  "version": "1.38.0",
   "modules": [
     {
       "name": "client",
@@ -365,7 +365,7 @@
               "optional_inner": {
                 "type": "String"
               },
-              "summary": "**This field is deprecated, but left for backward-compatibility.** DApp Server public address.",
+              "summary": "**This field is deprecated, but left for backward-compatibility.** Evernode endpoint.",
               "description": null
             },
             {
@@ -377,8 +377,8 @@
                   "type": "String"
                 }
               },
-              "summary": "List of DApp Server addresses.",
-              "description": "Any correct URL format can be specified, including IP addresses. This parameter is prevailing over `server_address`.\nCheck the full list of [supported network endpoints](../ton-os-api/networks.md)."
+              "summary": "List of Evernode endpoints.",
+              "description": "Any correct URL format can be specified, including IP addresses. This parameter is prevailing over `server_address`.\nCheck the full list of [supported network endpoints](https://docs.everos.dev/ever-sdk/reference/ever-os-api/networks)."
             },
             {
               "name": "network_retries_count",
@@ -539,8 +539,8 @@
               "optional_inner": {
                 "type": "String"
               },
-              "summary": "Access key to GraphQL API.",
-              "description": "You can specify here Evercloud project secret ot serialized JWT."
+              "summary": "Access key to GraphQL API (Project secret)",
+              "description": null
             }
           ],
           "summary": null,
@@ -1310,29 +1310,61 @@
           "enum_types": [
             {
               "name": "AES",
-              "type": "Ref",
-              "ref_name": "crypto.AesParamsEB",
+              "type": "Struct",
+              "struct_fields": [
+                {
+                  "name": "value",
+                  "type": "Ref",
+                  "ref_name": "crypto.AesParamsEB",
+                  "summary": null,
+                  "description": null
+                }
+              ],
               "summary": null,
               "description": null
             },
             {
               "name": "ChaCha20",
-              "type": "Ref",
-              "ref_name": "crypto.ChaCha20ParamsEB",
+              "type": "Struct",
+              "struct_fields": [
+                {
+                  "name": "value",
+                  "type": "Ref",
+                  "ref_name": "crypto.ChaCha20ParamsEB",
+                  "summary": null,
+                  "description": null
+                }
+              ],
               "summary": null,
               "description": null
             },
             {
               "name": "NaclBox",
-              "type": "Ref",
-              "ref_name": "crypto.NaclBoxParamsEB",
+              "type": "Struct",
+              "struct_fields": [
+                {
+                  "name": "value",
+                  "type": "Ref",
+                  "ref_name": "crypto.NaclBoxParamsEB",
+                  "summary": null,
+                  "description": null
+                }
+              ],
               "summary": null,
               "description": null
             },
             {
               "name": "NaclSecretBox",
-              "type": "Ref",
-              "ref_name": "crypto.NaclSecretBoxParamsEB",
+              "type": "Struct",
+              "struct_fields": [
+                {
+                  "name": "value",
+                  "type": "Ref",
+                  "ref_name": "crypto.NaclSecretBoxParamsEB",
+                  "summary": null,
+                  "description": null
+                }
+              ],
               "summary": null,
               "description": null
             }
@@ -1588,22 +1620,46 @@
           "enum_types": [
             {
               "name": "ChaCha20",
-              "type": "Ref",
-              "ref_name": "crypto.ChaCha20ParamsCB",
+              "type": "Struct",
+              "struct_fields": [
+                {
+                  "name": "value",
+                  "type": "Ref",
+                  "ref_name": "crypto.ChaCha20ParamsCB",
+                  "summary": null,
+                  "description": null
+                }
+              ],
               "summary": null,
               "description": null
             },
             {
               "name": "NaclBox",
-              "type": "Ref",
-              "ref_name": "crypto.NaclBoxParamsCB",
+              "type": "Struct",
+              "struct_fields": [
+                {
+                  "name": "value",
+                  "type": "Ref",
+                  "ref_name": "crypto.NaclBoxParamsCB",
+                  "summary": null,
+                  "description": null
+                }
+              ],
               "summary": null,
               "description": null
             },
             {
               "name": "NaclSecretBox",
-              "type": "Ref",
-              "ref_name": "crypto.NaclSecretBoxParamsCB",
+              "type": "Struct",
+              "struct_fields": [
+                {
+                  "name": "value",
+                  "type": "Ref",
+                  "ref_name": "crypto.NaclSecretBoxParamsCB",
+                  "summary": null,
+                  "description": null
+                }
+              ],
               "summary": null,
               "description": null
             }
@@ -11245,6 +11301,13 @@
               "name": "NetworkModuleResumed",
               "type": "Number",
               "value": "614",
+              "summary": null,
+              "description": null
+            },
+            {
+              "name": "Unauthorized",
+              "type": "Number",
+              "value": "615",
               "summary": null,
               "description": null
             }
