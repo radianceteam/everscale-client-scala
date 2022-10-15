@@ -104,6 +104,9 @@ object NetErrorCode {
   case object SubscribeFailed extends NetErrorCode {
     override val code: String = "602"
   }
+  case object Unauthorized extends NetErrorCode {
+    override val code: String = "615"
+  }
   case object WaitForFailed extends NetErrorCode {
     override val code: String = "603"
   }
