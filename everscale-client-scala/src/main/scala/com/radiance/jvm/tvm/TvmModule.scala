@@ -13,7 +13,7 @@ class TvmModule(private val ctx: Context) {
    * Executor - the same component that is used on Validator Nodes.
    *
    * Can be used for contract debugging, to find out the reason why a message was not delivered successfully. Validators
-   * throw away the failed external inbound messages (if they failed bedore `ACCEPT`) in the real network. This is why
+   * throw away the failed external inbound messages (if they failed before `ACCEPT`) in the real network. This is why
    * these messages are impossible to debug in the real network. With the help of run_executor you can do that. In fact,
    * `process_message` function performs local check with `run_executor` if there was no transaction as a result of
    * processing and returns the error, if there is one.
@@ -36,6 +36,7 @@ class TvmModule(private val ctx: Context) {
    * `execution_options` parameter.
    *
    * If you need to see the aborted transaction as a result, not as an error, set `skip_transaction_check` to `true`.
+   *
    * @param message
    *   Must be encoded as base64.
    * @param account

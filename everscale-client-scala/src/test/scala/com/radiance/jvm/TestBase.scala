@@ -47,6 +47,7 @@ trait TestBase extends BeforeAndAfter with TestUtils { this: AnyFlatSpec =>
   protected var debotModule: DebotModule = _
 
   protected val config = ClientConfig(
+    None,
     NetworkConfig(host.some).some
   )
 
@@ -78,7 +79,7 @@ trait TestBase extends BeforeAndAfter with TestUtils { this: AnyFlatSpec =>
     (for {
       encoded <- EitherT(
                    abiModule
-                     .encodeMessage(a, None, deploySet.some, callSet.some, signer, None)
+                     .encodeMessage(a, None, deploySet.some, callSet.some, signer, None, None)
                  )
       _ <- EitherT(getGramsFromGiver(encoded.address))
       _ <- EitherT(
@@ -89,6 +90,7 @@ trait TestBase extends BeforeAndAfter with TestUtils { this: AnyFlatSpec =>
                  deploySet.some,
                  callSet.some,
                  signer,
+                 None,
                  None
                ),
                false,
@@ -116,6 +118,7 @@ trait TestBase extends BeforeAndAfter with TestUtils { this: AnyFlatSpec =>
           inputMsg.some
         ).some,
         SignerADT.None,
+        None,
         None
       ),
       false,

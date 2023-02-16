@@ -5,9 +5,10 @@ package client {
     case class Error(text: String) extends AppRequestResult
     case class Ok(result: Value) extends AppRequestResult
   }
+  case class BindingConfig(library: Option[String], version: Option[String])
   case class BocConfig(cache_max_size: Option[Long])
   case class BuildInfoDependency(name: String, git_commit: String)
-  case class ClientConfig(network: Option[NetworkConfig], crypto: Option[CryptoConfig], abi: Option[AbiConfig], boc: Option[BocConfig], proofs: Option[ProofsConfig], local_storage_path: Option[String])
+  case class ClientConfig(binding: Option[BindingConfig], network: Option[NetworkConfig], crypto: Option[CryptoConfig], abi: Option[AbiConfig], boc: Option[BocConfig], proofs: Option[ProofsConfig], local_storage_path: Option[String])
   case class ClientError(code: Long, message: String, data: Value)
   object ClientErrorCodeEnum {
     sealed trait ClientErrorCode {
@@ -79,6 +80,9 @@ package client {
     case object InvalidContextHandle extends ClientErrorCode {
       override val code: String = "17"
     }
+    case object InvalidData extends ClientErrorCode {
+      override val code: String = "36"
+    }
     case object InvalidHandle extends ClientErrorCode {
       override val code: String = "34"
     }
@@ -120,14 +124,14 @@ package client {
     }
   }
   /** Crypto config. */
-  case class CryptoConfig(mnemonic_dictionary: Option[Long], mnemonic_word_count: Option[Long], hdkey_derivation_path: Option[String])
-  case class NetworkConfig(server_address: Option[String], endpoints: Option[List[String]], network_retries_count: Option[Int], max_reconnect_timeout: Option[Long], reconnect_timeout: Option[Long], message_retries_count: Option[Int], message_processing_timeout: Option[Long], wait_for_timeout: Option[Long], out_of_sync_threshold: Option[Long], sending_endpoint_count: Option[Long], latency_detection_interval: Option[Long], max_latency: Option[Long], query_timeout: Option[Long], queries_protocol: Option[NetworkQueriesProtocol], first_remp_status_timeout: Option[Long], next_remp_status_timeout: Option[Long], access_key: Option[String])
+  case class CryptoConfig(mnemonic_dictionary: Option[MnemonicDictionary], mnemonic_word_count: Option[Long], hdkey_derivation_path: Option[String])
+  case class NetworkConfig(server_address: Option[String], endpoints: Option[List[String]], network_retries_count: Option[Int], max_reconnect_timeout: Option[Long], reconnect_timeout: Option[Long], message_retries_count: Option[Int], message_processing_timeout: Option[Long], wait_for_timeout: Option[Long], out_of_sync_threshold: Option[Long], sending_endpoint_count: Option[Long], latency_detection_interval: Option[Long], max_latency: Option[Long], query_timeout: Option[Long], queries_protocol: Option[NetworkQueriesProtocol], first_remp_status_timeout: Option[Long], next_remp_status_timeout: Option[Long], signature_id: Option[Int], access_key: Option[String])
   object NetworkQueriesProtocolEnum {
     /** Network protocol used to perform GraphQL queries. */
     sealed trait NetworkQueriesProtocol
     /** Each GraphQL query uses separate HTTP request. */
     case object HTTP extends NetworkQueriesProtocol
-    /** All GraphQL queries will be served using single web socket connection. */
+    /** All GraphQL queries will be served using single web socket connection. SDK is tested to reliably handle 5000 parallel network requests (sending and processing messages, quering and awaiting blockchain data) */
     case object WS extends NetworkQueriesProtocol
   }
   case class ParamsOfAppRequest(app_request_id: Long, request_data: Value)
@@ -179,9 +183,9 @@ package crypto {
     /** Crypto Box Secret. */
     case class EncryptedSecret(encrypted_secret: String) extends CryptoBoxSecret
     /** Crypto Box Secret. */
-    case class PredefinedSeedPhrase(phrase: String, dictionary: Long, wordcount: Long) extends CryptoBoxSecret
+    case class PredefinedSeedPhrase(phrase: String, dictionary: MnemonicDictionary, wordcount: Long) extends CryptoBoxSecret
     /** Crypto Box Secret. */
-    case class RandomSeedPhrase(dictionary: Long, wordcount: Long) extends CryptoBoxSecret
+    case class RandomSeedPhrase(dictionary: MnemonicDictionary, wordcount: Long) extends CryptoBoxSecret
   }
   object CryptoErrorCodeEnum {
     sealed trait CryptoErrorCode {
@@ -295,6 +299,47 @@ package crypto {
   /** Encryption box information. */
   case class EncryptionBoxInfo(hdpath: Option[String], algorithm: Option[String], options: Option[Value], public: Option[Value])
   case class KeyPair(public: String, secret: String)
+  object MnemonicDictionaryEnum {
+    sealed trait MnemonicDictionary {
+      val code: String
+    }
+    /** Chinese simplified BIP-39 dictionary */
+    case object ChineseSimplified extends MnemonicDictionary {
+      override val code: String = "2"
+    }
+    /** Chinese traditional BIP-39 dictionary */
+    case object ChineseTraditional extends MnemonicDictionary {
+      override val code: String = "3"
+    }
+    /** English BIP-39 dictionary */
+    case object English extends MnemonicDictionary {
+      override val code: String = "1"
+    }
+    /** French BIP-39 dictionary */
+    case object French extends MnemonicDictionary {
+      override val code: String = "4"
+    }
+    /** Italian BIP-39 dictionary */
+    case object Italian extends MnemonicDictionary {
+      override val code: String = "5"
+    }
+    /** Japanese BIP-39 dictionary */
+    case object Japanese extends MnemonicDictionary {
+      override val code: String = "6"
+    }
+    /** Korean BIP-39 dictionary */
+    case object Korean extends MnemonicDictionary {
+      override val code: String = "7"
+    }
+    /** Spanish BIP-39 dictionary */
+    case object Spanish extends MnemonicDictionary {
+      override val code: String = "8"
+    }
+    /** TON compatible dictionary */
+    case object Ton extends MnemonicDictionary {
+      override val code: String = "0"
+    }
+  }
   case class NaclBoxParamsCB(their_public: String, nonce: String)
   case class NaclBoxParamsEB(their_public: String, secret: String, nonce: String)
   case class NaclSecretBoxParamsCB(nonce: String)
@@ -358,13 +403,13 @@ package crypto {
   case class ParamsOfHDKeyDeriveFromXPrvPath(xprv: String, path: String)
   case class ParamsOfHDKeyPublicFromXPrv(xprv: String)
   case class ParamsOfHDKeySecretFromXPrv(xprv: String)
-  case class ParamsOfHDKeyXPrvFromMnemonic(phrase: String, dictionary: Option[Long], word_count: Option[Long])
+  case class ParamsOfHDKeyXPrvFromMnemonic(phrase: String, dictionary: Option[MnemonicDictionary], word_count: Option[Long])
   case class ParamsOfHash(data: String)
-  case class ParamsOfMnemonicDeriveSignKeys(phrase: String, path: Option[String], dictionary: Option[Long], word_count: Option[Long])
-  case class ParamsOfMnemonicFromEntropy(entropy: String, dictionary: Option[Long], word_count: Option[Long])
-  case class ParamsOfMnemonicFromRandom(dictionary: Option[Long], word_count: Option[Long])
-  case class ParamsOfMnemonicVerify(phrase: String, dictionary: Option[Long], word_count: Option[Long])
-  case class ParamsOfMnemonicWords(dictionary: Option[Long])
+  case class ParamsOfMnemonicDeriveSignKeys(phrase: String, path: Option[String], dictionary: Option[MnemonicDictionary], word_count: Option[Long])
+  case class ParamsOfMnemonicFromEntropy(entropy: String, dictionary: Option[MnemonicDictionary], word_count: Option[Long])
+  case class ParamsOfMnemonicFromRandom(dictionary: Option[MnemonicDictionary], word_count: Option[Long])
+  case class ParamsOfMnemonicVerify(phrase: String, dictionary: Option[MnemonicDictionary], word_count: Option[Long])
+  case class ParamsOfMnemonicWords(dictionary: Option[MnemonicDictionary])
   case class ParamsOfModularPower(base: String, exponent: String, modulus: String)
   case class ParamsOfNaclBox(decrypted: String, nonce: String, their_public: String, secret: String)
   case class ParamsOfNaclBoxKeyPairFromSecret(secret: String)
@@ -413,7 +458,7 @@ package crypto {
   case class ResultOfFactorize(factors: List[String])
   case class ResultOfGenerateRandomBytes(bytes: String)
   case class ResultOfGetCryptoBoxInfo(encrypted_secret: String)
-  case class ResultOfGetCryptoBoxSeedPhrase(phrase: String, dictionary: Long, wordcount: Long)
+  case class ResultOfGetCryptoBoxSeedPhrase(phrase: String, dictionary: MnemonicDictionary, wordcount: Long)
   case class ResultOfHDKeyDeriveFromXPrv(xprv: String)
   case class ResultOfHDKeyDeriveFromXPrvPath(xprv: String)
   case class ResultOfHDKeyPublicFromXPrv(public: String)
@@ -580,7 +625,7 @@ package crypto {
    * @param dictionary dictionary
    * @param word_count word_count
    */
-  def hdkeyXprvFromMnemonic(phrase: String, dictionary: Option[Long], word_count: Option[Long]): Future[Either[Throwable, ResultOfHDKeyXPrvFromMnemonic]]
+  def hdkeyXprvFromMnemonic(phrase: String, dictionary: Option[MnemonicDictionary], word_count: Option[Long]): Future[Either[Throwable, ResultOfHDKeyXPrvFromMnemonic]]
   /**
    * Derives a key pair for signing from the seed phrase
    * Validates the seed phrase, generates master key and then derives
@@ -590,20 +635,20 @@ package crypto {
    * @param dictionary dictionary
    * @param word_count word_count
    */
-  def mnemonicDeriveSignKeys(phrase: String, path: Option[String], dictionary: Option[Long], word_count: Option[Long]): Future[Either[Throwable, KeyPair]]
+  def mnemonicDeriveSignKeys(phrase: String, path: Option[String], dictionary: Option[MnemonicDictionary], word_count: Option[Long]): Future[Either[Throwable, KeyPair]]
   /**
    * Generates mnemonic from pre-generated entropy
    * @param entropy Hex encoded.
    * @param dictionary dictionary
    * @param word_count word_count
    */
-  def mnemonicFromEntropy(entropy: String, dictionary: Option[Long], word_count: Option[Long]): Future[Either[Throwable, ResultOfMnemonicFromEntropy]]
+  def mnemonicFromEntropy(entropy: String, dictionary: Option[MnemonicDictionary], word_count: Option[Long]): Future[Either[Throwable, ResultOfMnemonicFromEntropy]]
   /**
    * Generates a random mnemonic from the specified dictionary and word count
    * @param dictionary dictionary
    * @param word_count word_count
    */
-  def mnemonicFromRandom(dictionary: Option[Long], word_count: Option[Long]): Future[Either[Throwable, ResultOfMnemonicFromRandom]]
+  def mnemonicFromRandom(dictionary: Option[MnemonicDictionary], word_count: Option[Long]): Future[Either[Throwable, ResultOfMnemonicFromRandom]]
   /**
    * Validates a mnemonic phrase
    * The phrase supplied will be checked for word length and validated according to the checksum
@@ -612,12 +657,12 @@ package crypto {
    * @param dictionary dictionary
    * @param word_count word_count
    */
-  def mnemonicVerify(phrase: String, dictionary: Option[Long], word_count: Option[Long]): Future[Either[Throwable, ResultOfMnemonicVerify]]
+  def mnemonicVerify(phrase: String, dictionary: Option[MnemonicDictionary], word_count: Option[Long]): Future[Either[Throwable, ResultOfMnemonicVerify]]
   /**
    * Prints the list of words from the specified dictionary
    * @param dictionary dictionary
    */
-  def mnemonicWords(dictionary: Option[Long]): Future[Either[Throwable, ResultOfMnemonicWords]]
+  def mnemonicWords(dictionary: Option[MnemonicDictionary]): Future[Either[Throwable, ResultOfMnemonicWords]]
   /**
    * Modular exponentiation
    * Performs modular exponentiation for big integers (`base`^`exponent` mod `modulus`).
@@ -859,6 +904,13 @@ package abi {
   case class AbiHandle(value: BigInt) extends AnyVal
   case class AbiParam(name: String, `type`: String, components: Option[List[AbiParam]])
   case class CallSet(function_name: String, header: Option[FunctionHeader], input: Option[Value])
+  object DataLayoutEnum {
+    sealed trait DataLayout
+    /** Decode message body as function input parameters. */
+    case object Input extends DataLayout
+    /** Decode message body as function output. */
+    case object Output extends DataLayout
+  }
   case class DecodedMessageBody(body_type: MessageBodyType, name: String, value: Option[Value], header: Option[FunctionHeader])
   case class DeploySet(tvc: String, workchain_id: Option[Int], initial_data: Option[Value], initial_pubkey: Option[String])
   /**
@@ -897,13 +949,14 @@ package abi {
   case class ParamsOfDecodeAccountData(abi: Abi, data: String, allow_partial: Option[Boolean])
   case class ParamsOfDecodeBoc(params: List[AbiParam], boc: String, allow_partial: Boolean)
   case class ParamsOfDecodeInitialData(abi: Option[Abi], data: String, allow_partial: Option[Boolean])
-  case class ParamsOfDecodeMessage(abi: Abi, message: String, allow_partial: Option[Boolean])
-  case class ParamsOfDecodeMessageBody(abi: Abi, body: String, is_internal: Boolean, allow_partial: Option[Boolean])
+  case class ParamsOfDecodeMessage(abi: Abi, message: String, allow_partial: Option[Boolean], function_name: Option[String], data_layout: Option[DataLayout])
+  case class ParamsOfDecodeMessageBody(abi: Abi, body: String, is_internal: Boolean, allow_partial: Option[Boolean], function_name: Option[String], data_layout: Option[DataLayout])
   case class ParamsOfEncodeAccount(state_init: StateInitSource, balance: Option[BigInt], last_trans_lt: Option[BigInt], last_paid: Option[Long], boc_cache: Option[BocCacheType])
   case class ParamsOfEncodeInitialData(abi: Option[Abi], initial_data: Option[Value], initial_pubkey: Option[String], boc_cache: Option[BocCacheType])
   case class ParamsOfEncodeInternalMessage(abi: Option[Abi], address: Option[String], src_address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], value: String, bounce: Option[Boolean], enable_ihr: Option[Boolean])
-  case class ParamsOfEncodeMessage(abi: Abi, address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], signer: Signer, processing_try_index: Option[Long])
-  case class ParamsOfEncodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long], address: Option[String])
+  case class ParamsOfEncodeMessage(abi: Abi, address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], signer: Signer, processing_try_index: Option[Long], signature_id: Option[Int])
+  case class ParamsOfEncodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long], address: Option[String], signature_id: Option[Int])
+  case class ParamsOfGetSignatureData(abi: Abi, message: String, signature_id: Option[Int])
   case class ParamsOfUpdateInitialData(abi: Option[Abi], data: String, initial_data: Option[Value], initial_pubkey: Option[String], boc_cache: Option[BocCacheType])
   case class ResultOfAbiEncodeBoc(boc: String)
   case class ResultOfAttachSignature(message: String, message_id: String)
@@ -917,6 +970,7 @@ package abi {
   case class ResultOfEncodeInternalMessage(message: String, address: String, message_id: String)
   case class ResultOfEncodeMessage(message: String, data_to_sign: Option[String], address: String, message_id: String)
   case class ResultOfEncodeMessageBody(body: String, data_to_sign: Option[String])
+  case class ResultOfGetSignatureData(signature: String, unsigned: String)
   case class ResultOfUpdateInitialData(data: String)
   object SignerADT {
     sealed trait Signer
@@ -1002,16 +1056,20 @@ package abi {
    * @param abi abi
    * @param message message
    * @param allow_partial allow_partial
+   * @param function_name function_name
+   * @param data_layout data_layout
    */
-  def decodeMessage(abi: Abi, message: String, allow_partial: Option[Boolean]): Future[Either[Throwable, DecodedMessageBody]]
+  def decodeMessage(abi: Abi, message: String, allow_partial: Option[Boolean], function_name: Option[String], data_layout: Option[DataLayout]): Future[Either[Throwable, DecodedMessageBody]]
   /**
    * Decodes message body using provided body BOC and ABI.
    * @param abi abi
    * @param body body
    * @param is_internal is_internal
    * @param allow_partial allow_partial
+   * @param function_name function_name
+   * @param data_layout data_layout
    */
-  def decodeMessageBody(abi: Abi, body: String, is_internal: Boolean, allow_partial: Option[Boolean]): Future[Either[Throwable, DecodedMessageBody]]
+  def decodeMessageBody(abi: Abi, body: String, is_internal: Boolean, allow_partial: Option[Boolean], function_name: Option[String], data_layout: Option[DataLayout]): Future[Either[Throwable, DecodedMessageBody]]
   /**
    * Creates account state BOC
    * Creates account state provided with one of these sets of data :
@@ -1120,8 +1178,9 @@ package abi {
    * <.....add config parameter with default value here>
    *
    * Default value is 0.
+   * @param signature_id signature_id
    */
-  def encodeMessage(abi: Abi, address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], signer: Signer, processing_try_index: Option[Long]): Future[Either[Throwable, ResultOfEncodeMessage]]
+  def encodeMessage(abi: Abi, address: Option[String], deploy_set: Option[DeploySet], call_set: Option[CallSet], signer: Signer, processing_try_index: Option[Long], signature_id: Option[Int]): Future[Either[Throwable, ResultOfEncodeMessage]]
   /**
    * Encodes message body according to ABI function call.
    * @param abi abi
@@ -1141,8 +1200,16 @@ package abi {
    * @param address Since ABI version 2.3 destination address of external inbound message is used in message
    * body signature calculation. Should be provided when signed external inbound message body is
    * created. Otherwise can be omitted.
+   * @param signature_id signature_id
    */
-  def encodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long], address: Option[String]): Future[Either[Throwable, ResultOfEncodeMessageBody]]
+  def encodeMessageBody(abi: Abi, call_set: CallSet, is_internal: Boolean, signer: Signer, processing_try_index: Option[Long], address: Option[String], signature_id: Option[Int]): Future[Either[Throwable, ResultOfEncodeMessageBody]]
+  /**
+   * Extracts signature from message body and calculates hash to verify the signature
+   * @param abi abi
+   * @param message message
+   * @param signature_id signature_id
+   */
+  def getSignatureData(abi: Abi, message: String, signature_id: Option[Int]): Future[Either[Throwable, ResultOfGetSignatureData]]
   /**
    * Updates initial account data with initial values for the contract's static variables and owner's public key. This operation is applicable only for initial account data (before deploy). If the contract is already deployed, its data doesn't contain this data section any more.
    * @param abi abi
@@ -1417,23 +1484,19 @@ package processing {
   }
   object ProcessingEventADT {
     sealed trait ProcessingEvent
-    case class DidSend(shard_block_id: String, message_id: String, message: String) extends ProcessingEvent
-    case class FetchFirstBlockFailed(error: ClientError) extends ProcessingEvent
-    case class FetchNextBlockFailed(shard_block_id: String, message_id: String, message: String, error: ClientError) extends ProcessingEvent
-    case class MessageExpired(message_id: String, message: String, error: ClientError) extends ProcessingEvent
-    case class RempError(error: ClientError) extends ProcessingEvent
-    case class RempIncludedIntoAcceptedBlock(message_id: String, timestamp: BigInt, json: Value) extends ProcessingEvent
-    case class RempIncludedIntoBlock(message_id: String, timestamp: BigInt, json: Value) extends ProcessingEvent
-    case class RempOther(message_id: String, timestamp: BigInt, json: Value) extends ProcessingEvent
-    case class RempSentToValidators(message_id: String, timestamp: BigInt, json: Value) extends ProcessingEvent
-    case class SendFailed(shard_block_id: String, message_id: String, message: String, error: ClientError) extends ProcessingEvent
-    /**
-     * Notifies the application that the account's current shard block will be fetched from the network. This step is performed before the message sending so that sdk knows starting from which block it will search for the transaction.
-     * Fetched block will be used later in waiting phase.
-     */
-    case object WillFetchFirstBlock extends ProcessingEvent
-    case class WillFetchNextBlock(shard_block_id: String, message_id: String, message: String) extends ProcessingEvent
-    case class WillSend(shard_block_id: String, message_id: String, message: String) extends ProcessingEvent
+    case class DidSend(shard_block_id: String, message_id: String, message_dst: String, message: String) extends ProcessingEvent
+    case class FetchFirstBlockFailed(error: ClientError, message_id: String, message_dst: String) extends ProcessingEvent
+    case class FetchNextBlockFailed(shard_block_id: String, message_id: String, message_dst: String, message: String, error: ClientError) extends ProcessingEvent
+    case class MessageExpired(message_id: String, message_dst: String, message: String, error: ClientError) extends ProcessingEvent
+    case class RempError(message_id: String, message_dst: String, error: ClientError) extends ProcessingEvent
+    case class RempIncludedIntoAcceptedBlock(message_id: String, message_dst: String, timestamp: BigInt, json: Value) extends ProcessingEvent
+    case class RempIncludedIntoBlock(message_id: String, message_dst: String, timestamp: BigInt, json: Value) extends ProcessingEvent
+    case class RempOther(message_id: String, message_dst: String, timestamp: BigInt, json: Value) extends ProcessingEvent
+    case class RempSentToValidators(message_id: String, message_dst: String, timestamp: BigInt, json: Value) extends ProcessingEvent
+    case class SendFailed(shard_block_id: String, message_id: String, message_dst: String, message: String, error: ClientError) extends ProcessingEvent
+    case class WillFetchFirstBlock(message_id: String, message_dst: String) extends ProcessingEvent
+    case class WillFetchNextBlock(shard_block_id: String, message_id: String, message_dst: String, message: String) extends ProcessingEvent
+    case class WillSend(shard_block_id: String, message_id: String, message_dst: String, message: String) extends ProcessingEvent
   }
   case class ResultOfProcessMessage(transaction: Value, out_messages: List[String], decoded: Option[DecodedOutput], fees: TransactionFees)
   case class ResultOfSendMessage(shard_block_id: String, sending_endpoints: List[String])
@@ -1591,7 +1654,7 @@ package tvm {
     /** Emulate uninitialized account to run deploy message */
     case object Uninit extends AccountForExecutor
   }
-  case class ExecutionOptions(blockchain_config: Option[String], block_time: Option[Long], block_lt: Option[BigInt], transaction_lt: Option[BigInt], chksig_always_succeed: Option[Boolean])
+  case class ExecutionOptions(blockchain_config: Option[String], block_time: Option[Long], block_lt: Option[BigInt], transaction_lt: Option[BigInt], chksig_always_succeed: Option[Boolean], signature_id: Option[Int])
   case class ParamsOfRunExecutor(message: String, account: AccountForExecutor, execution_options: Option[ExecutionOptions], abi: Option[Abi], skip_transaction_check: Option[Boolean], boc_cache: Option[BocCacheType], return_updated_account: Option[Boolean])
   case class ParamsOfRunGet(account: String, function_name: String, input: Option[Value], execution_options: Option[ExecutionOptions], tuple_list_as_array: Option[Boolean])
   case class ParamsOfRunTvm(message: String, account: String, execution_options: Option[ExecutionOptions], abi: Option[Abi], boc_cache: Option[BocCacheType], return_updated_account: Option[Boolean])
@@ -1654,7 +1717,7 @@ package tvm {
    * the same component that is used on Validator Nodes.
    *
    * Can be used for contract debugging, to find out the reason why a message was not delivered successfully.
-   * Validators throw away the failed external inbound messages (if they failed bedore `ACCEPT`) in the real network.
+   * Validators throw away the failed external inbound messages (if they failed before `ACCEPT`) in the real network.
    * This is why these messages are impossible to debug in the real network.
    * With the help of run_executor you can do that. In fact, `process_message` function
    * performs local check with `run_executor` if there was no transaction as a result of processing
@@ -1753,6 +1816,9 @@ package net {
     case object GetSubscriptionResultFailed extends NetErrorCode {
       override val code: String = "604"
     }
+    case object GraphqlConnectionError extends NetErrorCode {
+      override val code: String = "617"
+    }
     case object GraphqlError extends NetErrorCode {
       override val code: String = "608"
     }
@@ -1776,6 +1842,9 @@ package net {
     }
     case object QueryFailed extends NetErrorCode {
       override val code: String = "601"
+    }
+    case object QueryTransactionTreeTimeout extends NetErrorCode {
+      override val code: String = "616"
     }
     case object SubscribeFailed extends NetErrorCode {
       override val code: String = "602"
@@ -1810,7 +1879,7 @@ package net {
     case class QueryCounterparties(value: ParamsOfQueryCounterparties) extends ParamsOfQueryOperation
     case class WaitForCollection(value: ParamsOfWaitForCollection) extends ParamsOfQueryOperation
   }
-  case class ParamsOfQueryTransactionTree(in_msg: String, abi_registry: Option[List[Abi]], timeout: Option[Long])
+  case class ParamsOfQueryTransactionTree(in_msg: String, abi_registry: Option[List[Abi]], timeout: Option[Long], transaction_max_count: Option[Long])
   case class ParamsOfResumeBlockIterator(resume_state: Value)
   case class ParamsOfResumeTransactionIterator(resume_state: Value, accounts_filter: Option[List[String]])
   case class ParamsOfSubscribe(subscription: String, variables: Option[Value])
@@ -1821,6 +1890,7 @@ package net {
   case class ResultOfBatchQuery(results: List[Value])
   case class ResultOfFindLastShardBlock(block_id: String)
   case class ResultOfGetEndpoints(query: String, endpoints: List[String])
+  case class ResultOfGetSignatureId(signature_id: Option[Int])
   case class ResultOfIteratorNext(items: List[Value], has_more: Boolean, resume_state: Option[Value])
   case class ResultOfQuery(result: Value)
   case class ResultOfQueryCollection(result: List[Value])
@@ -2013,6 +2083,8 @@ package net {
   def findLastShardBlock(address: String): Future[Either[Throwable, ResultOfFindLastShardBlock]]
   /** Requests the list of alternative endpoints from server */
   def getEndpoints(): Future[Either[Throwable, ResultOfGetEndpoints]]
+  /** Returns signature ID for configured network if it should be used in messages signature */
+  def getSignatureId(): Future[Either[Throwable, ResultOfGetSignatureId]]
   /**
    * Returns next available items.
    * In addition to available items this function returns the `has_more` flag
@@ -2076,7 +2148,7 @@ package net {
    *
    * Function reads transactions layer by layer, by pages of 20 transactions.
    *
-   * The retrieval prosess goes like this:
+   * The retrieval process goes like this:
    * Let's assume we have an infinite chain of transactions and each transaction generates 5 messages.
    * 1. Retrieve 1st message (input parameter) and corresponding transaction - put it into result.
    * It is the first level of the tree of transactions - its root.
@@ -2101,9 +2173,14 @@ package net {
    * @param timeout If some of the following messages and transactions are missing yet
    * The maximum waiting time is regulated by this option.
    *
-   * Default value is 60000 (1 min).
+   * Default value is 60000 (1 min). If `timeout` is set to 0 then function will wait infinitely
+   * until the whole transaction tree is executed
+   * @param transaction_max_count If transaction tree contains more transaction then this parameter then only first `transaction_max_count` transaction are awaited and returned.
+   *
+   * Default value is 50. If `transaction_max_count` is set to 0 then no limitation on
+   * transaction count is used and all transaction are returned.
    */
-  def queryTransactionTree(in_msg: String, abi_registry: Option[List[Abi]], timeout: Option[Long]): Future[Either[Throwable, ResultOfQueryTransactionTree]]
+  def queryTransactionTree(in_msg: String, abi_registry: Option[List[Abi]], timeout: Option[Long], transaction_max_count: Option[Long]): Future[Either[Throwable, ResultOfQueryTransactionTree]]
   /**
    * Removes an iterator
    * Frees all resources allocated in library to serve iterator.
@@ -2118,7 +2195,7 @@ package net {
   def resume(): Future[Either[Throwable, Unit]]
   /**
    * Resumes block iterator.
-   * The iterator stays exactly at the same position where the `resume_state` was catched.
+   * The iterator stays exactly at the same position where the `resume_state` was caught.
    *
    * Application should call the `remove_iterator` when iterator is no longer required.
    * @param resume_state Same as value returned from `iterator_next`.
@@ -2156,7 +2233,7 @@ package net {
    *
    * ### Important Notes on Subscriptions
    *
-   * Unfortunately sometimes the connection with the network breakes down.
+   * Unfortunately sometimes the connection with the network breaks down.
    * In this situation the library attempts to reconnect to the network.
    * This reconnection sequence can take significant time.
    * All of this time the client is disconnected from the network.

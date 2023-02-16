@@ -24,6 +24,7 @@ object Mod {
     private val host = "http://localhost:80"
 
     private val config = ClientConfig(
+      None,
       NetworkConfig(host.some).some
     )
     private implicit val ec: ExecutionContext = ExecutionContext.global

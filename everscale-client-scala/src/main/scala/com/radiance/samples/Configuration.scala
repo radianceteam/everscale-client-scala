@@ -1,5 +1,7 @@
 package com.radiance.samples
 
+import com.radiance.jvm.crypto.MnemonicDictionaryEnum
+
 object Configuration {
 
   object Sample1 {
@@ -26,14 +28,14 @@ object Configuration {
         NetworkQueriesProtocolEnum.HTTP.some: Option[NetworkQueriesProtocolEnum.NetworkQueriesProtocol],
       first_remp_status_timeout = 60000L.some: Option[Long],
       next_remp_status_timeout = 60000L.some: Option[Long],
+      signature_id = None,
       access_key = "access_key".some: Option[String]
     )
 
     val cryptoConfig: CryptoConfig = CryptoConfig(
-      1L.some, // mnemonic_dictionary:        Option[Long]
-      12L.some, // mnemonic_word_count:        Option[Long]
-      "m/44'/396'/0'/0/0".some, // hdkey_derivation_path:      Option[String]
-      true.some // hdkey_compliant:            Option[Boolean]
+      mnemonic_dictionary = MnemonicDictionaryEnum.Ton.some,
+      mnemonic_word_count = 12L.some,
+      hdkey_derivation_path = "m/44'/396'/0'/0/0".some
     )
 
     val abiConfig: AbiConfig = AbiConfig(
@@ -43,9 +45,13 @@ object Configuration {
     )
 
     val clientConfig: ClientConfig = ClientConfig(
-      networkConfig.some,
-      cryptoConfig.some,
-      abiConfig.some
+      binding = None,
+      network = networkConfig.some,
+      crypto = cryptoConfig.some,
+      abi = abiConfig.some,
+      boc = None,
+      proofs = None,
+      local_storage_path = None
     )
     implicit val ec: ExecutionContext = ExecutionContext.global
     val ctx: Context = Context(clientConfig)
@@ -58,6 +64,7 @@ object Configuration {
     import scala.concurrent.ExecutionContext
 
     val clientConfig: ClientConfig = ClientConfig(
+      None,
       NetworkConfig("net.ton.dev".some).some
     )
     implicit val ec: ExecutionContext = ExecutionContext.global

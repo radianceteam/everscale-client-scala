@@ -48,6 +48,7 @@ class AbiModuleTest extends AnyFlatSpec with TestUtils {
       None
     ).some,
     signing,
+    None,
     None
   )
 
@@ -65,6 +66,7 @@ class AbiModuleTest extends AnyFlatSpec with TestUtils {
       fromFields(Seq("id" -> fromString("0"))).some
     ).some,
     signing,
+    None,
     None
   )
 
@@ -74,6 +76,7 @@ class AbiModuleTest extends AnyFlatSpec with TestUtils {
     false,
     run_params.signer,
     run_params.processing_try_index,
+    None,
     None
   )
 
@@ -244,6 +247,8 @@ class AbiModuleTest extends AnyFlatSpec with TestUtils {
           ParamsOfDecodeMessage(
             events_abi,
             message,
+            None,
+            None,
             None
           )
         )
@@ -260,6 +265,8 @@ class AbiModuleTest extends AnyFlatSpec with TestUtils {
             events_abi,
             body,
             is_internal = parsed.parsed.hcursor.get[String]("msg_type_name").get == "Internal",
+            None,
+            None,
             None
           )
         )
@@ -302,6 +309,8 @@ class AbiModuleTest extends AnyFlatSpec with TestUtils {
         body =
           "te6ccgEBAgEAlgAB4a3f2/jCeWWvgMoAXOakv3VSD56sQrDPT76n1cbrSvpZ0BCs0KEUy2Duvo3zPExePONW3TYy0MCA1i+FFRXcSIXTHxAj/Hd67jWQF7peccWoU/dbMCBJBB6YdPCVZcJlJkAAAF0ZyXLg19VzGQVviwSgAQBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
         is_internal = false,
+        None,
+        None,
         None
       )
     )

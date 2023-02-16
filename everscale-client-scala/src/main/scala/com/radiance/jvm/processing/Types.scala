@@ -105,27 +105,51 @@ object ProcessingErrorCodeEnum {
 
 object ProcessingEventADT {
   sealed trait ProcessingEvent
-  case class DidSend(shard_block_id: String, message_id: String, message: String) extends ProcessingEvent
-  case class FetchFirstBlockFailed(error: ClientError) extends ProcessingEvent
-  case class FetchNextBlockFailed(shard_block_id: String, message_id: String, message: String, error: ClientError)
-      extends ProcessingEvent
-  case class MessageExpired(message_id: String, message: String, error: ClientError) extends ProcessingEvent
-  case class RempError(error: ClientError) extends ProcessingEvent
-  case class RempIncludedIntoAcceptedBlock(message_id: String, timestamp: BigInt, json: Value) extends ProcessingEvent
-  case class RempIncludedIntoBlock(message_id: String, timestamp: BigInt, json: Value) extends ProcessingEvent
-  case class RempOther(message_id: String, timestamp: BigInt, json: Value) extends ProcessingEvent
-  case class RempSentToValidators(message_id: String, timestamp: BigInt, json: Value) extends ProcessingEvent
-  case class SendFailed(shard_block_id: String, message_id: String, message: String, error: ClientError)
+
+  case class DidSend(shard_block_id: String, message_id: String, message_dst: String, message: String)
       extends ProcessingEvent
 
-  /**
-   * Notifies the application that the account's current shard block will be fetched from the network. This step is
-   * performed before the message sending so that sdk knows starting from which block it will search for the
-   * transaction. Fetched block will be used later in waiting phase.
-   */
-  case object WillFetchFirstBlock extends ProcessingEvent
-  case class WillFetchNextBlock(shard_block_id: String, message_id: String, message: String) extends ProcessingEvent
-  case class WillSend(shard_block_id: String, message_id: String, message: String) extends ProcessingEvent
+  case class FetchFirstBlockFailed(error: ClientError, message_id: String, message_dst: String) extends ProcessingEvent
+
+  case class FetchNextBlockFailed(
+    shard_block_id: String,
+    message_id: String,
+    message_dst: String,
+    message: String,
+    error: ClientError
+  ) extends ProcessingEvent
+
+  case class MessageExpired(message_id: String, message_dst: String, message: String, error: ClientError)
+      extends ProcessingEvent
+
+  case class RempError(message_id: String, message_dst: String, error: ClientError) extends ProcessingEvent
+
+  case class RempIncludedIntoAcceptedBlock(message_id: String, message_dst: String, timestamp: BigInt, json: Value)
+      extends ProcessingEvent
+
+  case class RempIncludedIntoBlock(message_id: String, message_dst: String, timestamp: BigInt, json: Value)
+      extends ProcessingEvent
+
+  case class RempOther(message_id: String, message_dst: String, timestamp: BigInt, json: Value) extends ProcessingEvent
+
+  case class RempSentToValidators(message_id: String, message_dst: String, timestamp: BigInt, json: Value)
+      extends ProcessingEvent
+
+  case class SendFailed(
+    shard_block_id: String,
+    message_id: String,
+    message_dst: String,
+    message: String,
+    error: ClientError
+  ) extends ProcessingEvent
+
+  case class WillFetchFirstBlock(message_id: String, message_dst: String) extends ProcessingEvent
+
+  case class WillFetchNextBlock(shard_block_id: String, message_id: String, message_dst: String, message: String)
+      extends ProcessingEvent
+
+  case class WillSend(shard_block_id: String, message_id: String, message_dst: String, message: String)
+      extends ProcessingEvent
 }
 
 case class ResultOfProcessMessage(

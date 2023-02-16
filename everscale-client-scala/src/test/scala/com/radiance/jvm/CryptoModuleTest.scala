@@ -1,6 +1,6 @@
 package com.radiance.jvm
 
-import com.radiance.jvm.crypto.{CryptoModule, KeyPair}
+import com.radiance.jvm.crypto.{CryptoModule, KeyPair, MnemonicDictionaryEnum}
 import org.scalatest.flatspec.AnyFlatSpec
 import cats.implicits._
 import com.radiance.jvm.Utils._
@@ -109,7 +109,7 @@ class CryptoModuleTest extends AnyFlatSpec with TestBase {
   }
 
   it should "show the correct behavior of mnemonic words" in {
-    val words = cryptoModule.mnemonicWords(1L.some).get.words
+    val words = cryptoModule.mnemonicWords(MnemonicDictionaryEnum.Ton.some).get.words
     logger.info(s"Word: '$words'")
 
     val xPrivate: String = cryptoModule

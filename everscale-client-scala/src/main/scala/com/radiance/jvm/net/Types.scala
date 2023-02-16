@@ -77,6 +77,9 @@ object NetErrorCode {
   case object GetSubscriptionResultFailed extends NetErrorCode {
     override val code: String = "604"
   }
+  case object GraphqlConnectionError extends NetErrorCode {
+    override val code: String = "617"
+  }
   case object GraphqlError extends NetErrorCode {
     override val code: String = "608"
   }
@@ -100,6 +103,9 @@ object NetErrorCode {
   }
   case object QueryFailed extends NetErrorCode {
     override val code: String = "601"
+  }
+  case object QueryTransactionTreeTimeout extends NetErrorCode {
+    override val code: String = "616"
   }
   case object SubscribeFailed extends NetErrorCode {
     override val code: String = "602"
@@ -228,9 +234,9 @@ object ParamsOfQueryOperationADT {
 case class ParamsOfQueryTransactionTree(
   in_msg: String,
   abi_registry: Option[List[AbiADT.Abi]],
-  timeout: Option[Long]
+  timeout: Option[Long],
+  transaction_max_count: Option[Long]
 )
-
 object ParamsOfQueryTransactionTree {
   implicit val encoder: Encoder[ParamsOfQueryTransactionTree] = deriveEncoder[ParamsOfQueryTransactionTree]
 }
@@ -308,6 +314,13 @@ case class ResultOfGetEndpoints(query: String, endpoints: List[String])
 object ResultOfGetEndpoints {
   implicit val decoder: Decoder[ResultOfGetEndpoints] =
     deriveDecoder[ResultOfGetEndpoints]
+}
+
+case class ResultOfGetSignatureId(signature_id: Option[Int])
+
+object ResultOfGetSignatureId {
+  implicit val decoder: Decoder[ResultOfGetSignatureId] =
+    deriveDecoder[ResultOfGetSignatureId]
 }
 
 case class ResultOfIteratorNext(items: List[Value], has_more: Boolean, resume_state: Option[Value])

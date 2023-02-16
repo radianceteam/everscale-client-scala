@@ -213,6 +213,13 @@ class NetModule(private val ctx: Context) {
   }
 
   /**
+   * Returns signature ID for configured network if it should be used in messages signature
+   */
+  def getSignatureId(): Future[Either[Throwable, ResultOfGetSignatureId]] = {
+    ctx.execAsync[Unit, ResultOfGetSignatureId]("net.get_signature_id", ())
+  }
+
+  /**
    * Returns next available items. In addition to available items this function returns the `has_more` flag indicating
    * that the iterator isn't reach the end of the iterated range yet.
    *
@@ -327,7 +334,7 @@ class NetModule(private val ctx: Context) {
    *
    * Function reads transactions layer by layer, by pages of 20 transactions.
    *
-   * The retrieval prosess goes like this: Let's assume we have an infinite chain of transactions and each transaction
+   * The retrieval process goes like this: Let's assume we have an infinite chain of transactions and each transaction
    * generates 5 messages.
    *   1. Retrieve 1st message (input parameter) and corresponding transaction - put it into result. It is the first
    *      level of the tree of transactions - its root. Retrieve 5 out message ids from the transaction for next steps.
@@ -344,6 +351,7 @@ class NetModule(private val ctx: Context) {
    * To summarize, it is guaranteed that each message in `result.messages` has the corresponding transaction in the
    * `result.transactions`. But there is no guarantee that all messages from transactions `out_msgs` are presented in
    * `result.messages`. So the application has to continue retrieval for missing messages if it requires.
+   *
    * @param in_msg
    *   in_msg
    * @param abi_registry
@@ -351,19 +359,25 @@ class NetModule(private val ctx: Context) {
    * @param timeout
    *   If some of the following messages and transactions are missing yet The maximum waiting time is regulated by this
    *   option.
+   *
+   * Default value is 60000 (1 min). If `timeout` is set to 0 then function will wait infinitely until the whole
+   * transaction tree is executed
+   * @param transaction_max_count
+   *   If transaction tree contains more transaction then this parameter then only first `transaction_max_count`
+   *   transaction are awaited and returned.
+   *
+   * Default value is 50. If `transaction_max_count` is set to 0 then no limitation on transaction count is used and all
+   * transaction are returned.
    */
   def queryTransactionTree(
     in_msg: String,
     abi_registry: Option[List[AbiADT.Abi]],
-    timeout: Option[Long]
+    timeout: Option[Long],
+    transaction_max_count: Option[Long]
   ): Future[Either[Throwable, ResultOfQueryTransactionTree]] = {
     ctx.execAsync[ParamsOfQueryTransactionTree, ResultOfQueryTransactionTree](
       "net.query_transaction_tree",
-      ParamsOfQueryTransactionTree(
-        in_msg,
-        abi_registry,
-        timeout
-      )
+      ParamsOfQueryTransactionTree(in_msg, abi_registry, timeout, transaction_max_count)
     )
   }
 
@@ -389,9 +403,10 @@ class NetModule(private val ctx: Context) {
   }
 
   /**
-   * Resumes block iterator. The iterator stays exactly at the same position where the `resume_state` was catched.
+   * Resumes block iterator. The iterator stays exactly at the same position where the `resume_state` was caught.
    *
    * Application should call the `remove_iterator` when iterator is no longer required.
+   *
    * @param resume_state
    *   Same as value returned from `iterator_next`.
    */
@@ -449,7 +464,7 @@ class NetModule(private val ctx: Context) {
    *
    * ### Important Notes on Subscriptions
    *
-   * Unfortunately sometimes the connection with the network brakes down. In this situation the library attempts to
+   * Unfortunately sometimes the connection with the network breaks down. In this situation the library attempts to
    * reconnect to the network. This reconnection sequence can take significant time. All of this time the client is
    * disconnected from the network.
    *
@@ -469,6 +484,7 @@ class NetModule(private val ctx: Context) {
    *     query for this object and handle actual data as a regular data from the subscription.
    *   - If application monitors sequence of some objects (for example transactions of the specific account):
    *     application must refresh all cached (or visible to user) lists where this sequences presents.
+   *
    * @param subscription
    *   subscription
    * @param variables
