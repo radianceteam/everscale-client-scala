@@ -53,6 +53,7 @@ object ContractDeploy {
         None,
         CallSet("sendGrams", None, inputMsg.some).some,
         SignerADT.None,
+        None,
         None
       ),
       send_events = true,
@@ -70,7 +71,7 @@ object ContractDeploy {
     (for {
       encoded <- EitherT(
                    abiModule
-                     .encodeMessage(a, None, deploySet.some, callSet.some, signer, None)
+                     .encodeMessage(a, None, deploySet.some, callSet.some, signer, None, None)
                  )
       _ <- EitherT(getGrams(encoded.address))
       _ <- EitherT(
@@ -81,6 +82,7 @@ object ContractDeploy {
                  deploySet.some,
                  callSet.some,
                  signer,
+                 None,
                  None
                ),
                send_events = true,

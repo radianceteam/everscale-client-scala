@@ -251,6 +251,7 @@ class TvmModuleTest extends AnyFlatSpec with TestBase {
                        ).some
                      ).some,
                      signer,
+                     None,
                      None
                    )
                  )
@@ -267,6 +268,7 @@ class TvmModuleTest extends AnyFlatSpec with TestBase {
                        fromFields(Seq("subscriptionId" -> fromString(subscriptionId))).some
                      ).some,
                      signer,
+                     None,
                      None
                    )
                  )

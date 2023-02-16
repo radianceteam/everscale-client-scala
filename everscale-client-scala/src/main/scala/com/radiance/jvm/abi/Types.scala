@@ -152,6 +152,23 @@ object CallSet {
   implicit val encoder: Encoder[CallSet] = deriveEncoder[CallSet]
 }
 
+object DataLayoutEnum {
+  sealed trait DataLayout
+
+  /**
+   * Decode message body as function input parameters.
+   */
+  case object Input extends DataLayout
+
+  /**
+   * Decode message body as function output.
+   */
+  case object Output extends DataLayout
+
+  implicit val codec: Codec[DataLayout] =
+    extras.semiauto.deriveEnumerationCodec[DataLayout]
+}
+
 case class DecodedMessageBody(
   body_type: MessageBodyTypeEnum.MessageBodyType,
   name: String,
@@ -296,7 +313,13 @@ object ParamsOfDecodeInitialData {
     deriveEncoder[ParamsOfDecodeInitialData]
 }
 
-case class ParamsOfDecodeMessage(abi: AbiADT.Abi, message: String, allow_partial: Option[Boolean])
+case class ParamsOfDecodeMessage(
+  abi: AbiADT.Abi,
+  message: String,
+  allow_partial: Option[Boolean],
+  function_name: Option[String],
+  data_layout: Option[DataLayoutEnum.DataLayout]
+)
 
 object ParamsOfDecodeMessage {
   implicit val encoder: Encoder[ParamsOfDecodeMessage] =
@@ -307,7 +330,9 @@ case class ParamsOfDecodeMessageBody(
   abi: AbiADT.Abi,
   body: String,
   is_internal: Boolean,
-  allow_partial: Option[Boolean]
+  allow_partial: Option[Boolean],
+  function_name: Option[String],
+  data_layout: Option[DataLayoutEnum.DataLayout]
 )
 
 object ParamsOfDecodeMessageBody {
@@ -362,7 +387,8 @@ case class ParamsOfEncodeMessage(
   deploy_set: Option[DeploySet],
   call_set: Option[CallSet],
   signer: SignerADT.Signer,
-  processing_try_index: Option[Long]
+  processing_try_index: Option[Long],
+  signature_id: Option[Int]
 )
 
 object ParamsOfEncodeMessage {
@@ -376,12 +402,20 @@ case class ParamsOfEncodeMessageBody(
   is_internal: Boolean,
   signer: SignerADT.Signer,
   processing_try_index: Option[Long],
-  address: Option[String]
+  address: Option[String],
+  signature_id: Option[Int]
 )
 
 object ParamsOfEncodeMessageBody {
   implicit val encoder: Encoder[ParamsOfEncodeMessageBody] =
     deriveEncoder[ParamsOfEncodeMessageBody]
+}
+
+case class ParamsOfGetSignatureData(abi: AbiADT.Abi, message: String, signature_id: Option[Int])
+
+object ParamsOfGetSignatureData {
+  implicit val encoder: Encoder[ParamsOfGetSignatureData] =
+    deriveEncoder[ParamsOfGetSignatureData]
 }
 
 case class ParamsOfUpdateInitialData(
@@ -491,6 +525,13 @@ case class ResultOfEncodeMessageBody(
 object ResultOfEncodeMessageBody {
   implicit val decoder: Decoder[ResultOfEncodeMessageBody] =
     deriveDecoder[ResultOfEncodeMessageBody]
+}
+
+case class ResultOfGetSignatureData(signature: String, unsigned: String)
+
+object ResultOfGetSignatureData {
+  implicit val decoder: Decoder[ResultOfGetSignatureData] =
+    deriveDecoder[ResultOfGetSignatureData]
 }
 
 case class ResultOfUpdateInitialData(data: String)

@@ -75,12 +75,17 @@ object CryptoBoxSecretADT {
   /**
    * Crypto Box Secret.
    */
-  case class PredefinedSeedPhrase(phrase: String, dictionary: Long, wordcount: Long) extends CryptoBoxSecret
+  case class PredefinedSeedPhrase(
+    phrase: String,
+    dictionary: MnemonicDictionaryEnum.MnemonicDictionary,
+    wordcount: Long
+  ) extends CryptoBoxSecret
 
   /**
    * Crypto Box Secret.
    */
-  case class RandomSeedPhrase(dictionary: Long, wordcount: Long) extends CryptoBoxSecret
+  case class RandomSeedPhrase(dictionary: MnemonicDictionaryEnum.MnemonicDictionary, wordcount: Long)
+      extends CryptoBoxSecret
 
   import com.radiance.jvm.DiscriminatorConfig._
   implicit val encoder: Encoder[CryptoBoxSecret] =
@@ -263,6 +268,78 @@ case class KeyPair(public: String, secret: String)
 
 object KeyPair {
   implicit val codec: Codec[KeyPair] = deriveCodec[KeyPair]
+}
+
+object MnemonicDictionaryEnum {
+  sealed trait MnemonicDictionary {
+    val code: String
+  }
+
+  /**
+   * Chinese simplified BIP-39 dictionary
+   */
+  case object ChineseSimplified extends MnemonicDictionary {
+    override val code: String = "2"
+  }
+
+  /**
+   * Chinese traditional BIP-39 dictionary
+   */
+  case object ChineseTraditional extends MnemonicDictionary {
+    override val code: String = "3"
+  }
+
+  /**
+   * English BIP-39 dictionary
+   */
+  case object English extends MnemonicDictionary {
+    override val code: String = "1"
+  }
+
+  /**
+   * French BIP-39 dictionary
+   */
+  case object French extends MnemonicDictionary {
+    override val code: String = "4"
+  }
+
+  /**
+   * Italian BIP-39 dictionary
+   */
+  case object Italian extends MnemonicDictionary {
+    override val code: String = "5"
+  }
+
+  /**
+   * Japanese BIP-39 dictionary
+   */
+  case object Japanese extends MnemonicDictionary {
+    override val code: String = "6"
+  }
+
+  /**
+   * Korean BIP-39 dictionary
+   */
+  case object Korean extends MnemonicDictionary {
+    override val code: String = "7"
+  }
+
+  /**
+   * Spanish BIP-39 dictionary
+   */
+  case object Spanish extends MnemonicDictionary {
+    override val code: String = "8"
+  }
+
+  /**
+   * TON compatible dictionary
+   */
+  case object Ton extends MnemonicDictionary {
+    override val code: String = "0"
+  }
+
+  implicit val codec: Codec[MnemonicDictionary] =
+    extras.semiauto.deriveEnumerationCodec[MnemonicDictionary]
 }
 
 case class NaclBoxParamsCB(their_public: String, nonce: String)
@@ -485,7 +562,7 @@ object ParamsOfHDKeySecretFromXPrv {
 
 case class ParamsOfHDKeyXPrvFromMnemonic(
   phrase: String,
-  dictionary: Option[Long],
+  dictionary: Option[MnemonicDictionaryEnum.MnemonicDictionary],
   word_count: Option[Long]
 )
 
@@ -497,7 +574,7 @@ object ParamsOfHDKeyXPrvFromMnemonic {
 case class ParamsOfMnemonicDeriveSignKeys(
   phrase: String,
   path: Option[String],
-  dictionary: Option[Long],
+  dictionary: Option[MnemonicDictionaryEnum.MnemonicDictionary],
   word_count: Option[Long]
 )
 
@@ -508,7 +585,7 @@ object ParamsOfMnemonicDeriveSignKeys {
 
 case class ParamsOfMnemonicFromEntropy(
   entropy: String,
-  dictionary: Option[Long],
+  dictionary: Option[MnemonicDictionaryEnum.MnemonicDictionary],
   word_count: Option[Long]
 )
 
@@ -518,7 +595,7 @@ object ParamsOfMnemonicFromEntropy {
 }
 
 case class ParamsOfMnemonicFromRandom(
-  dictionary: Option[Long],
+  dictionary: Option[MnemonicDictionaryEnum.MnemonicDictionary],
   word_count: Option[Long]
 )
 
@@ -529,7 +606,7 @@ object ParamsOfMnemonicFromRandom {
 
 case class ParamsOfMnemonicVerify(
   phrase: String,
-  dictionary: Option[Long],
+  dictionary: Option[MnemonicDictionaryEnum.MnemonicDictionary],
   word_count: Option[Long]
 )
 
@@ -538,7 +615,7 @@ object ParamsOfMnemonicVerify {
     deriveEncoder[ParamsOfMnemonicVerify]
 }
 
-case class ParamsOfMnemonicWords(dictionary: Option[Long])
+case class ParamsOfMnemonicWords(dictionary: Option[MnemonicDictionaryEnum.MnemonicDictionary])
 
 object ParamsOfMnemonicWords {
   implicit val encoder: Encoder[ParamsOfMnemonicWords] =
@@ -808,7 +885,11 @@ object ResultOfGetCryptoBoxInfo {
     deriveDecoder[ResultOfGetCryptoBoxInfo]
 }
 
-case class ResultOfGetCryptoBoxSeedPhrase(phrase: String, dictionary: Long, wordcount: Long)
+case class ResultOfGetCryptoBoxSeedPhrase(
+  phrase: String,
+  dictionary: MnemonicDictionaryEnum.MnemonicDictionary,
+  wordcount: Long
+)
 
 object ResultOfGetCryptoBoxSeedPhrase {
   implicit val decoder: Decoder[ResultOfGetCryptoBoxSeedPhrase] =

@@ -15,6 +15,7 @@ class NetModuleTest extends AnyFlatSpec with TestBase {
   private val logger = Logger[NetModuleTest]
 
   override protected val config = ClientConfig(
+    None,
     NetworkConfig("http://net.ton.dev/graphql".some).some
   )
 

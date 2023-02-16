@@ -31,6 +31,7 @@ class ProcessingModuleTest extends AnyFlatSpec with TestBase {
           FunctionHeader(None, None, keys.public.some).some
         ).some,
         SignerADT.Keys(keys),
+        None,
         None
       )
       .get

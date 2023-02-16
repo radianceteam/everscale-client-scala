@@ -150,26 +150,34 @@ class AbiModule(ctx: Context) {
 
   /**
    * Decodes message body using provided message BOC and ABI.
+   *
    * @param abi
    *   abi
    * @param message
    *   message
    * @param allow_partial
    *   allow_partial
+   * @param function_name
+   *   function_name
+   * @param data_layout
+   *   data_layout
    */
   def decodeMessage(
     abi: AbiADT.Abi,
     message: String,
-    allow_partial: Option[Boolean]
+    allow_partial: Option[Boolean],
+    function_name: Option[String],
+    data_layout: Option[DataLayoutEnum.DataLayout]
   ): Future[Either[Throwable, DecodedMessageBody]] = {
     ctx.execAsync[ParamsOfDecodeMessage, DecodedMessageBody](
       "abi.decode_message",
-      ParamsOfDecodeMessage(abi, message, allow_partial)
+      ParamsOfDecodeMessage(abi, message, allow_partial, function_name, data_layout)
     )
   }
 
   /**
    * Decodes message body using provided body BOC and ABI.
+   *
    * @param abi
    *   abi
    * @param body
@@ -178,16 +186,22 @@ class AbiModule(ctx: Context) {
    *   is_internal
    * @param allow_partial
    *   allow_partial
+   * @param function_name
+   *   function_name
+   * @param data_layout
+   *   data_layout
    */
   def decodeMessageBody(
     abi: AbiADT.Abi,
     body: String,
     is_internal: Boolean,
-    allow_partial: Option[Boolean]
+    allow_partial: Option[Boolean],
+    function_name: Option[String],
+    data_layout: Option[DataLayoutEnum.DataLayout]
   ): Future[Either[Throwable, DecodedMessageBody]] = {
     ctx.execAsync[ParamsOfDecodeMessageBody, DecodedMessageBody](
       "abi.decode_message_body",
-      ParamsOfDecodeMessageBody(abi, body, is_internal, allow_partial)
+      ParamsOfDecodeMessageBody(abi, body, is_internal, allow_partial, function_name, data_layout)
     )
   }
 
@@ -363,6 +377,8 @@ class AbiModule(ctx: Context) {
    * parameter with default value here>
    *
    * Default value is 0.
+   * @param signature_id
+   *   signature_id
    */
   def encodeMessage(
     abi: AbiADT.Abi,
@@ -370,18 +386,12 @@ class AbiModule(ctx: Context) {
     deploy_set: Option[DeploySet],
     call_set: Option[CallSet],
     signer: SignerADT.Signer,
-    processing_try_index: Option[Long]
+    processing_try_index: Option[Long],
+    signature_id: Option[Int]
   ): Future[Either[Throwable, ResultOfEncodeMessage]] = {
     ctx.execAsync[ParamsOfEncodeMessage, ResultOfEncodeMessage](
       "abi.encode_message",
-      ParamsOfEncodeMessage(
-        abi,
-        address,
-        deploy_set,
-        call_set,
-        signer,
-        processing_try_index
-      )
+      ParamsOfEncodeMessage(abi, address, deploy_set, call_set, signer, processing_try_index, signature_id)
     )
   }
 
@@ -408,6 +418,8 @@ class AbiModule(ctx: Context) {
    * @param address
    *   Since ABI version 2.3 destination address of external inbound message is used in message body signature
    *   calculation. Should be provided when signed external inbound message body is created. Otherwise can be omitted.
+   * @param signature_id
+   *   signature_id
    */
   def encodeMessageBody(
     abi: AbiADT.Abi,
@@ -415,18 +427,33 @@ class AbiModule(ctx: Context) {
     is_internal: Boolean,
     signer: SignerADT.Signer,
     processing_try_index: Option[Long],
-    address: Option[String]
+    address: Option[String],
+    signature_id: Option[Int]
   ): Future[Either[Throwable, ResultOfEncodeMessageBody]] = {
     ctx.execAsync[ParamsOfEncodeMessageBody, ResultOfEncodeMessageBody](
       "abi.encode_message_body",
-      ParamsOfEncodeMessageBody(
-        abi,
-        call_set,
-        is_internal,
-        signer,
-        processing_try_index,
-        address
-      )
+      ParamsOfEncodeMessageBody(abi, call_set, is_internal, signer, processing_try_index, address, signature_id)
+    )
+  }
+
+  /**
+   * Extracts signature from message body and calculates hash to verify the signature
+   *
+   * @param abi
+   *   abi
+   * @param message
+   *   message
+   * @param signature_id
+   *   signature_id
+   */
+  def getSignatureData(
+    abi: AbiADT.Abi,
+    message: String,
+    signature_id: Option[Int]
+  ): Future[Either[Throwable, ResultOfGetSignatureData]] = {
+    ctx.execAsync[ParamsOfGetSignatureData, ResultOfGetSignatureData](
+      "abi.get_signature_data",
+      ParamsOfGetSignatureData(abi, message, signature_id)
     )
   }
 

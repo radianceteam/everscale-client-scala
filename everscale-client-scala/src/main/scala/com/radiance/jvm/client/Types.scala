@@ -1,6 +1,7 @@
 package com.radiance.jvm.client
 
 import com.radiance.jvm._
+import com.radiance.jvm.crypto._
 import io.circe._
 import io.circe.derivation._
 import io.circe.generic.extras
@@ -28,6 +29,12 @@ object AppRequestResultADT {
     extras.semiauto.deriveConfiguredEncoder[AppRequestResult]
 }
 
+case class BindingConfig(library: Option[String], version: Option[String])
+
+object BindingConfig {
+  implicit val codec: Codec[BindingConfig] = deriveCodec[BindingConfig]
+}
+
 case class BocConfig(cache_max_size: Option[Long])
 
 object BocConfig {
@@ -42,6 +49,7 @@ object BuildInfoDependency {
 }
 
 case class ClientConfig(
+  binding: Option[BindingConfig],
   network: Option[NetworkConfig],
   crypto: Option[CryptoConfig] = None,
   abi: Option[AbiConfig] = None,
@@ -134,6 +142,10 @@ object ClientErrorCodeEnum {
     val code: String = "17"
   }
 
+  case object InvalidData extends ClientErrorCode {
+    override val code: String = "36"
+  }
+
   case object InvalidHandle extends ClientErrorCode {
     override val code: String = "34"
   }
@@ -209,10 +221,9 @@ object ClientErrorCodeEnum {
 }
 
 case class CryptoConfig(
-  mnemonic_dictionary: Option[Long],
+  mnemonic_dictionary: Option[MnemonicDictionaryEnum.MnemonicDictionary],
   mnemonic_word_count: Option[Long],
-  hdkey_derivation_path: Option[String],
-  hdkey_compliant: Option[Boolean]
+  hdkey_derivation_path: Option[String]
 )
 
 object CryptoConfig {
@@ -236,6 +247,7 @@ case class NetworkConfig(
   queries_protocol: Option[NetworkQueriesProtocolEnum.NetworkQueriesProtocol] = None,
   first_remp_status_timeout: Option[Long] = None,
   next_remp_status_timeout: Option[Long] = None,
+  signature_id: Option[Int] = None,
   access_key: Option[String] = None
 )
 
@@ -256,7 +268,8 @@ object NetworkQueriesProtocolEnum {
   case object HTTP extends NetworkQueriesProtocol
 
   /**
-   * All GraphQL queries will be served using single web socket connection.
+   * All GraphQL queries will be served using single web socket connection. SDK is tested to reliably handle 5000
+   * parallel network requests (sending and processing messages, quering and awaiting blockchain data)
    */
   case object WS extends NetworkQueriesProtocol
 

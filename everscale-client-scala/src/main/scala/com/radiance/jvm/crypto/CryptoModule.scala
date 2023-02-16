@@ -336,7 +336,7 @@ class CryptoModule(private val ctx: Context) {
    */
   def hdkeyXprvFromMnemonic(
     phrase: String,
-    dictionary: Option[Long],
+    dictionary: Option[MnemonicDictionaryEnum.MnemonicDictionary],
     word_count: Option[Long]
   ): Either[Throwable, ResultOfHDKeyXPrvFromMnemonic] =
     ctx.execSync[ParamsOfHDKeyXPrvFromMnemonic, ResultOfHDKeyXPrvFromMnemonic](
@@ -359,7 +359,7 @@ class CryptoModule(private val ctx: Context) {
   def mnemonicDeriveSignKeys(
     phrase: String,
     path: Option[String],
-    dictionary: Option[Long],
+    dictionary: Option[MnemonicDictionaryEnum.MnemonicDictionary],
     word_count: Option[Long]
   ): Either[Throwable, KeyPair] =
     ctx.execSync[ParamsOfMnemonicDeriveSignKeys, KeyPair](
@@ -378,7 +378,7 @@ class CryptoModule(private val ctx: Context) {
    */
   def mnemonicFromEntropy(
     entropy: String,
-    dictionary: Option[Long],
+    dictionary: Option[MnemonicDictionaryEnum.MnemonicDictionary],
     word_count: Option[Long]
   ): Either[Throwable, ResultOfMnemonicFromEntropy] =
     ctx.execSync[ParamsOfMnemonicFromEntropy, ResultOfMnemonicFromEntropy](
@@ -392,7 +392,7 @@ class CryptoModule(private val ctx: Context) {
    *   Mnemonic word count
    */
   def mnemonicFromRandom(
-    dictionary: Option[Long],
+    dictionary: Option[MnemonicDictionaryEnum.MnemonicDictionary],
     word_count: Option[Long]
   ): Either[Throwable, ResultOfMnemonicFromRandom] =
     ctx.execSync[ParamsOfMnemonicFromRandom, ResultOfMnemonicFromRandom](
@@ -412,7 +412,7 @@ class CryptoModule(private val ctx: Context) {
    */
   def mnemonicVerify(
     phrase: String,
-    dictionary: Option[Long],
+    dictionary: Option[MnemonicDictionaryEnum.MnemonicDictionary],
     word_count: Option[Long]
   ): Either[Throwable, ResultOfMnemonicVerify] =
     ctx.execSync[ParamsOfMnemonicVerify, ResultOfMnemonicVerify](
@@ -426,7 +426,7 @@ class CryptoModule(private val ctx: Context) {
    *   Dictionary identifier
    */
   def mnemonicWords(
-    dictionary: Option[Long]
+    dictionary: Option[MnemonicDictionaryEnum.MnemonicDictionary]
   ): Either[Throwable, ResultOfMnemonicWords] =
     ctx
       .execSync[ParamsOfMnemonicWords, ResultOfMnemonicWords](
