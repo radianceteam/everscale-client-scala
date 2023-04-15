@@ -122,6 +122,9 @@ object NetErrorCode {
   case object WebsocketDisconnected extends NetErrorCode {
     override val code: String = "610"
   }
+  case object WrongWebscoketProtocolSequence extends NetErrorCode {
+    override val code: String = "618"
+  }
 }
 
 case class OrderBy(path: String, direction: SortDirectionEnum.SortDirection)

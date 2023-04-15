@@ -1426,8 +1426,45 @@ package boc {
 }
 package processing {
   case class DecodedOutput(out_messages: List[Option[DecodedMessageBody]], output: Option[Value])
+  case class MessageMonitoringParams(message: MonitoredMessage, wait_until: Long, user_data: Option[Value])
+  case class MessageMonitoringResult(hash: String, status: MessageMonitoringStatus, transaction: Option[MessageMonitoringTransaction], error: Option[String], user_data: Option[Value])
+  object MessageMonitoringStatusEnum {
+    sealed trait MessageMonitoringStatus
+    /** Returned when the messages was processed and included into finalized block before `wait_until` block time. */
+    case object Finalized extends MessageMonitoringStatus
+    /**
+     * Reserved for future statuses.
+     * Is never returned. Application should wait for one of the `Finalized` or `Timeout` statuses.
+     * All other statuses are intermediate.
+     */
+    case object Reserved extends MessageMonitoringStatus
+    /** Returned when the message was not processed until `wait_until` block time. */
+    case object Timeout extends MessageMonitoringStatus
+  }
+  case class MessageMonitoringTransaction(hash: Option[String], aborted: Boolean, compute: Option[MessageMonitoringTransactionCompute])
+  case class MessageMonitoringTransactionCompute(exit_code: Int)
+  case class MessageSendingParams(boc: String, wait_until: Long, user_data: Option[Value])
+  object MonitorFetchWaitModeEnum {
+    sealed trait MonitorFetchWaitMode
+    /** Monitor waits until all unresolved messages will be resolved. If there are no unresolved messages then monitor will wait. */
+    case object All extends MonitorFetchWaitMode
+    /** If there are no resolved results yet, then monitor awaits for the next resolved result. */
+    case object AtLeastOne extends MonitorFetchWaitMode
+    case object NoWait extends MonitorFetchWaitMode
+  }
+  object MonitoredMessageADT {
+    sealed trait MonitoredMessage
+    case class Boc(boc: String) extends MonitoredMessage
+    case class HashAddress(hash: String, address: String) extends MonitoredMessage
+  }
+  case class MonitoringQueueInfo(unresolved: Long, resolved: Long)
+  case class ParamsOfCancelMonitor(queue: String)
+  case class ParamsOfFetchNextMonitorResults(queue: String, wait_mode: Option[MonitorFetchWaitMode])
+  case class ParamsOfGetMonitorInfo(queue: String)
+  case class ParamsOfMonitorMessages(queue: String, messages: List[MessageMonitoringParams])
   case class ParamsOfProcessMessage(message_encode_params: ParamsOfEncodeMessage, send_events: Boolean)
   case class ParamsOfSendMessage(message: String, abi: Option[Abi], send_events: Boolean)
+  case class ParamsOfSendMessages(messages: List[MessageSendingParams], monitor_queue: Option[String])
   case class ParamsOfWaitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Boolean, sending_endpoints: Option[List[String]])
   object ProcessingErrorCodeEnum {
     sealed trait ProcessingErrorCode {
@@ -1498,10 +1535,64 @@ package processing {
     case class WillFetchNextBlock(shard_block_id: String, message_id: String, message_dst: String, message: String) extends ProcessingEvent
     case class WillSend(shard_block_id: String, message_id: String, message_dst: String, message: String) extends ProcessingEvent
   }
+  case class ResultOfFetchNextMonitorResults(results: List[MessageMonitoringResult])
   case class ResultOfProcessMessage(transaction: Value, out_messages: List[String], decoded: Option[DecodedOutput], fees: TransactionFees)
   case class ResultOfSendMessage(shard_block_id: String, sending_endpoints: List[String])
+  case class ResultOfSendMessages(messages: List[MessageMonitoringParams])
 }
 package processing {
+  /**
+   * Cancels all background activity and releases all allocated system resources for the specified monitoring queue.
+   * @param queue queue
+   */
+  def cancelMonitor(queue: String): Future[Either[Throwable, Unit]]
+  /**
+   * Fetches next resolved results from the specified monitoring queue.
+   * Results and waiting options are depends on the `wait` parameter.
+   * All returned results will be removed from the queue's resolved list.
+   * @param queue queue
+   * @param wait_mode Default is `NO_WAIT`.
+   */
+  def fetchNextMonitorResults(queue: String, wait_mode: Option[MonitorFetchWaitMode]): Future[Either[Throwable, ResultOfFetchNextMonitorResults]]
+  /**
+   * Returns summary information about current state of the specified monitoring queue.
+   * @param queue queue
+   */
+  def getMonitorInfo(queue: String): Future[Either[Throwable, MonitoringQueueInfo]]
+  /**
+   * Starts monitoring for the processing results of the specified messages.
+   * Message monitor performs background monitoring for a message processing results
+   * for the specified set of messages.
+   *
+   * Message monitor can serve several isolated monitoring queues.
+   * Each monitor queue has a unique application defined identifier (or name) used
+   * to separate several queue's.
+   *
+   * There are two important lists inside of the monitoring queue:
+   *
+   * - unresolved messages: contains messages requested by the application for monitoring
+   *   and not yet resolved;
+   *
+   * - resolved results: contains resolved processing results for monitored messages.
+   *
+   * Each monitoring queue tracks own unresolved and resolved lists.
+   * Application can add more messages to the monitoring queue at any time.
+   *
+   * Message monitor accumulates resolved results.
+   * Application should fetch this results with `fetchNextMonitorResults` function.
+   *
+   * When both unresolved and resolved lists becomes empty, monitor stops any background activity
+   * and frees all allocated internal memory.
+   *
+   * If monitoring queue with specified name already exists then messages will be added
+   * to the unresolved list.
+   *
+   * If monitoring queue with specified name does not exist then monitoring queue will be created
+   * with specified unresolved messages.
+   * @param queue queue
+   * @param messages messages
+   */
+  def monitorMessages(queue: String, messages: List[MessageMonitoringParams]): Future[Either[Throwable, Unit]]
   /**
    * Creates message, sends it to the network and monitors its processing.
    * Creates ABI-compatible message,
@@ -1543,6 +1634,12 @@ package processing {
    * @param callback callback
    */
   def sendMessage(message: String, abi: Option[Abi], send_events: Boolean, callback: Request): Future[Either[Throwable, ResultOfSendMessage]]
+  /**
+   * Sends specified messages to the blockchain.
+   * @param messages messages
+   * @param monitor_queue monitor_queue
+   */
+  def sendMessages(messages: List[MessageSendingParams], monitor_queue: Option[String]): Future[Either[Throwable, ResultOfSendMessages]]
   /**
    * Performs monitoring of the network for the result transaction of the external inbound message processing.
    * `send_events` enables intermediate events, such as `WillFetchNextBlock`,
@@ -1860,6 +1957,9 @@ package net {
     }
     case object WebsocketDisconnected extends NetErrorCode {
       override val code: String = "610"
+    }
+    case object WrongWebscoketProtocolSequence extends NetErrorCode {
+      override val code: String = "618"
     }
   }
   case class OrderBy(path: String, direction: SortDirection)

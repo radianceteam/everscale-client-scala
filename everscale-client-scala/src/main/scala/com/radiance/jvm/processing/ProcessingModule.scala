@@ -8,6 +8,87 @@ import scala.concurrent.Future
 class ProcessingModule(private val ctx: Context) {
 
   /**
+   * Cancels all background activity and releases all allocated system resources for the specified monitoring queue.
+   *
+   * @param queue
+   *   queue
+   */
+  def cancelMonitor(queue: String): Future[Either[Throwable, Unit]] = {
+    ctx.execAsync[ParamsOfCancelMonitor, Unit]("processing.cancel_monitor", ParamsOfCancelMonitor(queue))
+  }
+
+  /**
+   * Fetches next resolved results from the specified monitoring queue. Results and waiting options are depends on the
+   * `wait` parameter. All returned results will be removed from the queue's resolved list.
+   *
+   * @param queue
+   *   queue
+   * @param wait_mode
+   *   Default is `NO_WAIT`.
+   */
+  def fetchNextMonitorResults(
+    queue: String,
+    wait_mode: Option[MonitorFetchWaitModeEnum.MonitorFetchWaitMode]
+  ): Future[Either[Throwable, ResultOfFetchNextMonitorResults]] = {
+    ctx.execAsync[ParamsOfFetchNextMonitorResults, ResultOfFetchNextMonitorResults](
+      "processing.fetch_next_monitor_results",
+      ParamsOfFetchNextMonitorResults(queue, wait_mode)
+    )
+  }
+
+  /**
+   * Returns summary information about current state of the specified monitoring queue.
+   *
+   * @param queue
+   *   queue
+   */
+  def getMonitorInfo(queue: String): Future[Either[Throwable, MonitoringQueueInfo]] = {
+    ctx.execAsync[ParamsOfGetMonitorInfo, MonitoringQueueInfo](
+      "processing.fetch_next_monitor_results",
+      ParamsOfGetMonitorInfo(queue)
+    )
+  }
+
+  /**
+   * Starts monitoring for the processing results of the specified messages. Message monitor performs background
+   * monitoring for a message processing results for the specified set of messages.
+   *
+   * Message monitor can serve several isolated monitoring queues. Each monitor queue has a unique application defined
+   * identifier (or name) used to separate several queue's.
+   *
+   * There are two important lists inside of the monitoring queue:
+   *
+   *   - unresolved messages: contains messages requested by the application for monitoring and not yet resolved;
+   *
+   *   - resolved results: contains resolved processing results for monitored messages.
+   *
+   * Each monitoring queue tracks own unresolved and resolved lists. Application can add more messages to the monitoring
+   * queue at any time.
+   *
+   * Message monitor accumulates resolved results. Application should fetch this results with `fetchNextMonitorResults`
+   * function.
+   *
+   * When both unresolved and resolved lists becomes empty, monitor stops any background activity and frees all
+   * allocated internal memory.
+   *
+   * If monitoring queue with specified name already exists then messages will be added to the unresolved list.
+   *
+   * If monitoring queue with specified name does not exist then monitoring queue will be created with specified
+   * unresolved messages.
+   *
+   * @param queue
+   *   queue
+   * @param messages
+   *   messages
+   */
+  def monitorMessages(queue: String, messages: List[MessageMonitoringParams]): Future[Either[Throwable, Unit]] = {
+    ctx.execAsync[ParamsOfMonitorMessages, Unit](
+      "processing.monitor_messages",
+      ParamsOfMonitorMessages(queue, messages)
+    )
+  }
+
+  /**
    * Creates message, sends it to the network and monitors its processing. Creates ABI-compatible message, sends it to
    * the network and monitors for the result transaction. Decodes the output messages' bodies.
    *
@@ -68,6 +149,24 @@ class ProcessingModule(private val ctx: Context) {
       "processing.send_message",
       ParamsOfSendMessage(message, abi, send_events),
       callback
+    )
+  }
+
+  /**
+   * Sends specified messages to the blockchain.
+   *
+   * @param messages
+   *   messages
+   * @param monitor_queue
+   *   monitor_queue
+   */
+  def sendMessages(
+    messages: List[MessageSendingParams],
+    monitor_queue: Option[String]
+  ): Future[Either[Throwable, ResultOfSendMessages]] = {
+    ctx.execAsync[ParamsOfSendMessages, ResultOfSendMessages](
+      "processing.send_messages",
+      ParamsOfSendMessages(messages, monitor_queue)
     )
   }
 
