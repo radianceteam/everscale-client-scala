@@ -6,6 +6,7 @@ import com.radiance.jvm.client.ClientError
 
 import io.circe._
 import io.circe.derivation._
+import io.circe.generic.extras
 
 case class DecodedOutput(
   out_messages: List[Option[DecodedMessageBody]],
@@ -16,13 +17,156 @@ object DecodedOutput {
   implicit val decoder: Decoder[DecodedOutput] = deriveDecoder[DecodedOutput]
 }
 
+case class MessageMonitoringParams(
+  message: MonitoredMessageADT.MonitoredMessage,
+  wait_until: Long,
+  user_data: Option[Value]
+)
+
+object MessageMonitoringParams {
+  implicit val codec: Codec[MessageMonitoringParams] =
+    deriveCodec[MessageMonitoringParams]
+}
+
+case class MessageMonitoringResult(
+  hash: String,
+  status: MessageMonitoringStatusEnum.MessageMonitoringStatus,
+  transaction: Option[MessageMonitoringTransaction],
+  error: Option[String],
+  user_data: Option[Value]
+)
+
+object MessageMonitoringResult {
+  implicit val codec: Codec[MessageMonitoringResult] =
+    deriveCodec[MessageMonitoringResult]
+}
+
+object MessageMonitoringStatusEnum {
+  sealed trait MessageMonitoringStatus
+
+  /**
+   * Returned when the messages was processed and included into finalized block before `wait_until` block time.
+   */
+  case object Finalized extends MessageMonitoringStatus
+
+  /**
+   * Reserved for future statuses. Is never returned. Application should wait for one of the `Finalized` or `Timeout`
+   * statuses. All other statuses are intermediate.
+   */
+  case object Reserved extends MessageMonitoringStatus
+
+  /**
+   * Returned when the message was not processed until `wait_until` block time.
+   */
+  case object Timeout extends MessageMonitoringStatus
+
+  implicit val codec: Codec[MessageMonitoringStatus] =
+    extras.semiauto.deriveEnumerationCodec[MessageMonitoringStatus]
+}
+
+case class MessageMonitoringTransaction(
+  hash: Option[String],
+  aborted: Boolean,
+  compute: Option[MessageMonitoringTransactionCompute]
+)
+
+object MessageMonitoringTransaction {
+  implicit val codec: Codec[MessageMonitoringTransaction] =
+    deriveCodec[MessageMonitoringTransaction]
+}
+
+case class MessageMonitoringTransactionCompute(exit_code: Int)
+
+object MessageMonitoringTransactionCompute {
+  implicit val codec: Codec[MessageMonitoringTransactionCompute] =
+    deriveCodec[MessageMonitoringTransactionCompute]
+}
+
+case class MessageSendingParams(boc: String, wait_until: Long, user_data: Option[Value])
+
+object MessageSendingParams {
+  implicit val encoder: Encoder[MessageSendingParams] =
+    deriveEncoder[MessageSendingParams]
+}
+
+object MonitorFetchWaitModeEnum {
+  sealed trait MonitorFetchWaitMode
+
+  /**
+   * Monitor waits until all unresolved messages will be resolved. If there are no unresolved messages then monitor will
+   * wait.
+   */
+  case object All extends MonitorFetchWaitMode
+
+  /**
+   * If there are no resolved results yet, then monitor awaits for the next resolved result.
+   */
+  case object AtLeastOne extends MonitorFetchWaitMode
+
+  case object NoWait extends MonitorFetchWaitMode
+
+  implicit val encoder: Encoder[MonitorFetchWaitMode] =
+    extras.semiauto.deriveEnumerationEncoder[MonitorFetchWaitMode]
+}
+
+object MonitoredMessageADT {
+  sealed trait MonitoredMessage
+
+  case class Boc(boc: String) extends MonitoredMessage
+
+  case class HashAddress(hash: String, address: String) extends MonitoredMessage
+
+  import com.radiance.jvm.DiscriminatorConfig._
+
+  implicit val codec: Codec[MonitoredMessage] =
+    extras.semiauto.deriveConfiguredCodec[MonitoredMessage]
+}
+
+case class MonitoringQueueInfo(unresolved: Long, resolved: Long)
+
+object MonitoringQueueInfo {
+  implicit val codec: Codec[MonitoringQueueInfo] =
+    deriveCodec[MonitoringQueueInfo]
+}
+
+case class ParamsOfCancelMonitor(queue: String)
+
+object ParamsOfCancelMonitor {
+  implicit val encoder: Encoder[ParamsOfCancelMonitor] =
+    deriveEncoder[ParamsOfCancelMonitor]
+}
+
+case class ParamsOfFetchNextMonitorResults(
+  queue: String,
+  wait_mode: Option[MonitorFetchWaitModeEnum.MonitorFetchWaitMode]
+)
+
+object ParamsOfFetchNextMonitorResults {
+  implicit val encoder: Encoder[ParamsOfFetchNextMonitorResults] =
+    deriveEncoder[ParamsOfFetchNextMonitorResults]
+}
+
+case class ParamsOfGetMonitorInfo(queue: String)
+
+object ParamsOfGetMonitorInfo {
+  implicit val encoder: Encoder[ParamsOfGetMonitorInfo] =
+    deriveEncoder[ParamsOfGetMonitorInfo]
+}
+
+case class ParamsOfMonitorMessages(queue: String, messages: List[MessageMonitoringParams])
+
+object ParamsOfMonitorMessages {
+  implicit val encoder: Encoder[ParamsOfMonitorMessages] =
+    deriveEncoder[ParamsOfMonitorMessages]
+}
+
 case class ParamsOfProcessMessage(
   message_encode_params: ParamsOfEncodeMessage,
   send_events: Boolean
 )
 
 object ParamsOfProcessMessage {
-  implicit val ParamsOfProcessMessageEncoder: Encoder[ParamsOfProcessMessage] =
+  implicit val encoder: Encoder[ParamsOfProcessMessage] =
     deriveEncoder[ParamsOfProcessMessage]
 }
 
@@ -35,6 +179,13 @@ case class ParamsOfSendMessage(
 object ParamsOfSendMessage {
   implicit val encoder: Encoder[ParamsOfSendMessage] =
     deriveEncoder[ParamsOfSendMessage]
+}
+
+case class ParamsOfSendMessages(messages: List[MessageSendingParams], monitor_queue: Option[String])
+
+object ParamsOfSendMessages {
+  implicit val encoder: Encoder[ParamsOfSendMessages] =
+    deriveEncoder[ParamsOfSendMessages]
 }
 
 case class ParamsOfWaitForTransaction(
@@ -152,6 +303,13 @@ object ProcessingEventADT {
       extends ProcessingEvent
 }
 
+case class ResultOfFetchNextMonitorResults(results: List[MessageMonitoringResult])
+
+object ResultOfFetchNextMonitorResults {
+  implicit val decoder: Decoder[ResultOfFetchNextMonitorResults] =
+    deriveDecoder[ResultOfFetchNextMonitorResults]
+}
+
 case class ResultOfProcessMessage(
   transaction: Value,
   out_messages: List[String],
@@ -169,4 +327,11 @@ case class ResultOfSendMessage(shard_block_id: String, sending_endpoints: List[S
 object ResultOfSendMessage {
   implicit val decoder: Decoder[ResultOfSendMessage] =
     deriveDecoder[ResultOfSendMessage]
+}
+
+case class ResultOfSendMessages(messages: List[MessageMonitoringParams])
+
+object ResultOfSendMessages {
+  implicit val decoder: Decoder[ResultOfSendMessages] =
+    deriveDecoder[ResultOfSendMessages]
 }
