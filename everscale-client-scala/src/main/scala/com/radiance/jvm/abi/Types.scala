@@ -182,7 +182,9 @@ object DecodedMessageBody {
 }
 
 case class DeploySet(
-  tvc: String,
+  tvc: Option[String],
+  code: Option[String] = None,
+  state_init: Option[String] = None,
   workchain_id: Option[Int] = None,
   initial_data: Option[Value] = None,
   initial_pubkey: Option[String] = None
