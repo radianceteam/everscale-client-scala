@@ -166,6 +166,10 @@ object TvmErrorCodeEnum {
     override val code: String = "408"
   }
 
+  case object AccountIsSuspended extends TvmErrorCode {
+    override val code: String = "415"
+  }
+
   case object AccountMissing extends TvmErrorCode {
     override val code: String = "409"
   }

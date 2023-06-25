@@ -52,19 +52,34 @@ class BocModule(private val ctx: Context) {
   }
 
   /**
-   * Decodes tvc into code, data, libraries and special options.
-   * @param tvc
-   *   tvc
+   * Decodes contract's initial state into code, data, libraries and special options.
+   *
+   * @param state_init
+   *   state_init
    * @param boc_cache
    *   boc_cache
    */
-  def decodeTvc(
-    tvc: String,
+  def decodeStateInit(
+    state_init: String,
     boc_cache: Option[BocCacheTypeADT.BocCacheType]
-  ): Future[Either[Throwable, ResultOfDecodeTvc]] = {
+  ): Future[Either[Throwable, ResultOfDecodeStateInit]] = {
+    ctx.execAsync[ParamsOfDecodeStateInit, ResultOfDecodeStateInit](
+      "boc.decode_state_init",
+      ParamsOfDecodeStateInit(state_init, boc_cache)
+    )
+  }
+
+  /**
+   * Decodes tvc according to the tvc spec. Read more about tvc structure here
+   * https://github.com/tonlabs/ever-struct/blob/main/src/scheme/mod.rs#L30
+   *
+   * @param tvc
+   *   tvc
+   */
+  def decodeTvc(tvc: String): Future[Either[Throwable, ResultOfDecodeTvc]] = {
     ctx.execAsync[ParamsOfDecodeTvc, ResultOfDecodeTvc](
       "boc.decode_tvc",
-      ParamsOfDecodeTvc(tvc, boc_cache)
+      ParamsOfDecodeTvc(tvc)
     )
   }
 
@@ -113,7 +128,8 @@ class BocModule(private val ctx: Context) {
   }
 
   /**
-   * Encodes tvc from code, data, libraries ans special options (see input params)
+   * Encodes initial contract state from code, data, libraries ans special options (see input params)
+   *
    * @param code
    *   code
    * @param data
@@ -129,7 +145,7 @@ class BocModule(private val ctx: Context) {
    * @param boc_cache
    *   boc_cache
    */
-  def encodeTvc(
+  def encodeStateInit(
     code: Option[String],
     data: Option[String],
     library: Option[String],
@@ -137,10 +153,10 @@ class BocModule(private val ctx: Context) {
     tock: Option[Boolean],
     split_depth: Option[Long],
     boc_cache: Option[BocCacheTypeADT.BocCacheType]
-  ): Future[Either[Throwable, ResultOfEncodeTvc]] = {
-    ctx.execAsync[ParamsOfEncodeTvc, ResultOfEncodeTvc](
-      "boc.encode_tvc",
-      ParamsOfEncodeTvc(code, data, library, tick, tock, split_depth, boc_cache)
+  ): Future[Either[Throwable, ResultOfEncodeStateInit]] = {
+    ctx.execAsync[ParamsOfEncodeStateInit, ResultOfEncodeStateInit](
+      "boc.encode_state_init",
+      ParamsOfEncodeStateInit(code, data, library, tick, tock, split_depth, boc_cache)
     )
   }
 

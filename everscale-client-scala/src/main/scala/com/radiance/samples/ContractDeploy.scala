@@ -103,7 +103,7 @@ object ContractDeploy {
   // Deploy it
   deployContract(
     subscriptionAbiV2,
-    DeploySet(subscriptionTvcV2),
+    DeploySet(subscriptionTvcV2.some),
     CallSet(
       "constructor",
       None,

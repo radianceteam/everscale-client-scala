@@ -113,7 +113,14 @@ object ParamsOfBocCacheUnpin {
     deriveEncoder[ParamsOfBocCacheUnpin]
 }
 
-case class ParamsOfDecodeTvc(tvc: String, boc_cache: Option[BocCacheTypeADT.BocCacheType])
+case class ParamsOfDecodeStateInit(state_init: String, boc_cache: Option[BocCacheTypeADT.BocCacheType])
+
+object ParamsOfDecodeStateInit {
+  implicit val encoder: Encoder[ParamsOfDecodeStateInit] =
+    deriveEncoder[ParamsOfDecodeStateInit]
+}
+
+case class ParamsOfDecodeTvc(tvc: String)
 
 object ParamsOfDecodeTvc {
   implicit val encoder: Encoder[ParamsOfDecodeTvc] =
@@ -140,7 +147,7 @@ object ParamsOfEncodeExternalInMessage {
     deriveEncoder[ParamsOfEncodeExternalInMessage]
 }
 
-case class ParamsOfEncodeTvc(
+case class ParamsOfEncodeStateInit(
   code: Option[String],
   data: Option[String],
   library: Option[String],
@@ -150,9 +157,9 @@ case class ParamsOfEncodeTvc(
   boc_cache: Option[BocCacheTypeADT.BocCacheType]
 )
 
-object ParamsOfEncodeTvc {
-  implicit val encoder: Encoder[ParamsOfEncodeTvc] =
-    deriveEncoder[ParamsOfEncodeTvc]
+object ParamsOfEncodeStateInit {
+  implicit val encoder: Encoder[ParamsOfEncodeStateInit] =
+    deriveEncoder[ParamsOfEncodeStateInit]
 }
 
 case class ParamsOfGetBlockchainConfig(block_boc: String)
@@ -231,7 +238,7 @@ object ResultOfBocCacheSet {
     deriveDecoder[ResultOfBocCacheSet]
 }
 
-case class ResultOfDecodeTvc(
+case class ResultOfDecodeStateInit(
   code: Option[String],
   code_hash: Option[String],
   code_depth: Option[Long],
@@ -244,6 +251,13 @@ case class ResultOfDecodeTvc(
   split_depth: Option[Long],
   compiler_version: Option[String]
 )
+
+object ResultOfDecodeStateInit {
+  implicit val decoder: Decoder[ResultOfDecodeStateInit] =
+    deriveDecoder[ResultOfDecodeStateInit]
+}
+
+case class ResultOfDecodeTvc(tvc: TvcADT.Tvc)
 
 object ResultOfDecodeTvc {
   implicit val decoder: Decoder[ResultOfDecodeTvc] =
@@ -264,11 +278,11 @@ object ResultOfEncodeExternalInMessage {
     deriveDecoder[ResultOfEncodeExternalInMessage]
 }
 
-case class ResultOfEncodeTvc(tvc: String)
+case class ResultOfEncodeStateInit(state_init: String)
 
-object ResultOfEncodeTvc {
-  implicit val decoder: Decoder[ResultOfEncodeTvc] =
-    deriveDecoder[ResultOfEncodeTvc]
+object ResultOfEncodeStateInit {
+  implicit val decoder: Decoder[ResultOfEncodeStateInit] =
+    deriveDecoder[ResultOfEncodeStateInit]
 }
 
 case class ResultOfGetBlockchainConfig(config_boc: String)
@@ -324,4 +338,23 @@ case class ResultOfSetCodeSalt(code: String)
 
 object ResultOfSetCodeSalt {
   implicit val decoder: Decoder[ResultOfSetCodeSalt] = deriveDecoder[ResultOfSetCodeSalt]
+}
+
+// TODO sdvornik add serializer
+object TvcADT {
+  sealed trait Tvc
+
+  case class V1(value: TvcV1) extends Tvc
+
+  import com.radiance.jvm.DiscriminatorConfig._
+
+  implicit val decoder: Decoder[Tvc] =
+    extras.semiauto.deriveConfiguredDecoder[Tvc]
+}
+
+case class TvcV1(code: Option[String], description: Option[String])
+
+object TvcV1 {
+  implicit val decoder: Decoder[TvcV1] =
+    deriveDecoder[TvcV1]
 }
