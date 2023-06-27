@@ -3,12 +3,12 @@
 **Community links:**
 
 [![Chat on Telegram](https://img.shields.io/badge/chat-on%20telegram-9cf.svg)](https://t.me/RADIANCE_TON_SDK)
-[![SDK version](https://img.shields.io/badge/TON%20SDK%20version-1.43.2-green)](https://github.com/tonlabs/ever-sdk/tree/1.43.2)
+[![SDK version](https://img.shields.io/badge/TON%20SDK%20version-1.43.3-green)](https://github.com/tonlabs/ever-sdk/tree/1.43.3)
 
 **Everscale scala client** is a simple scala binding to the [ever-sdk](https://github.com/tonlabs/ever-sdk). 
 
 Features:
-* All methods of the ever-sdk v 1.43.2
+* All methods of the ever-sdk v 1.43.3
 * Interaction with the ever-sdk through synchronous an asynchronous calls
 * The every method contains inline-doc
 * The automatic download of the ever-sdk library for the current environment
