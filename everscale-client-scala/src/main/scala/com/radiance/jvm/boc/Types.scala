@@ -340,7 +340,6 @@ object ResultOfSetCodeSalt {
   implicit val decoder: Decoder[ResultOfSetCodeSalt] = deriveDecoder[ResultOfSetCodeSalt]
 }
 
-// TODO sdvornik add serializer
 object TvcADT {
   sealed trait Tvc
 

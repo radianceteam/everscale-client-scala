@@ -56,7 +56,7 @@ object ContractDeploy {
         None,
         None
       ),
-      send_events = true,
+      send_events = true.some,
       callback
     )
   }
@@ -85,7 +85,7 @@ object ContractDeploy {
                  None,
                  None
                ),
-               send_events = true,
+               send_events = true.some,
                callback
              )
            )

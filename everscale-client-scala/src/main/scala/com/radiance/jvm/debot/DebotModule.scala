@@ -8,10 +8,11 @@ import scala.concurrent.Future
 class DebotModule(private val ctx: Context) {
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Executes debot action. Calls debot engine referenced by debot handle to execute input
-   * action. Calls Debot Browser Callbacks if needed.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Executes debot action. Calls debot engine referenced by debot
+   * handle to execute input action. Calls Debot Browser Callbacks if needed.
    *
    * # Remarks Chain of actions can be executed if input action generates a list of subactions.
+   *
    * @param debot_handle
    *   debot_handle
    * @param action
@@ -25,8 +26,9 @@ class DebotModule(private val ctx: Context) {
   }
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Fetches DeBot metadata from blockchain. Downloads DeBot from blockchain and creates and
-   * fetches its metadata.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Fetches DeBot metadata from blockchain. Downloads DeBot from
+   * blockchain and creates and fetches its metadata.
+   *
    * @param address
    *   address
    */
@@ -38,10 +40,11 @@ class DebotModule(private val ctx: Context) {
   }
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Creates and instance of DeBot. Downloads debot smart contract (code and data) from
-   * blockchain and creates an instance of Debot Engine for it.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Creates and instance of DeBot. Downloads debot smart contract
+   * (code and data) from blockchain and creates an instance of Debot Engine for it.
    *
    * # Remarks It does not switch debot to context 0. Browser Callbacks are not called.
+   *
    * @param address
    *   address
    * @param app_object
@@ -63,8 +66,9 @@ class DebotModule(private val ctx: Context) {
   }
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Destroys debot handle. Removes handle from Client Context and drops debot engine referenced
-   * by that handle.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Destroys debot handle. Removes handle from Client Context and
+   * drops debot engine referenced by that handle.
+   *
    * @param debot_handle
    *   debot_handle
    */
@@ -73,8 +77,9 @@ class DebotModule(private val ctx: Context) {
   }
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Sends message to Debot. Used by Debot Browser to send response on Dinterface call or from
-   * other Debots.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Sends message to Debot. Used by Debot Browser to send response
+   * on Dinterface call or from other Debots.
+   *
    * @param debot_handle
    *   debot_handle
    * @param message
@@ -88,8 +93,8 @@ class DebotModule(private val ctx: Context) {
   }
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Starts the DeBot. Downloads debot smart contract from blockchain and switches it to context
-   * zero.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Starts the DeBot. Downloads debot smart contract from
+   * blockchain and switches it to context zero.
    *
    * This function must be used by Debot Browser to start a dialog with debot. While the function is executing, several
    * Browser Callbacks can be called, since the debot tries to display all actions from the context 0 to the user.
@@ -97,6 +102,7 @@ class DebotModule(private val ctx: Context) {
    * When the debot starts SDK registers `BrowserCallbacks` AppObject. Therefore when `debote.remove` is called the
    * debot is being deleted and the callback is called with `finish`=`true` which indicates that it will never be used
    * again.
+   *
    * @param debot_handle
    *   debot_handle
    */

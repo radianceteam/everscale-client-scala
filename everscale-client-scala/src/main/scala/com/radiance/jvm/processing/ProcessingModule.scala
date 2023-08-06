@@ -111,7 +111,7 @@ class ProcessingModule(private val ctx: Context) {
    */
   def processMessage(
     message_encode_params: ParamsOfEncodeMessage,
-    send_events: Boolean,
+    send_events: Option[Boolean],
     request: Request
   ): Future[Either[Throwable, ResultOfProcessMessage]] = {
     ctx.execAsyncWithCallback[ParamsOfProcessMessage, ResultOfProcessMessage](
@@ -142,7 +142,7 @@ class ProcessingModule(private val ctx: Context) {
   def sendMessage(
     message: String,
     abi: Option[AbiADT.Abi],
-    send_events: Boolean,
+    send_events: Option[Boolean],
     callback: Request
   ): Future[Either[Throwable, ResultOfSendMessage]] = {
     ctx.execAsyncWithCallback[ParamsOfSendMessage, ResultOfSendMessage](
@@ -208,7 +208,7 @@ class ProcessingModule(private val ctx: Context) {
     abi: Option[AbiADT.Abi],
     message: String,
     shard_block_id: String,
-    send_events: Boolean,
+    send_events: Option[Boolean],
     sending_endpoints: Option[List[String]],
     callback: Request
   ): Future[Either[Throwable, ResultOfProcessMessage]] = {

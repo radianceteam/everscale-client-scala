@@ -160,21 +160,14 @@ object ParamsOfMonitorMessages {
     deriveEncoder[ParamsOfMonitorMessages]
 }
 
-case class ParamsOfProcessMessage(
-  message_encode_params: ParamsOfEncodeMessage,
-  send_events: Boolean
-)
+case class ParamsOfProcessMessage(message_encode_params: ParamsOfEncodeMessage, send_events: Option[Boolean])
 
 object ParamsOfProcessMessage {
   implicit val encoder: Encoder[ParamsOfProcessMessage] =
     deriveEncoder[ParamsOfProcessMessage]
 }
 
-case class ParamsOfSendMessage(
-  message: String,
-  abi: Option[AbiADT.Abi],
-  send_events: Boolean
-)
+case class ParamsOfSendMessage(message: String, abi: Option[AbiADT.Abi], send_events: Option[Boolean])
 
 object ParamsOfSendMessage {
   implicit val encoder: Encoder[ParamsOfSendMessage] =
@@ -192,7 +185,7 @@ case class ParamsOfWaitForTransaction(
   abi: Option[AbiADT.Abi],
   message: String,
   shard_block_id: String,
-  send_events: Boolean,
+  send_events: Option[Boolean],
   sending_endpoints: Option[List[String]]
 )
 

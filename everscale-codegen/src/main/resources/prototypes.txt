@@ -1474,10 +1474,10 @@ package processing {
   case class ParamsOfFetchNextMonitorResults(queue: String, wait_mode: Option[MonitorFetchWaitMode])
   case class ParamsOfGetMonitorInfo(queue: String)
   case class ParamsOfMonitorMessages(queue: String, messages: List[MessageMonitoringParams])
-  case class ParamsOfProcessMessage(message_encode_params: ParamsOfEncodeMessage, send_events: Boolean)
-  case class ParamsOfSendMessage(message: String, abi: Option[Abi], send_events: Boolean)
+  case class ParamsOfProcessMessage(message_encode_params: ParamsOfEncodeMessage, send_events: Option[Boolean])
+  case class ParamsOfSendMessage(message: String, abi: Option[Abi], send_events: Option[Boolean])
   case class ParamsOfSendMessages(messages: List[MessageSendingParams], monitor_queue: Option[String])
-  case class ParamsOfWaitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Boolean, sending_endpoints: Option[List[String]])
+  case class ParamsOfWaitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Option[Boolean], sending_endpoints: Option[List[String]])
   object ProcessingErrorCodeEnum {
     sealed trait ProcessingErrorCode {
       val code: String
@@ -1627,7 +1627,7 @@ package processing {
    * @param send_events send_events
    * @param request request
    */
-  def processMessage(message_encode_params: ParamsOfEncodeMessage, send_events: Boolean, request: Request): Future[Either[Throwable, ResultOfProcessMessage]]
+  def processMessage(message_encode_params: ParamsOfEncodeMessage, send_events: Option[Boolean], request: Request): Future[Either[Throwable, ResultOfProcessMessage]]
   /**
    * Sends message to the network and returns the last generated shard block of the destination account
    * before the message was sent. It will be required later for message processing.
@@ -1645,7 +1645,7 @@ package processing {
    * @param send_events send_events
    * @param callback callback
    */
-  def sendMessage(message: String, abi: Option[Abi], send_events: Boolean, callback: Request): Future[Either[Throwable, ResultOfSendMessage]]
+  def sendMessage(message: String, abi: Option[Abi], send_events: Option[Boolean], callback: Request): Future[Either[Throwable, ResultOfSendMessage]]
   /**
    * Sends specified messages to the blockchain.
    * @param messages messages
@@ -1690,7 +1690,7 @@ package processing {
    * If the message was not delivered (expired), SDK will log the endpoint URLs, used for its sending.
    * @param callback callback
    */
-  def waitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Boolean, sending_endpoints: Option[List[String]], callback: Request): Future[Either[Throwable, ResultOfProcessMessage]]
+  def waitForTransaction(abi: Option[Abi], message: String, shard_block_id: String, send_events: Option[Boolean], sending_endpoints: Option[List[String]], callback: Request): Future[Either[Throwable, ResultOfProcessMessage]]
 }
 package utils {
   object AccountAddressTypeEnum {
@@ -2453,12 +2453,12 @@ package net {
   def waitForCollection(collection: String, filter: Option[Value], result: String, timeout: Option[Long]): Future[Either[Throwable, ResultOfWaitForCollection]]
 }
 package debot {
-  /** [UNSTABLE](UNSTABLE.md) Describes a debot action in a Debot Context. */
+  /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Describes a debot action in a Debot Context. */
   case class DebotAction(description: String, name: String, action_type: Long, to: Long, attributes: String, misc: String)
   object DebotActivityADT {
-    /** [UNSTABLE](UNSTABLE.md) Describes the operation that the DeBot wants to perform. */
+    /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Describes the operation that the DeBot wants to perform. */
     sealed trait DebotActivity
-    /** [UNSTABLE](UNSTABLE.md) Describes the operation that the DeBot wants to perform. */
+    /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Describes the operation that the DeBot wants to perform. */
     case class Transaction(msg: String, dst: String, out: List[Spending], fee: BigInt, setcode: Boolean, signkey: String, signing_box_handle: Long) extends DebotActivity
   }
   object DebotErrorCodeEnum {
@@ -2505,18 +2505,18 @@ package debot {
       override val code: String = "801"
     }
   }
-  /** [UNSTABLE](UNSTABLE.md) Handle of registered in SDK debot */
+  /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Handle of registered in SDK debot */
   case class DebotHandle(value: BigInt) extends AnyVal
-  /** [UNSTABLE](UNSTABLE.md) Describes DeBot metadata. */
+  /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Describes DeBot metadata. */
   case class DebotInfo(name: Option[String], version: Option[String], publisher: Option[String], caption: Option[String], author: Option[String], support: Option[String], hello: Option[String], language: Option[String], dabi: Option[String], icon: Option[String], interfaces: List[String], dabiVersion: String)
   object ParamsOfAppDebotBrowserADT {
     /**
-     * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
+     * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Debot Browser callbacks
      * Called by debot engine to communicate with debot browser.
      */
     sealed trait ParamsOfAppDebotBrowser
     /**
-     * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
+     * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Debot Browser callbacks
      * Called by debot engine to communicate with debot browser.
      */
     case class Approve(activity: DebotActivity) extends ParamsOfAppDebotBrowser
@@ -2526,72 +2526,72 @@ package debot {
      */
     case object GetSigningBox extends ParamsOfAppDebotBrowser
     /**
-     * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
+     * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Debot Browser callbacks
      * Called by debot engine to communicate with debot browser.
      */
     case class Input(prompt: String) extends ParamsOfAppDebotBrowser
     /**
-     * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
+     * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Debot Browser callbacks
      * Called by debot engine to communicate with debot browser.
      */
     case class InvokeDebot(debot_addr: String, action: DebotAction) extends ParamsOfAppDebotBrowser
     /**
-     * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
+     * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Debot Browser callbacks
      * Called by debot engine to communicate with debot browser.
      */
     case class Log(msg: String) extends ParamsOfAppDebotBrowser
     /**
-     * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
+     * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Debot Browser callbacks
      * Called by debot engine to communicate with debot browser.
      */
     case class Send(message: String) extends ParamsOfAppDebotBrowser
     /**
-     * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
+     * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Debot Browser callbacks
      * Called by debot engine to communicate with debot browser.
      */
     case class ShowAction(action: DebotAction) extends ParamsOfAppDebotBrowser
     /**
-     * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks
+     * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Debot Browser callbacks
      * Called by debot engine to communicate with debot browser.
      */
     case class Switch(context_id: Long) extends ParamsOfAppDebotBrowser
     /** Notify browser that all context actions are shown. */
     case object SwitchCompleted extends ParamsOfAppDebotBrowser
   }
-  /** [UNSTABLE](UNSTABLE.md) Parameters for executing debot action. */
+  /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Parameters for executing debot action. */
   case class ParamsOfExecute(debot_handle: DebotHandle, action: DebotAction)
-  /** [UNSTABLE](UNSTABLE.md) Parameters to fetch DeBot metadata. */
+  /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Parameters to fetch DeBot metadata. */
   case class ParamsOfFetch(address: String)
-  /** [UNSTABLE](UNSTABLE.md) Parameters to init DeBot. */
+  /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Parameters to init DeBot. */
   case class ParamsOfInit(address: String)
-  /** [UNSTABLE](UNSTABLE.md) */
+  /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) */
   case class ParamsOfRemove(debot_handle: DebotHandle)
-  /** [UNSTABLE](UNSTABLE.md) Parameters of `send` function. */
+  /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Parameters of `send` function. */
   case class ParamsOfSend(debot_handle: DebotHandle, message: String)
-  /** [UNSTABLE](UNSTABLE.md) Parameters to start DeBot. DeBot must be already initialized with init() function. */
+  /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Parameters to start DeBot. DeBot must be already initialized with init() function. */
   case class ParamsOfStart(debot_handle: DebotHandle)
-  /** [UNSTABLE](UNSTABLE.md) Structure for storing debot handle returned from `init` function. */
+  /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Structure for storing debot handle returned from `init` function. */
   case class RegisteredDebot(debot_handle: DebotHandle, debot_abi: String, info: DebotInfo)
   object ResultOfAppDebotBrowserADT {
-    /** [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks. */
+    /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Returning values from Debot Browser callbacks. */
     sealed trait ResultOfAppDebotBrowser
-    /** [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks. */
+    /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Returning values from Debot Browser callbacks. */
     case class Approve(approved: Boolean) extends ResultOfAppDebotBrowser
-    /** [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks. */
+    /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Returning values from Debot Browser callbacks. */
     case class GetSigningBox(signing_box: SigningBoxHandle) extends ResultOfAppDebotBrowser
-    /** [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks. */
+    /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Returning values from Debot Browser callbacks. */
     case class Input(value: String) extends ResultOfAppDebotBrowser
     /** Result of debot invoking. */
     case object InvokeDebot extends ResultOfAppDebotBrowser
   }
-  /** [UNSTABLE](UNSTABLE.md) */
+  /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) */
   case class ResultOfFetch(info: DebotInfo)
-  /** [UNSTABLE](UNSTABLE.md) Describes how much funds will be debited from the target  contract balance as a result of the transaction. */
+  /** [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Describes how much funds will be debited from the target  contract balance as a result of the transaction. */
   case class Spending(amount: BigInt, dst: String)
 }
 package debot {
   /**
-   * [UNSTABLE](UNSTABLE.md) Executes debot action.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Executes debot action.
    * Calls debot engine referenced by debot handle to execute input action.
    * Calls Debot Browser Callbacks if needed.
    *
@@ -2602,13 +2602,13 @@ package debot {
    */
   def execute(debot_handle: DebotHandle, action: DebotAction): Future[Either[Throwable, Unit]]
   /**
-   * [UNSTABLE](UNSTABLE.md) Fetches DeBot metadata from blockchain.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Fetches DeBot metadata from blockchain.
    * Downloads DeBot from blockchain and creates and fetches its metadata.
    * @param address address
    */
   def fetch(address: String): Future[Either[Throwable, ResultOfFetch]]
   /**
-   * [UNSTABLE](UNSTABLE.md) Creates and instance of DeBot.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Creates and instance of DeBot.
    * Downloads debot smart contract (code and data) from blockchain and creates
    * an instance of Debot Engine for it.
    *
@@ -2619,20 +2619,20 @@ package debot {
    */
   def init(address: String, app_object: ParamsOfAppDebotBrowser => ResultOfAppDebotBrowser): Future[Either[Throwable, RegisteredDebot]]
   /**
-   * [UNSTABLE](UNSTABLE.md) Destroys debot handle.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Destroys debot handle.
    * Removes handle from Client Context and drops debot engine referenced by that handle.
    * @param debot_handle debot_handle
    */
   def remove(debot_handle: DebotHandle): Future[Either[Throwable, Unit]]
   /**
-   * [UNSTABLE](UNSTABLE.md) Sends message to Debot.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Sends message to Debot.
    * Used by Debot Browser to send response on Dinterface call or from other Debots.
    * @param debot_handle debot_handle
    * @param message message
    */
   def send(debot_handle: DebotHandle, message: String): Future[Either[Throwable, Unit]]
   /**
-   * [UNSTABLE](UNSTABLE.md) Starts the DeBot.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Starts the DeBot.
    * Downloads debot smart contract from blockchain and switches it to
    * context zero.
    *
