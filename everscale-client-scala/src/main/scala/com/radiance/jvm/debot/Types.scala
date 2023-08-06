@@ -5,6 +5,9 @@ import io.circe._
 import io.circe.derivation._
 import io.circe.generic.extras
 
+/**
+ * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Describes a debot action in a Debot Context.
+ */
 case class DebotAction(
   description: String,
   name: String,
@@ -21,12 +24,12 @@ object DebotAction {
 object DebotActivityADT {
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Describes the operation that the DeBot wants to perform.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Describes the operation that the DeBot wants to perform.
    */
   sealed trait DebotActivity
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Describes the operation that the DeBot wants to perform.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Describes the operation that the DeBot wants to perform.
    */
   case class Transaction(
     msg: String,
@@ -101,6 +104,9 @@ object DebotErrorCodeEnum {
   }
 }
 
+/**
+ * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Handle of registered in SDK debot
+ */
 case class DebotHandle(value: BigInt) extends AnyVal
 
 object DebotHandle {
@@ -109,7 +115,7 @@ object DebotHandle {
 }
 
 /**
- * [UNSTABLE](UNSTABLE.md) Describes DeBot metadata.
+ * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Describes DeBot metadata.
  */
 case class DebotInfo(
   name: Option[String],
@@ -133,12 +139,14 @@ object DebotInfo {
 object ParamsOfAppDebotBrowserADT {
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Debot Browser callbacks Called by debot engine to communicate
+   * with debot browser.
    */
   sealed trait ParamsOfAppDebotBrowser
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Debot Browser callbacks Called by debot engine to communicate
+   * with debot browser.
    */
   case class Approve(activity: DebotActivityADT.DebotActivity) extends ParamsOfAppDebotBrowser
 
@@ -148,32 +156,38 @@ object ParamsOfAppDebotBrowserADT {
   case object GetSigningBox extends ParamsOfAppDebotBrowser
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Debot Browser callbacks Called by debot engine to communicate
+   * with debot browser.
    */
   case class Input(prompt: String) extends ParamsOfAppDebotBrowser
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Debot Browser callbacks Called by debot engine to communicate
+   * with debot browser.
    */
   case class InvokeDebot(debot_addr: String, action: DebotAction) extends ParamsOfAppDebotBrowser
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Debot Browser callbacks Called by debot engine to communicate
+   * with debot browser.
    */
   case class Log(msg: String) extends ParamsOfAppDebotBrowser
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Debot Browser callbacks Called by debot engine to communicate
+   * with debot browser.
    */
   case class Send(message: String) extends ParamsOfAppDebotBrowser
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Debot Browser callbacks Called by debot engine to communicate
+   * with debot browser.
    */
   case class ShowAction(action: DebotAction) extends ParamsOfAppDebotBrowser
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Debot Browser callbacks Called by debot engine to communicate with debot browser.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Debot Browser callbacks Called by debot engine to communicate
+   * with debot browser.
    */
   case class Switch(context_id: Long) extends ParamsOfAppDebotBrowser
 
@@ -188,7 +202,7 @@ object ParamsOfAppDebotBrowserADT {
 }
 
 /**
- * [UNSTABLE](UNSTABLE.md) Parameters for executing debot action.
+ * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Parameters for executing debot action.
  */
 case class ParamsOfExecute(debot_handle: DebotHandle, action: DebotAction)
 
@@ -198,7 +212,7 @@ object ParamsOfExecute {
 }
 
 /**
- * [UNSTABLE](UNSTABLE.md) Parameters to fetch DeBot metadata.
+ * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Parameters to fetch DeBot metadata.
  */
 case class ParamsOfFetch(address: String)
 
@@ -208,17 +222,17 @@ object ParamsOfFetch {
 }
 
 /**
- * [UNSTABLE](UNSTABLE.md) Parameters to init DeBot.
+ * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Parameters to init DeBot.
  */
 case class ParamsOfInit(address: String)
 
 /**
- * [UNSTABLE](UNSTABLE.md)
+ * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md)
  */
 case class ParamsOfRemove(debot_handle: DebotHandle)
 
 /**
- * [UNSTABLE](UNSTABLE.md) Parameters of `send` function.
+ * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Parameters of `send` function.
  */
 case class ParamsOfSend(debot_handle: DebotHandle, message: String)
 
@@ -228,7 +242,8 @@ object ParamsOfSend {
 }
 
 /**
- * [UNSTABLE](UNSTABLE.md) Parameters to start DeBot. DeBot must be already initialized with init() function.
+ * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Parameters to start DeBot. DeBot must be already initialized with
+ * init() function.
  */
 case class ParamsOfStart(debot_handle: DebotHandle)
 
@@ -238,7 +253,7 @@ object ParamsOfStart {
 }
 
 /**
- * [UNSTABLE](UNSTABLE.md) Structure for storing debot handle returned from `init` function.
+ * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Structure for storing debot handle returned from `init` function.
  */
 case class RegisteredDebot(debot_handle: DebotHandle, debot_abi: String, info: DebotInfo)
 
@@ -250,22 +265,22 @@ object RegisteredDebot {
 object ResultOfAppDebotBrowserADT {
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Returning values from Debot Browser callbacks.
    */
   sealed trait ResultOfAppDebotBrowser
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Returning values from Debot Browser callbacks.
    */
   case class Approve(approved: Boolean) extends ResultOfAppDebotBrowser
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Returning values from Debot Browser callbacks.
    */
   case class GetSigningBox(signing_box: SigningBoxHandle) extends ResultOfAppDebotBrowser
 
   /**
-   * [UNSTABLE](UNSTABLE.md) Returning values from Debot Browser callbacks.
+   * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Returning values from Debot Browser callbacks.
    */
   case class Input(value: String) extends ResultOfAppDebotBrowser
 
@@ -280,7 +295,7 @@ object ResultOfAppDebotBrowserADT {
 }
 
 /**
- * [UNSTABLE](UNSTABLE.md)
+ * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md)
  */
 case class ResultOfFetch(info: DebotInfo)
 
@@ -290,8 +305,8 @@ object ResultOfFetch {
 }
 
 /**
- * [UNSTABLE](UNSTABLE.md) Describes how much funds will be debited from the target contract balance as a result of the
- * transaction.
+ * [UNSTABLE](UNSTABLE.md) [DEPRECATED](DEPRECATED.md) Describes how much funds will be debited from the target contract
+ * balance as a result of the transaction.
  */
 case class Spending(amount: BigInt, dst: String)
 
